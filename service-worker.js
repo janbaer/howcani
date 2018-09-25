@@ -2,7 +2,7 @@
 
 importScripts('./scripts/sw-toolbox.js');
 
-const APP_CACHE_NAME = 'howcani-cache-v8';
+const APP_CACHE_NAME = 'howcani-cache-v9';
 const GITHUB_CACHE_NAME = 'github-cache';
 
 const filesToCache = [
