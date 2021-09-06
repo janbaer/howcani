@@ -1,26 +1,26 @@
 import { writable } from 'svelte/store';
+
 import QuestionsService from './../services/questions.service';
 import GithubService from './../services/github.service';
 import SearchQueryBuilderService from './../services/search-query-builder.service';
 
 let questions = [];
-let page = 0;
-let totalCount = 0;
 let hasMoreData = true;
 let loading = false;
 
-const QUESTIONS_PER_PAGE = 30;
+const QUESTIONS_PER_PAGE = 10;
 
 export const questionsStore = writable({
   questions,
-  page,
-  totalCount,
+  page: 1,
   hasMoreData,
+  loading,
 });
 
-export async function loadQuestions(config, searchQuery) {
+export async function loadQuestions(config, searchQuery, page) {
   const { user, repository, oauthToken } = config;
 
+  // console.log('loadQuestions', loading, hasMoreData);
   if (loading || !hasMoreData) {
     return;
   }
@@ -29,9 +29,6 @@ export async function loadQuestions(config, searchQuery) {
   questionsStore.update((current) => {
     return { ...current, loading };
   });
-
-  page = page + 1;
-  console.log('loading', page);
 
   const githubService = new GithubService(user, repository, oauthToken);
   const searchQueryBuilderService = new SearchQueryBuilderService(user, repository);
@@ -46,5 +43,7 @@ export async function loadQuestions(config, searchQuery) {
   loading = false;
   hasMoreData = questionsResponse.questions.length > 0;
   questions = [...questions, ...questionsResponse.questions];
-  questionsStore.set({ questions, page, totalCount, hasMoreData });
+
+  // console.log('loading-done', page, totalCount, questionsResponse.questions.length, hasMoreData);
+  questionsStore.set({ questions, page, hasMoreData });
 }

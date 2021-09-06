@@ -1,37 +1,53 @@
 <script>
   import Router from 'svelte-spa-router';
-  import Home from './pages/home.svelte';
+  import Questions from './pages/questions/index.svelte';
   import Connect from './pages/connect.svelte';
 
   let year = new Date().getFullYear();
 
   const routes = {
-    '/': Home,
+    '/': Questions,
     '/connect': Connect,
   };
 </script>
 
-<header />
 <main>
   <Router {routes} />
+  <footer>
+    <span><strong>HowCanI</strong> - Copyright {year} by Jan Baer</span>
+  </footer>
 </main>
-<footer>
-  <span><strong>HowCanI</strong> - Copyright {year} by Jan Baer</span>
-</footer>
 
 <style>
-  header {
-    grid-area: toolbar;
-    @apply bg-blue-500 text-white;
+  main {
+    height: 100vh;
+    display: grid;
+
+    grid-template-rows: 40px 1fr 30px;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'content'
+      'footer';
   }
 
-  main {
-    grid-area: content;
-    @apply overflow-hidden;
+  @media (min-width: 1024px) {
+    main {
+      grid-template-rows: 40px 1fr 30px;
+      grid-template-columns: var(--sidebar-width) 1fr;
+      grid-template-areas:
+        'sidebar header'
+        'sidebar content'
+        'footer footer';
+    }
   }
 
   footer {
     grid-area: footer;
-    @apply bg-blue-500 text-white flex justify-center items-center;
+    background-color: var(--main-bg-color);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 </style>

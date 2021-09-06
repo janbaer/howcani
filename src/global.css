@@ -2,22 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply h-screen;
+:root {
+  --main-bg-color: #1e87f0;
+
+  --header-height: 40px;
+  --footer-height: 30px;
+
+  --content-height: calc(100vh - var(--header-height) - var(--footer-height));
+  --sidebar-width: 250px;
+  --min-width-tablet: 1024px;
+}
+
+
+@media (min-width: 1024px) {
+  :root {
+    --content-height: calc(100vh - var(--footer-height));
   }
 }
 
-.label {
+@layer base {
+  body {
+  }
+}
+
+label {
   @apply italic;
 }
 
 #app {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: 55px 1fr 30px;
-  grid-template-areas: 
-    "toolbar"
-    "content"
-    "footer";
 }
