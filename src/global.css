@@ -31,3 +31,7 @@ label {
 
 #app {
 }
+
+.SvgImage {
+  display: inline-block;
+}

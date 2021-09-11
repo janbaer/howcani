@@ -1,13 +1,19 @@
 <script>
   import marked from 'marked';
   import { createEventDispatcher } from 'svelte';
+  import ModalDialog from '/@/components/modal/modal.svelte';
+  import Tag from '/@/assets/svg/tag.svg?component';
 
   export let question;
 
-  const dispatchEvent = createEventDispatcher();
+  let isModalActive = false;
 
   function showQuestionModal() {
-    dispatchEvent('showQuestionModal', question);
+    isModalActive = true;
+  }
+
+  function closeModalQuestion({ detail: isCancelled }) {
+    isModalActive = false;
   }
 </script>
 
@@ -21,12 +27,20 @@
   </div>
   <div class="Question-footer">
     <div>
+      <Tag class="SvgImage" />
       {#each question.labels as label}
         <span class="Question-label" style="color: #{label.color}">{label.name}</span>
       {/each}
     </div>
   </div>
 </div>
+
+{#if isModalActive}
+  <ModalDialog isActive={isModalActive} on:close={closeModalQuestion}>
+    <p class="text-2xl font-bold" slot="header">{question.title}</p>
+    <div slot="content">Hello modal</div>
+  </ModalDialog>
+{/if}
 
 <style>
   .Question-card {

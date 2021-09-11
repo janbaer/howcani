@@ -1,8 +1,11 @@
 <script>
-  import { isEscKey } from './../utils.js';
   import { createEventDispatcher } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { isEscKey } from './../utils.js';
+  import CloseSvg from '/@/assets/svg/x.svg?component';
 
   export let isActive = false;
+  export let width = '80%';
 
   const dispatchEvent = createEventDispatcher();
 
@@ -13,7 +16,7 @@
   }
 
   function closeModal(isCancelled = false) {
-    dispatchEvent('close', { isCancelled });
+    dispatchEvent('close', isCancelled);
   }
 </script>
 
@@ -26,7 +29,9 @@
   style="background: rgba(0,0,0,.7);"
 >
   <div
-    class="border border-teal-500 shadow-lg modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto"
+    class="border border-teal-500 shadow-lg modal-container bg-white w-11/12 mx-auto rounded shadow-lg z-50 overflow-y-auto"
+    style="max-width: {width};"
+    transition:fade={{ delay: 150, duration: 200 }}
   >
     <div class="modal-content py-4 text-left px-6">
       <!--Title-->
@@ -37,17 +42,7 @@
           </slot>
         </div>
         <div class="modal-close cursor-pointer z-50" on:click={() => closeModal(true)}>
-          <svg
-            class="fill-current text-black"
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-          >
-            <path
-              d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"
-            />
-          </svg>
+          <CloseSvg />
         </div>
       </div>
       <!--Body-->
@@ -62,9 +57,15 @@
         >
         <button
           class="focus:outline-none px-4 bg-blue-500 p-3 ml-3 rounded-lg text-white hover:bg-teal-400"
-          on:click={() => closeModal(false)}>Confirm</button
+          on:click={() => closeModal(false)}>OK</button
         >
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  button {
+    width: 100px;
+  }
+</style>

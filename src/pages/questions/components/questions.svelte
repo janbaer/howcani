@@ -3,33 +3,18 @@
   import viewport from '/@/actions/view-port.action.js';
   import Question from './question.svelte';
   import Spinner from '/@/components/spinner.svelte';
-  import ModalDialog from '/@/components/modal/modal.svelte';
 
   export let questions = [];
   export let loading = false;
   export let hasMoreData = false;
 
   const dispatchEvent = createEventDispatcher();
-
-  let isModalActive = false;
-
-  let modalQuestion = null;
-
-  function showQuestionModal({ detail: question }) {
-    modalQuestion = question;
-    isModalActive = true;
-  }
-
-  function closeModalQuestion() {
-    isModalActive = false;
-    modalQuestion = null;
-  }
 </script>
 
 <div class="Questions-container">
   {#each questions as question (question.id)}
     <div class="Question-container">
-      <Question {question} on:showQuestionModal={showQuestionModal} />
+      <Question {question} />
     </div>
   {/each}
   {#if hasMoreData}
@@ -40,13 +25,6 @@
     </div>
   {/if}
 </div>
-
-{#if modalQuestion}
-  <ModalDialog isActive={isModalActive} on:close={closeModalQuestion}>
-    <p class="text-2xl font-bold" slot="header">{modalQuestion.title}</p>
-    <div slot="content">Hello modal</div>
-  </ModalDialog>
-{/if}
 
 <style>
   .Questions-container {
