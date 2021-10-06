@@ -58,7 +58,7 @@
   <slot name="content" />
 </div>
 
-<style>
+<style type="postcss">
   .Header-container {
     grid-area: header;
     background-color: var(--main-bg-color);

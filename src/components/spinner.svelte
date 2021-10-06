@@ -2,7 +2,7 @@
   <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16" />
 </div>
 
-<style>
+<style type="postcss">
   .loader {
     border-top-color: #3498db;
     -webkit-animation: spinner 1.5s linear infinite;

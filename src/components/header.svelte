@@ -50,7 +50,7 @@
   </svg>
 </button>
 
-<style>
+<style type="postcss">
   .Sidebar-button {
     @apply focus:outline-none text-white w-6 h-6 lg:hidden;
   }

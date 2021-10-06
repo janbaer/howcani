@@ -20,7 +20,6 @@ export const questionsStore = writable({
 export async function loadQuestions(config, searchQuery, page) {
   const { user, repository, oauthToken } = config;
 
-  // console.log('loadQuestions', loading, hasMoreData);
   if (loading || !hasMoreData) {
     return;
   }

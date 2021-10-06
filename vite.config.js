@@ -11,9 +11,6 @@ export default defineConfig({
     }),
     svelte({
       preprocess: sveltePreprocess({
-        defaults: {
-          style: 'postcss'
-        },
         postcss: true
       })
     })

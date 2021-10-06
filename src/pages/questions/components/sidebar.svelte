@@ -26,7 +26,7 @@
   <Labels {labels} on:labelSelectionChanged={changeLabelFilter} />
 </div>
 
-<style>
+<style type="postcss">
   .SearchInput-container {
     display: flex;
   }

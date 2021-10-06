@@ -1,24 +1,28 @@
 <script>
   import marked from 'marked';
-  import { createEventDispatcher } from 'svelte';
-  import ModalDialog from '/@/components/modal/modal.svelte';
-  import Tag from '/@/assets/svg/tag.svg?component';
+  import 'github-markdown-css/github-markdown.css';
+
+  import TagSvg from '/@/assets/svg/tag.svg?component';
+  import QuestionDetails from './details/question-details.svelte';
 
   export let question;
 
-  let isModalActive = false;
+  let isQuestionDetailsShown = false;
 
-  function showQuestionModal() {
-    isModalActive = true;
+  function showQuestionDetailsDialog() {
+    isQuestionDetailsShown = true;
   }
 
-  function closeModalQuestion({ detail: isCancelled }) {
-    isModalActive = false;
+  function onCloseQuestionDetails({ detail: isCancelled }) {
+    isQuestionDetailsShown = false;
+    if (isCancelled) {
+      return;
+    }
   }
 </script>
 
 <div class="Question-card">
-  <div class="Question-header" on:click={showQuestionModal}>
+  <div class="Question-header" on:click={showQuestionDetailsDialog}>
     <h2>{question.title}</h2>
   </div>
   <hr />
@@ -27,7 +31,7 @@
   </div>
   <div class="Question-footer">
     <div>
-      <Tag class="SvgImage" />
+      <TagSvg class="SvgImage" />
       {#each question.labels as label}
         <span class="Question-label" style="color: #{label.color}">{label.name}</span>
       {/each}
@@ -35,22 +39,23 @@
   </div>
 </div>
 
-{#if isModalActive}
-  <ModalDialog isActive={isModalActive} on:close={closeModalQuestion}>
-    <p class="text-2xl font-bold" slot="header">{question.title}</p>
-    <div slot="content">Hello modal</div>
-  </ModalDialog>
+{#if isQuestionDetailsShown}
+  <QuestionDetails
+    question={{ ...question }}
+    isActive={isQuestionDetailsShown}
+    on:closeQuestionDetails={onCloseQuestionDetails}
+  />
 {/if}
 
-<style>
+<style type="postcss">
   .Question-card {
-    @apply border border-gray-200 p-6 rounded-lg shadow-md;
+    @apply border border-gray-200 p-4 rounded-lg shadow-md;
   }
   .Question-header {
-    @apply m-4 cursor-pointer;
+    @apply cursor-pointer;
   }
   h2 {
-    @apply font-normal leading-normal mt-0 mb-2 text-purple-800;
+    @apply font-normal leading-normal mt-0 mb-2 text-blue-800;
   }
   .Question-body {
     @apply py-2;

@@ -26,9 +26,9 @@
   {/if}
 </div>
 
-<style>
+<style type="postcss">
   .Questions-container {
-    columns: 20rem auto;
+    columns: 25rem auto;
     padding: 10px;
   }
 

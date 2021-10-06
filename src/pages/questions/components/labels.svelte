@@ -13,7 +13,7 @@
   </ul>
 </div>
 
-<style>
+<style type="postcss">
   .Labels-container {
     @apply p-4 bg-gray-50;
     overflow-y: auto;

@@ -43,7 +43,7 @@
   />
 </div>
 
-<style>
+<style type="postcss">
   .SearchInput-container {
     @apply flex relative text-gray-600 focus-within:text-gray-400 m-2;
   }

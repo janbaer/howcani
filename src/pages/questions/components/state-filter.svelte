@@ -24,7 +24,7 @@
   </label>
 </div>
 
-<style>
+<style type="postcss">
   .Option-container {
     display: flex;
     justify-content: space-around;
