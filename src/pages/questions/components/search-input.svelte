@@ -4,12 +4,6 @@
 
   const dispatchEvent = createEventDispatcher();
 
-  function handleKeypress(event) {
-    if (event.key === 'Enter') {
-      startSearch();
-    }
-  }
-
   function startSearch() {
     dispatchEvent('startSearch', searchTerm);
   }
@@ -36,10 +30,10 @@
   <input
     type="search"
     name="search"
-    placeholder="Search..."
-    on:keypress={handleKeypress}
-    bind:value={searchTerm}
     autocomplete="off"
+    placeholder="Search..."
+    on:change={startSearch}
+    bind:value={searchTerm}
   />
 </div>
 

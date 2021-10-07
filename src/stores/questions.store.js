@@ -15,15 +15,24 @@ export const questionsStore = writable({
   page: 1,
   hasMoreData,
   loading,
+  searchQuery: {
+    query: '',
+    state: 'all',
+    labels: [],
+  },
 });
 
-export async function loadQuestions(config, searchQuery, page) {
-  const { user, repository, oauthToken } = config;
-
-  if (loading || !hasMoreData) {
+export async function loadQuestions(config, searchQuery = {}, page = 1) {
+  if (page === 1) {
+    questions = [];
+  } else if (!hasMoreData) {
+    loading = false;
+    return;
+  } else if (loading) {
     return;
   }
 
+  const { user, repository, oauthToken } = config;
   loading = true;
   questionsStore.update((current) => {
     return { ...current, loading };

@@ -12,7 +12,6 @@
   import Sidebar from './components/sidebar.svelte';
 
   let config;
-  let searchQuery = {};
 
   onMount(() => {
     config = get(configStore);
@@ -22,23 +21,27 @@
       return;
     }
 
-    loadQuestions(config, searchQuery, 1);
+    loadQuestions(config);
     loadLabels(config);
   });
 
   function loadMoreQuestions() {
-    const { page } = get(questionsStore);
+    const { page, searchQuery } = get(questionsStore);
     loadQuestions(config, searchQuery, page + 1);
   }
-</script>
 
-{#if config}
-  <Page>
-    <Sidebar slot="sidebar" labels={$labelsStore} />
-    <Questions slot="content" {...$questionsStore} on:loadMore={loadMoreQuestions} />
-  </Page>
-{/if}
+  function onSearchQueryChanged({ detail: searchQuery }) {
+    loadQuestions(config, searchQuery, 1);
+  }
+</script>
 
 <svelte:head>
   <title>HowCanI Home</title>
 </svelte:head>
+
+{#if config}
+  <Page>
+    <Sidebar slot="sidebar" labels={$labelsStore} on:searchQueryChanged={onSearchQueryChanged} />
+    <Questions slot="content" {...$questionsStore} on:loadMore={loadMoreQuestions} />
+  </Page>
+{/if}

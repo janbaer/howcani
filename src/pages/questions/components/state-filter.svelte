@@ -5,7 +5,7 @@
   const dispatchEvent = createEventDispatcher();
 
   $: {
-    dispatchEvent('filterChanged', filter);
+    dispatchEvent('stateFilterChanged', filter);
   }
 </script>
 

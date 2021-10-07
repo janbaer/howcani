@@ -1,13 +1,32 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
+
   import Label from './label.svelte';
   export let labels = [];
+  export let selectedLabelsSet = new Set([]);
+
+  const dispatchEvent = createEventDispatcher();
+
+  function onLabelSelectionChanged({ detail: label }) {
+    if (label.checked) {
+      selectedLabelsSet.add(label.name);
+    } else {
+      selectedLabelsSet.delete(label.name);
+    }
+    dispatchEvent('labelSelectionChanged', [...selectedLabelsSet]);
+  }
 </script>
 
 <div class="Labels-container">
   <ul>
     {#each labels as label}
       <li>
-        <Label name={label.name} color={label.color} checked={false} on:labelSelectionChanged />
+        <Label
+          name={label.name}
+          color={label.color}
+          checked={false}
+          on:labelSelectionChanged={onLabelSelectionChanged}
+        />
       </li>
     {/each}
   </ul>
