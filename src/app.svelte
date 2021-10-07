@@ -1,7 +1,7 @@
 <script>
   import Router from 'svelte-spa-router';
   import Questions from './pages/questions/index.svelte';
-  import Connect from './pages/connect.svelte';
+  import Connect from './pages/connect/index.svelte';
 
   let year = new Date().getFullYear();
 

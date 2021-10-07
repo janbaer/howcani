@@ -1,10 +1,9 @@
 <script>
   import { push as navigate } from 'svelte-spa-router';
 
-  import { configStore } from './../stores/config.store';
-  import GithubService from './../services/github.service.js';
+  import { configStore } from '/@/stores/config.store';
+  import GithubService from '/@/services/github.service.js';
   import FormInput from '/@/components/form-input.svelte';
-
   import Page from '/@/components/page.svelte';
 
   let user = '';

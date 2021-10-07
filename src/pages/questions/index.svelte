@@ -9,7 +9,7 @@
 
   import Page from './../../components/page.svelte';
   import Questions from './components/questions.svelte';
-  import Sidebar from './components/sidebar.svelte';
+  import Sidebar from './components/sidebar/sidebar.svelte';
 
   let config;
 
