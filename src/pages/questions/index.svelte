@@ -21,7 +21,8 @@
       return;
     }
 
-    loadQuestions(config);
+    const { searchQuery } = get(questionsStore);
+    loadQuestions(config, searchQuery, 1);
     loadLabels(config);
   });
 

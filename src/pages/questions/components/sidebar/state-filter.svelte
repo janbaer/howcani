@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  export let filter = 'all';
+  export let filter = '';
 
   const dispatchEvent = createEventDispatcher();
 
@@ -11,7 +11,7 @@
 
 <div class="Option-container">
   <label>
-    <input type="radio" bind:group={filter} name="filter" value={'all'} />
+    <input type="radio" bind:group={filter} name="filter" value={''} />
     All
   </label>
   <label>
