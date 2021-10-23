@@ -3,13 +3,22 @@
   export let name;
   export let value;
   export let isValid = true;
+  export let readonly = false;
 </script>
 
 <div class="form-input-container">
   <label for={name} class="form-label" class:form-label-error={!isValid}>
     {caption}:
   </label>
-  <input {name} class="form-input" class:form-input-error={!isValid} type="text" bind:value />
+  <input
+    {name}
+    class="form-input"
+    class:form-input-error={!isValid}
+    class:form-input-readonly={readonly}
+    type="text"
+    {readonly}
+    bind:value
+  />
 </div>
 
 <style type="postcss">
@@ -31,5 +40,9 @@
   }
   .form-input-error {
     @apply border-red-400;
+  }
+
+  .form-input-readonly {
+    @apply bg-gray-100;
   }
 </style>

@@ -1,45 +1,39 @@
 <script>
+  import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import { push as navigate } from 'svelte-spa-router';
 
   import { configStore } from '/@/stores/config.store';
   import GithubService from '/@/services/github.service.js';
-  import FormInput from '/@/components/form-input.svelte';
   import Page from '/@/components/page.svelte';
 
-  let user = '';
-  let repository = '';
-  let isUserValid = true;
-  let isRepositoryValid = true;
+  import Login from './components/login.svelte';
+  import RepositorySelection from './components/repository-selection.svelte';
 
-  async function handleSubmit() {
-    isUserValid = !!user;
-    isRepositoryValid = !!repository;
+  import { querystring as queryStringStore } from 'svelte-spa-router';
 
-    if (isUserValid) {
-      const githubService = new GithubService();
-      const githubUser = await githubService.getUser(user);
-      if (!githubUser) {
-        isUserValid = false;
-        isRepositoryValid = false;
-        return;
-      }
+  let mustLogin = false;
 
-      const githubRepository = await githubService.getRepository(user, repository);
-      if (!githubRepository) {
-        isRepositoryValid = false;
-        return;
+  let config;
+
+  onMount(() => {
+    const querystring = get(queryStringStore);
+    if (querystring) {
+      const searchParams = new URLSearchParams(querystring);
+      if (searchParams.get('token')) {
+        configStore.update((config) => {
+          config.oauthToken = searchParams.get('token');
+          return config;
+        });
+        navigate('/connect');
       }
     }
 
-    if (isUserValid && isRepositoryValid) {
-      configStore.update((config) => {
-        config.user = user;
-        config.repository = repository;
-        return config;
-      });
-      navigate('/');
+    config = get(configStore);
+    if (!config.oauthToken) {
+      mustLogin = true;
     }
-  }
+  });
 </script>
 
 <svelte:head>
@@ -48,35 +42,10 @@
 
 <Page>
   <section slot="content" class="form-container">
-    <form class="form" on:submit|preventDefault={handleSubmit}>
-      <h2 class="form-header title-font">Connect to GitHub repository</h2>
-      <p class="form-help-text">Please enter your GitHub user name and repository</p>
-      <FormInput name="name" caption="Name" isValid={isUserValid} bind:value={user} />
-      <FormInput
-        name="repository"
-        caption="Repository"
-        isValid={isRepositoryValid}
-        bind:value={repository}
-      />
-      <button class="form-primary-button" type="submit">Connect</button>
-    </form>
+    {#if mustLogin}
+      <Login />
+    {:else}
+      <RepositorySelection />
+    {/if}
   </section>
 </Page>
-
-<style type="postcss">
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    @apply bg-white sm:w-full lg:w-6/12 p-6 rounded-xl;
-  }
-  .form-header {
-    @apply text-2xl text-gray-900 text-lg mb-1 font-medium;
-  }
-  .form-help-text {
-    @apply leading-relaxed mb-4 text-gray-600 text-base font-normal;
-  }
-  .form-primary-button {
-    @apply text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg;
-  }
-</style>

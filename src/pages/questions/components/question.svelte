@@ -1,9 +1,12 @@
 <script>
+  import { get } from 'svelte/store';
   import marked from 'marked';
   import 'github-markdown-css/github-markdown.css';
 
   import TagSvg from '/@/assets/svg/tag.svg?component';
   import QuestionDetails from './details/question-details.svelte';
+  import { configStore } from '/@/stores/config.store.js';
+  import { updateQuestion } from '/@/stores/questions.store.js';
 
   export let question;
 
@@ -13,11 +16,16 @@
     isQuestionDetailsShown = true;
   }
 
-  function onCloseQuestionDetails({ detail: isCancelled }) {
+  function onCloseQuestionDetails({ detail }) {
     isQuestionDetailsShown = false;
+    const { isCancelled, question } = detail;
     if (isCancelled) {
       return;
     }
+
+    const config = get(configStore);
+    updateQuestion(config, question);
+    console.log('onClose', question);
   }
 </script>
 

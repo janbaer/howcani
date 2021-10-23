@@ -1,27 +1,8 @@
 <script>
-  import CheckSvg from '/@/assets/svg/check.svg?component';
-  import EditSvg from '/@/assets/svg/edit.svg?component';
-
-  export let title = '';
-  let editMode = false;
-
-  function toggleEditMode() {
-    editMode = !editMode;
-  }
 </script>
 
 <div class="QuestionTitle-container">
-  {#if editMode}
-    <input name="title" type="text" bind:value={title} class="form-input" />
-    <button on:click={toggleEditMode}>
-      <CheckSvg fill="green" class="SvgImage" />
-    </button>
-  {:else}
-    <h2 class="text-2xl font-bold">{title}</h2>
-    <button on:click={toggleEditMode}>
-      <EditSvg class="SvgImage" />
-    </button>
-  {/if}
+  <input name="title" type="text" bind:value={title} class="form-input" />
 </div>
 
 <style type="postcss">

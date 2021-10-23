@@ -1,4 +1,5 @@
 import UnauthorizedError from './unauthorized-error';
+import { StatusCodes } from 'http-status-codes';
 
 const GITHUB_ROOT_URL = 'https://api.github.com';
 
@@ -45,33 +46,44 @@ export default class GithubService {
     };
   }
 
-  async _fetch(path, queryString) {
-    const requestOptions = this._buildRequestOptions(this.oauthToken);
-
+  async _fetch(path, requestOptions) {
     let url = `${GITHUB_ROOT_URL}${path}`;
-    if (queryString) {
-      url += `?${queryString}`;
-    }
-
     const response = await fetch(url, requestOptions);
     switch (response.status) {
-      case 200:
-      case 201:
+      case StatusCodes.OK:
+      case StatusCodes.CREATED:
         return response.json();
-      case 401:
+      case StatusCodes.UNAUTHORIZED:
         throw new UnauthorizedError();
       default:
         throw new Error(`Unexpected error with status code ${response.status}`);
     }
   }
 
+  _get(path) {
+    const requestOptions = this._buildRequestOptions(this.oauthToken, 'GET');
+    return this._fetch(path, requestOptions);
+  }
+
+  _patch(path, body) {
+    const requestOptions = this._buildRequestOptions(this.oauthToken, 'PATCH');
+    requestOptions.body = JSON.stringify(body);
+    return this._fetch(path, requestOptions);
+  }
+
+  _post(path, body) {
+    const requestOptions = this._buildRequestOptions(this.oauthToken, 'POST');
+    requestOptions.body = JSON.stringify(body);
+    return this._fetch(path, requestOptions);
+  }
+
   getLabels() {
-    return this._fetch(`/repos/${this.user}/${this.repository}/labels`);
+    return this._get(`/repos/${this.user}/${this.repository}/labels`);
   }
 
   async getUser(username) {
     try {
-      const user = await this._fetch(`/users/${username}`);
+      const user = await this._get(`/users/${username}`);
       return user;
     } catch (err) {
       console.error(`Github user ${username} does not exist`);
@@ -79,9 +91,29 @@ export default class GithubService {
     }
   }
 
-  getRepository(username, repositoryName) {
+  async getAuthenticatedUser(oauthToken) {
+    this.oauthToken = oauthToken;
+    const user = await this._get('/user');
+    if (user) {
+      const { avatar_url, email, login, name } = user; // eslint-disable-line camelcase
+      return {
+        avatarUrl: avatar_url,
+        email,
+        loginName: login,
+        userName: name,
+      };
+    }
+    return undefined;
+  }
+
+  getUserRepositories(oauthToken) {
+    this.oauthToken = oauthToken;
+    return this._get('/user/repos?per_page=100');
+  }
+
+  async getRepository(username, repositoryName) {
     try {
-      const repository = this._fetch(`/repos/${username}/${repositoryName}`);
+      const repository = await this._get(`/repos/${username}/${repositoryName}`);
       return repository;
     } catch (err) {
       console.error(`Github repository ${repositoryname} for user ${username} does not exist`);
@@ -91,8 +123,15 @@ export default class GithubService {
 
   async searchIssues(searchString, page, perPage) {
     const queryString = this._buildQueryString(searchString, page, perPage);
-    const issues = await this._fetch(`/search/issues`, queryString);
-
+    const issues = await this._get(`/search/issues?${queryString}`);
     return issues;
+  }
+
+  postIssue(issue) {
+    return this._post(`/repos/${this.user}/${this.repository}`, issue);
+  }
+
+  patchIssue(issueNumber, patch) {
+    return this._patch(`/repos/${this.user}/${this.repository}/issues/${issueNumber}`, patch);
   }
 }
