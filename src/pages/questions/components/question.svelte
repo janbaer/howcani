@@ -25,7 +25,6 @@
 
     const config = get(configStore);
     updateQuestion(config, question);
-    console.log('onClose', question);
   }
 </script>
 

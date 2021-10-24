@@ -7,7 +7,10 @@
   import { loadQuestions, questionsStore } from '/@/stores/questions.store.js';
   import { loadLabels, labelsStore } from '/@/stores/labels.store.js';
 
-  import Page from './../../components/page.svelte';
+  import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
+
+  import Page from '/@/components/page.svelte';
+  import Header from './components/header.svelte';
   import Questions from './components/questions.svelte';
   import Sidebar from './components/sidebar/sidebar.svelte';
 
@@ -34,6 +37,16 @@
   function onSearchQueryChanged({ detail: searchQuery }) {
     loadQuestions(config, searchQuery, 1);
   }
+
+  function toggleSidebar() {
+    toggleSidebarStore.update((isToggled) => {
+      return !isToggled;
+    });
+  }
+
+  function addQuestion() {
+    console.log('addQuestion');
+  }
 </script>
 
 <svelte:head>
@@ -42,6 +55,7 @@
 
 {#if config}
   <Page>
+    <Header slot="header" on:toggleSidebar={toggleSidebar} on:addDocument={addQuestion} />
     <Sidebar slot="sidebar" labels={$labelsStore} on:searchQueryChanged={onSearchQueryChanged} />
     <Questions slot="content" {...$questionsStore} on:loadMore={loadMoreQuestions} />
   </Page>

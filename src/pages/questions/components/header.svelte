@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { push as navigate } from 'svelte-spa-router';
+  import AddSvg from '/@/assets/svg/add.svg?component';
 
   const dispatchEvent = createEventDispatcher();
 
@@ -11,8 +12,15 @@
   function gotoConnectPage() {
     navigate('/connect');
   }
+
+  function addDocument() {
+    dispatchEvent('addDocument');
+  }
 </script>
 
+<button class="Header-button" on:click={addDocument}>
+  <AddSvg />
+</button>
 <button class="Header-button" on:click={gotoConnectPage}>
   <svg
     xmlns="http://www.w3.org/2000/svg"

@@ -1,29 +1,23 @@
 <script>
   import { fly } from 'svelte/transition';
   import { quintOut } from 'svelte/easing';
-  import Header from '/@/components/header.svelte';
-
-  let showSidebar = false;
-
-  function toggleSidebar() {
-    showSidebar = !showSidebar;
-  }
+  import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
 
   const resizeObserver = new ResizeObserver((entries) => {
     if (window.innerWidth >= 1024) {
-      showSidebar = true;
+      toggleSidebarStore.set(true);
     } else {
-      showSidebar = false;
+      toggleSidebarStore.set(false);
     }
   });
   resizeObserver.observe(document.scrollingElement);
 </script>
 
 <header class="Header-container">
-  <Header on:toggleSidebar={toggleSidebar} />
+  <slot name="header" />
 </header>
 
-{#if showSidebar}
+{#if $toggleSidebarStore}
   <div
     class="Sidebar-container"
     transition:fly={{ delay: 50, duration: 400, x: -230, y: 0, opacity: 0.5, easing: quintOut }}
