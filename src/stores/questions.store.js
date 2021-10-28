@@ -60,7 +60,18 @@ export async function loadQuestions(config, searchQuery, page) {
   questionsStore.set({ questions, searchQuery, page, hasMoreData, loading });
 }
 
-export function createQuestion(config, question) {}
+export async function createQuestion(config, question) {
+  const { user, repository, oauthToken } = config;
+  const githubService = new GithubService(user, repository, oauthToken);
+  const questionService = new QuestionService(githubService);
+
+  const newQuestion = await questionService.createQuestion(question);
+
+  questionsStore.update((current) => {
+    const questions = [newQuestion, ...current.questions];
+    return { ...current, questions };
+  });
+}
 
 export async function updateQuestion(config, question) {
   const { user, repository, oauthToken } = config;
@@ -68,19 +79,12 @@ export async function updateQuestion(config, question) {
   const questionService = new QuestionService(githubService);
 
   let { questions } = get(questionsStore);
-  let loading = true;
-
-  questionsStore.update((current) => {
-    return { ...current, loading };
-  });
 
   const updatedQuestion = await questionService.updateQuestion(question);
 
   questions = replaceQuestion(questions, question, updatedQuestion);
 
-  loading = false;
-
   questionsStore.update((current) => {
-    return { ...current, loading, questions };
+    return { ...current, questions };
   });
 }

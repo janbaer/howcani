@@ -128,7 +128,7 @@ export default class GithubService {
   }
 
   postIssue(issue) {
-    return this._post(`/repos/${this.user}/${this.repository}`, issue);
+    return this._post(`/repos/${this.user}/${this.repository}/issues`, issue);
   }
 
   patchIssue(issueNumber, patch) {

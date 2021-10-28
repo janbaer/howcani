@@ -17,12 +17,16 @@
 
   const dispatchEvent = createEventDispatcher();
 
-  onMount(() => {
-    labelNames = question.labels.map((l) => l.name).join(', ');
-  });
-
   $: {
-    isTitleValid = !!question.title;
+    if (question) {
+      isTitleValid = !!question.title;
+    }
+  }
+
+  export function showModal(q) {
+    question = q;
+    labelNames = question.labels.map((l) => l.name).join(', ');
+    isActive = true;
   }
 
   function beforeClose(e) {
@@ -30,6 +34,11 @@
   }
 
   async function closeModalDialog({ detail: isCancelled }) {
+    isActive = false;
+    if (isCancelled) {
+      return;
+    }
+
     let updatedQuestion;
 
     if (!isCancelled) {
@@ -39,11 +48,10 @@
         labels,
         labelNames.split(',').map((label) => label.trim())
       );
-
       question.labels = selectedLabels;
     }
 
-    dispatchEvent('closeQuestionDetails', { isCancelled, question });
+    dispatchEvent('closeQuestionDetails', question);
   }
 
   function changeBody({ detail: newValue }) {
@@ -51,7 +59,7 @@
   }
 </script>
 
-{#if question && isActive}
+{#if isActive}
   <ModalDialog {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
     <div class="QuestionDetailsContent-container" slot="content">
       <FormInput name="title" caption="Title" isValid={isTitleValid} bind:value={question.title} />

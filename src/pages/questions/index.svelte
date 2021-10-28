@@ -15,6 +15,7 @@
   import Sidebar from './components/sidebar/sidebar.svelte';
 
   let config;
+  let questionsElement;
 
   onMount(() => {
     config = get(configStore);
@@ -45,7 +46,7 @@
   }
 
   function addQuestion() {
-    console.log('addQuestion');
+    questionsElement.addQuestion();
   }
 </script>
 
@@ -57,6 +58,11 @@
   <Page>
     <Header slot="header" on:toggleSidebar={toggleSidebar} on:addDocument={addQuestion} />
     <Sidebar slot="sidebar" labels={$labelsStore} on:searchQueryChanged={onSearchQueryChanged} />
-    <Questions slot="content" {...$questionsStore} on:loadMore={loadMoreQuestions} />
+    <Questions
+      slot="content"
+      {...$questionsStore}
+      bind:this={questionsElement}
+      on:loadMore={loadMoreQuestions}
+    />
   </Page>
 {/if}

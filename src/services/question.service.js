@@ -26,7 +26,7 @@ export default class QuestionService {
     let issue = this._mapIssueFromQuestion(question);
     delete issue.state;
 
-    issue = await this.github.createIssue(issue);
+    issue = await this.github.postIssue(issue);
     if (question.isAnswered) {
       issue = await this.github.patchIssue(issue.id, { state: 'answered' });
     }
@@ -58,7 +58,7 @@ export default class QuestionService {
       title: issue.title,
       body: issue.body,
       isAnswered: issue.state === 'closed',
-      user: this._mapUser(issue.user),
+      user: this._mapUser(issue.user || issue.owner),
       created: issue.created_at,
       modified: issue.modified_at,
       closed: issue.closed_at,

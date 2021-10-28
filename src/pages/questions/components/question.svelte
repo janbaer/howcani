@@ -1,30 +1,18 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
   import marked from 'marked';
   import 'github-markdown-css/github-markdown.css';
 
   import TagSvg from '/@/assets/svg/tag.svg?component';
   import QuestionDetails from './details/question-details.svelte';
-  import { configStore } from '/@/stores/config.store.js';
-  import { updateQuestion } from '/@/stores/questions.store.js';
 
   export let question;
 
-  let isQuestionDetailsShown = false;
+  const dispatchEvent = createEventDispatcher();
 
   function showQuestionDetailsDialog() {
-    isQuestionDetailsShown = true;
-  }
-
-  function onCloseQuestionDetails({ detail }) {
-    isQuestionDetailsShown = false;
-    const { isCancelled, question } = detail;
-    if (isCancelled) {
-      return;
-    }
-
-    const config = get(configStore);
-    updateQuestion(config, question);
+    dispatchEvent('editQuestion', question);
   }
 </script>
 
@@ -45,14 +33,6 @@
     </div>
   </div>
 </div>
-
-{#if isQuestionDetailsShown}
-  <QuestionDetails
-    question={{ ...question }}
-    isActive={isQuestionDetailsShown}
-    on:closeQuestionDetails={onCloseQuestionDetails}
-  />
-{/if}
 
 <style type="postcss">
   .Question-card {
