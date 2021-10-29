@@ -65,6 +65,7 @@
     name="repository"
     caption="Repository"
     isValid={isRepositoryValid}
+    autoFocus={true}
     bind:value={repository}
   />
   <button class="form-primary-button" type="submit">Connect</button>
