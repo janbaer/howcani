@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
-  import { push as navigate } from 'svelte-spa-router';
+  import { push as navigate, replace } from 'svelte-spa-router';
 
   import { configStore } from '/@/stores/config.store';
   import GithubService from '/@/services/github.service.js';
@@ -25,7 +25,7 @@
           config.oauthToken = searchParams.get('token');
           return config;
         });
-        navigate('/connect');
+        replace('/connect');
       }
     }
 
