@@ -5,6 +5,8 @@
   import 'github-markdown-css/github-markdown.css';
 
   import TagSvg from '/@/assets/svg/tag.svg?component';
+  import CheckSvg from '/@/assets/svg/check.svg?component';
+  import QuestionSvg from '/@/assets/svg/question.svg?component';
   import QuestionDetails from './details/question-details.svelte';
 
   export let question;
@@ -18,7 +20,14 @@
 
 <div class="Question-card">
   <div class="Question-header" on:click={showQuestionDetailsDialog}>
-    <h2>{question.title}</h2>
+    <h2>
+      {#if question.isAnswered}
+        <CheckSvg class="SvgImage" fill="ForestGreen" />
+      {:else}
+        <QuestionSvg class="SvgImage" fill="IndianRed" />
+      {/if}
+      <span>{question.title}</span>
+    </h2>
   </div>
   <hr />
   <div class="Question-body markdown-body">
@@ -26,7 +35,7 @@
   </div>
   <div class="Question-footer">
     <div>
-      <TagSvg class="SvgImage" />
+      <TagSvg class="SvgImage" fill="DeepSkyBlue" />
       {#each question.labels as label}
         <span class="Question-label" style="color: #{label.color}">{label.name}</span>
       {/each}

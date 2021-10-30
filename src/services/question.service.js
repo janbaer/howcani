@@ -47,7 +47,7 @@ export default class QuestionService {
       title: question.title,
       body: question.body,
       labels: question.labels.map((label) => label.name),
-      state: question.isAnswered ? 'answered' : 'open',
+      state: question.isAnswered ? 'closed' : 'open',
     };
   }
 

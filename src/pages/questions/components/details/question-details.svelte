@@ -41,15 +41,13 @@
 
     let updatedQuestion;
 
-    if (!isCancelled) {
-      const labels = get(labelsStore);
+    const labels = get(labelsStore);
 
-      const selectedLabels = mapLabelNames(
-        labels,
-        labelNames.split(',').map((label) => label.trim())
-      );
-      question.labels = selectedLabels;
-    }
+    const selectedLabels = mapLabelNames(
+      labels,
+      labelNames.split(',').map((label) => label.trim())
+    );
+    question.labels = selectedLabels;
 
     dispatchEvent('closeQuestionDetails', question);
   }
@@ -62,9 +60,21 @@
 {#if isActive}
   <ModalDialog {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
     <div class="QuestionDetailsContent-container" slot="content">
-      <FormInput name="title" caption="Title" isValid={isTitleValid} bind:value={question.title} />
+      <FormInput
+        name="title"
+        caption="Title"
+        isValid={isTitleValid}
+        autoFocus={true}
+        bind:value={question.title}
+      />
       <QuestionDetailsContent content={question.body} on:change={changeBody} />
       <FormInput name="labels" caption="Labels" isValid={isLabelsValid} bind:value={labelNames} />
+      <FormInput
+        name="isAnsweredCheckbox"
+        type="checkbox"
+        caption="Is answered"
+        bind:value={question.isAnswered}
+      />
     </div>
   </ModalDialog>
 {/if}
