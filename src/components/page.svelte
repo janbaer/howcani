@@ -58,7 +58,6 @@
     background-color: var(--main-bg-color);
 
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     padding-right: 10px;
   }
