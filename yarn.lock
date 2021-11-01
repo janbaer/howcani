@@ -744,6 +744,11 @@ acorn@^7.0.0, acorn@^7.1.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
+acorn@^8.1.1:
+  version "8.5.0"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.5.0.tgz#4512ccb99b3698c752591e9bb4472e38ad43cee2"
+  integrity sha512-yXbYeFy+jUuYd3/CDcg2NkIYE991XYX/bje7LmjJigUciaeO1JR4XxXgCIV1/Zc/dRuFEyw1L0pbA+qynJkW5Q==
+
 acorn@^8.2.4:
   version "8.4.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.4.1.tgz#56c36251fc7cabc7096adc18f05afe814321a28c"
@@ -3863,6 +3868,13 @@ svelte-spa-router@3.2.0:
   integrity sha512-igemo5Vs82TGBBw+DjWt6qKameXYzNs6aDXcTxou5XbEvOjiRcAM6MLkdVRCatn6u8r42dE99bt/br7T4qe/AQ==
   dependencies:
     regexparam "2.0.0"
+
+svelte-tags-input@2.8.1:
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/svelte-tags-input/-/svelte-tags-input-2.8.1.tgz#ea117612b166e55017202c70c182d2888b3c5c69"
+  integrity sha512-hbF9t1Nj83fsbF1G3tACjNThKwv4b3W8rxsSDh5DaFtvWdXLXy3i7+QbYKTXP+AXG+j9wvjxRBAvKOPIEfhGWg==
+  dependencies:
+    acorn "^8.1.1"
 
 svelte@3.43.1:
   version "3.43.1"

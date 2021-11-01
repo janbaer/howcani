@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { get } from 'svelte/store';
+  import Tags from 'svelte-tags-input';
   import ModalDialog from '/@/components/modal-dialog.svelte';
   import FormInput from '/@/components/form-input.svelte';
   import QuestionDetailsContent from './question-details-content.svelte';
@@ -12,8 +13,9 @@
   export let question = null;
 
   let isTitleValid = true;
-  let isLabelsValid = true;
-  let labelNames = '';
+
+  let allLabelNames = [];
+  let selectedLabelNames = [];
 
   const dispatchEvent = createEventDispatcher();
 
@@ -25,12 +27,19 @@
 
   export function showModal(q) {
     question = q;
-    labelNames = question.labels.map((l) => l.name).join(', ');
+
+    allLabelNames = get(labelsStore).map((l) => l.name);
+    selectedLabelNames = question.labels.map((l) => l.name);
+
     isActive = true;
   }
 
   function beforeClose(e) {
     e.detail.canClose = isTitleValid;
+  }
+
+  function onTags(event) {
+    selectedLabelNames = event.detail.tags;
   }
 
   async function closeModalDialog({ detail: isCancelled }) {
@@ -39,14 +48,7 @@
       return;
     }
 
-    let updatedQuestion;
-
-    const labels = get(labelsStore);
-
-    const selectedLabels = mapLabelNames(
-      labels,
-      labelNames.split(',').map((label) => label.trim())
-    );
+    const selectedLabels = mapLabelNames(get(labelsStore), selectedLabelNames);
     question.labels = selectedLabels;
 
     dispatchEvent('closeQuestionDetails', question);
@@ -68,7 +70,14 @@
         bind:value={question.title}
       />
       <QuestionDetailsContent content={question.body} on:change={changeBody} />
-      <FormInput name="labels" caption="Labels" isValid={isLabelsValid} bind:value={labelNames} />
+      <Tags
+        name="questionLabels"
+        autoComplete={allLabelNames}
+        tags={selectedLabelNames}
+        on:tags={onTags}
+        labelText="Labels:"
+        labelShow
+      />
       <FormInput
         name="isAnsweredCheckbox"
         type="checkbox"
