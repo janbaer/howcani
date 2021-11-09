@@ -32,7 +32,7 @@ export default class GithubService {
     return query;
   }
 
-  _buildRequestOptions(oauthToken, method = 'GET') {
+  _buildRequestOptions(method, oauthToken) {
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
 
@@ -53,6 +53,8 @@ export default class GithubService {
       case StatusCodes.OK:
       case StatusCodes.CREATED:
         return response.json();
+      case StatusCodes.NO_CONTENT:
+        return undefined;
       case StatusCodes.UNAUTHORIZED:
         throw new UnauthorizedError();
       default:
@@ -61,24 +63,46 @@ export default class GithubService {
   }
 
   _get(path) {
-    const requestOptions = this._buildRequestOptions(this.oauthToken, 'GET');
+    const requestOptions = this._buildRequestOptions('GET', this.oauthToken);
     return this._fetch(path, requestOptions);
   }
 
   _patch(path, body) {
-    const requestOptions = this._buildRequestOptions(this.oauthToken, 'PATCH');
+    const requestOptions = this._buildRequestOptions('PATCH', this.oauthToken);
     requestOptions.body = JSON.stringify(body);
     return this._fetch(path, requestOptions);
   }
 
   _post(path, body) {
-    const requestOptions = this._buildRequestOptions(this.oauthToken, 'POST');
+    const requestOptions = this._buildRequestOptions('POST', this.oauthToken);
     requestOptions.body = JSON.stringify(body);
+    return this._fetch(path, requestOptions);
+  }
+
+  _delete(path) {
+    const requestOptions = this._buildRequestOptions('DELETE', this.oauthToken);
     return this._fetch(path, requestOptions);
   }
 
   getLabels() {
     return this._get(`/repos/${this.user}/${this.repository}/labels`);
+  }
+
+  updateLabel(originalName, newName, newColor) {
+    const patch = {
+      new_name: newName,
+      color: newColor.substr(1),
+    };
+    return this._patch(
+      `/repos/${this.user}/${this.repository}/labels/${encodeURIComponent(originalName)}`,
+      patch
+    );
+  }
+
+  deleteLabel(labelName) {
+    return this._delete(
+      `/repos/${this.user}/${this.repository}/labels/${encodeURIComponent(labelName)}`
+    );
   }
 
   async getUser(username) {

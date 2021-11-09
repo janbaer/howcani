@@ -21,12 +21,7 @@
   <ul>
     {#each labels as label}
       <li>
-        <Label
-          name={label.name}
-          color={label.color}
-          checked={false}
-          on:labelSelectionChanged={onLabelSelectionChanged}
-        />
+        <Label {label} checked={false} on:labelSelectionChanged={onLabelSelectionChanged} />
       </li>
     {/each}
   </ul>

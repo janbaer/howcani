@@ -1,0 +1,70 @@
+<script>
+  import { createEventDispatcher } from 'svelte';
+  import ModalDialog from '/@/components/modal-dialog.svelte';
+  import FormInput from '/@/components/form-input.svelte';
+  import FormColorInput from '/@/components/form-color-input.svelte';
+  import { labelsStore } from '/@/stores/labels.store.js';
+
+  export let isActive = false;
+  export let label = null;
+
+  let isLabelValid = true;
+
+  const dispatchEvent = createEventDispatcher();
+
+  $: {
+    if (label) {
+      isLabelValid = !!label.name;
+    }
+  }
+
+  export function showModal(l) {
+    label = l;
+
+    isActive = true;
+  }
+
+  function beforeClose(e) {
+    e.detail.canClose = isLabelValid;
+  }
+
+  async function closeModalDialog({ detail: isCancelled }) {
+    isActive = false;
+    if (isCancelled) {
+      return;
+    }
+
+    /* const selectedLabels = mapLabelNames(get(labelsStore), selectedLabelNames); */
+    /* label.labels = selectedLabels; */
+
+    dispatchEvent('closeDialog', label);
+  }
+</script>
+
+{#if isActive}
+  <ModalDialog {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
+    <div class="QuestionDetailsContent-container" slot="content">
+      <FormInput
+        name="labelName"
+        caption="Name"
+        isValid={isLabelValid}
+        autoFocus={true}
+        bind:value={label.name}
+      />
+      <FormColorInput
+        name="labelColor"
+        caption="Color"
+        isValid={isLabelValid}
+        bind:value={label.color}
+      />
+    </div>
+  </ModalDialog>
+{/if}
+
+<style type="postcss">
+  .QuestionDetailsContent-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+</style>
