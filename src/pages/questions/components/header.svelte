@@ -12,7 +12,7 @@
   }
 
   function gotoConnectPage() {
-    navigate('/connect');
+    navigate('/connect?logoff');
   }
 
   function addDocument() {

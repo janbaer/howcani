@@ -26,6 +26,12 @@
           return config;
         });
         replace('/connect');
+      } else if (searchParams.get('logoff') !== null) {
+        configStore.update((config) => {
+          config.oauthToken = undefined;
+          return config;
+        });
+        replace('/connect');
       }
     }
 
