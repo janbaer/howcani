@@ -34,15 +34,12 @@
       return;
     }
 
-    /* const selectedLabels = mapLabelNames(get(labelsStore), selectedLabelNames); */
-    /* label.labels = selectedLabels; */
-
     dispatchEvent('closeDialog', label);
   }
 </script>
 
 {#if isActive}
-  <ModalDialog {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
+  <ModalDialog maxWidth="800px" {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
     <div class="QuestionDetailsContent-container" slot="content">
       <FormInput
         name="labelName"

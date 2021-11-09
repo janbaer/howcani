@@ -5,7 +5,7 @@
   import CloseSvg from '/@/assets/svg/x.svg?component';
 
   export let isActive = false;
-  export let width = '80%';
+  export let maxWidth = '80%';
 
   const dispatchEvent = createEventDispatcher();
 
@@ -39,7 +39,7 @@
 >
   <div
     class="border border-teal-500 shadow-lg modal-container bg-white w-11/12 mx-auto rounded shadow-lg z-50 overflow-y-auto"
-    style="max-width: {width};"
+    style="max-width: {maxWidth};"
     transition:fade={{ delay: 50, duration: 200 }}
   >
     <div class="ModalDialog-contentContainer">
@@ -78,7 +78,6 @@
 
 <style type="postcss">
   .ModalDialog-contentContainer {
-    /* height: 80vh; */
     display: grid;
     grid-template-columns: 1fr 260px;
     grid-template-rows: 30px 1fr 50px;

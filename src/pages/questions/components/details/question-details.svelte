@@ -60,7 +60,12 @@
 </script>
 
 {#if isActive}
-  <ModalDialog {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
+  <ModalDialog
+    maxWidth="1200px"
+    {isActive}
+    on:close={closeModalDialog}
+    on:beforeClose={beforeClose}
+  >
     <div class="QuestionDetailsContent-container" slot="content">
       <FormInput
         name="title"
