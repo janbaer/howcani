@@ -19,12 +19,9 @@ export async function updateLabel(config, label) {
   const labels = get(labelsStore);
   const originalLabel = labels.find((l) => l.id === label.id);
 
-  const updatedLabel = await githubService.updateLabel(originalLabel.name, label.name, label.color);
+  await githubService.updateLabel(originalLabel.name, label.name, label.color);
 
-  originalLabel.name = label.name;
-  originalLabel.color = label.color;
-
-  labelsStore.set(labels);
+  loadLabels(config);
 }
 
 export async function deleteLabel(config, label) {
@@ -33,11 +30,7 @@ export async function deleteLabel(config, label) {
 
   await githubService.deleteLabel(label.name);
 
-  const labels = get(labelsStore);
-  const index = labels.findIndex((l) => l.id === label.id);
-
-  labels.splice(index, 1);
-  labelsStore.set(labels);
+  loadLabels(config);
 }
 
 function mapLabel(label) {

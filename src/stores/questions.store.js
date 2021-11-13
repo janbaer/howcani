@@ -1,5 +1,7 @@
 import { writable, get } from 'svelte/store';
 
+import { loadLabels } from '/@/stores/labels.store';
+
 import QuestionService from './../services/question.service';
 import GithubService from './../services/github.service';
 import SearchQueryBuilderService from './../services/search-query-builder.service';
@@ -71,6 +73,8 @@ export async function createQuestion(config, question) {
     const questions = [newQuestion, ...current.questions];
     return { ...current, questions };
   });
+
+  loadLabels(config);
 }
 
 export async function updateQuestion(config, question) {
@@ -87,4 +91,6 @@ export async function updateQuestion(config, question) {
   questionsStore.update((current) => {
     return { ...current, questions };
   });
+
+  loadLabels(config);
 }
