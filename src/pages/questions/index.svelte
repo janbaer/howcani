@@ -6,7 +6,6 @@
   import { configStore } from '/@/stores/config.store';
   import { loadQuestions, questionsStore } from '/@/stores/questions.store.js';
   import { loadLabels, labelsStore } from '/@/stores/labels.store.js';
-
   import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
 
   import Page from '/@/components/page.svelte';

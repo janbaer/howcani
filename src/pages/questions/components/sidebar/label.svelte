@@ -18,10 +18,6 @@
 
   const dispatchEvent = createEventDispatcher();
 
-  $: {
-    dispatchEvent('labelSelectionChanged', { name, checked });
-  }
-
   function onEditLabel() {
     labelEditDialog.showModal(label);
   }
@@ -35,6 +31,10 @@
     const config = get(configStore);
     deleteLabel(config, label);
   }
+
+  function onSelectLabelChange() {
+    dispatchEvent('labelSelectionChanged', { name: label.name, checked });
+  }
 </script>
 
 <div
@@ -42,8 +42,9 @@
   on:mouseover={() => (showEditButtons = true)}
   on:mouseout={() => (showEditButtons = false)}
 >
-  <input type="checkbox" bind:checked />
+  <input type="checkbox" bind:checked on:change={onSelectLabelChange} />
   <span style="color: {label.color}">{label.name}</span>
+
   {#if showEditButtons}
     <div
       transition:fadeScale={{
