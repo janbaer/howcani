@@ -85,7 +85,7 @@ export default class GithubService {
   }
 
   getLabels() {
-    return this._get(`/repos/${this.user}/${this.repository}/labels`);
+    return this._get(`/repos/${this.user}/${this.repository}/labels?per_page=100`);
   }
 
   updateLabel(originalName, newName, newColor) {
