@@ -30,7 +30,7 @@
     <button class="Header-button" on:click={gotoConnectPage} title="Login & connect">
       <GitHubSvg class="SvgImage" />
     </button>
-    <button on:click={toggleSidebar} class="Sidebar-button" title="Toggle sidebar">
+    <button on:click={toggleSidebar} class="HeaderSidebar-button" title="Toggle sidebar">
       <BurgerSvg class="SvgImage" />
     </button>
   </div>
@@ -47,10 +47,9 @@
   }
   .Header-rightContainer {
   }
-  .Sidebar-button {
+  .HeaderSidebar-button {
     @apply focus:outline-none text-white w-6 h-6 lg:hidden;
   }
-
   .Header-button {
     @apply text-white mr-2.5;
   }

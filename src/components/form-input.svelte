@@ -18,17 +18,17 @@
   });
 </script>
 
-<div class="form-input-container">
-  <label for={name} class="form-label" class:form-label-error={!isValid}>
+<div class="FormInput-container">
+  <label for={name} class="FormInput-label" class:FormInputLabel-hasError={!isValid}>
     {caption}:
   </label>
   {#if type === 'text'}
     <input
       {name}
       type="text"
-      class="form-input"
-      class:form-input-error={!isValid}
-      class:form-input-readonly={readonly}
+      class="FormInput-input"
+      class:FormInput-error={!isValid}
+      class:FormInput-readonly={readonly}
       {readonly}
       bind:value
       bind:this={inputElement}
@@ -37,7 +37,7 @@
     <input
       {name}
       type="checkbox"
-      class:form-input-readonly={readonly}
+      class:FormInput-readonly={readonly}
       {readonly}
       bind:checked={value}
     />

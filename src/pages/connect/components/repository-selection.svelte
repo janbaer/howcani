@@ -57,9 +57,9 @@
   }
 </script>
 
-<form class="form" on:submit|preventDefault={handleSubmit}>
-  <h2 class="form-header title-font">Connect to GitHub repository</h2>
-  <p class="form-help-text">Please enter your GitHub user name and repository</p>
+<form class="Form" on:submit|preventDefault={handleSubmit}>
+  <h2 class="Form-header title-font">Connect to GitHub repository</h2>
+  <p class="FormHelpText-paragraph">Please enter your GitHub user name and repository</p>
   <FormInput name="name" caption="Name" isValid={isUserValid} bind:value={user} readonly={true} />
   <FormInput
     name="repository"
@@ -68,5 +68,5 @@
     autoFocus={true}
     bind:value={repository}
   />
-  <button class="form-primary-button" type="submit">Connect</button>
+  <button class="FormButton-primary" type="submit">Connect</button>
 </form>

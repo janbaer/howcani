@@ -16,15 +16,15 @@
   });
 </script>
 
-<div class="form-input-container">
-  <label for={name} class="form-label">
+<div class="FormInput-container">
+  <label for={name} class="FormInput-label">
     {caption}:
   </label>
   <input
     {name}
     type="color"
-    class="form-input"
-    class:form-input-readonly={readonly}
+    class="FormInput-input"
+    class:Form-input-readonly={readonly}
     {readonly}
     bind:value
     bind:this={inputElement}

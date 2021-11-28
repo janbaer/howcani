@@ -9,11 +9,11 @@
   }
 </script>
 
-<div class="form">
-  <h2 class="form-header title-font">Login to GitHub</h2>
-  <p class="form-help-text">
+<div class="Form">
+  <h2 class="Form-header title-font">Login to GitHub</h2>
+  <p class="FormHelpText-paragraph">
     To be able to work with HowCanI you need to login with your GitHub account and then select a Git
     repository where the data should be saved.
   </p>
-  <button class="form-primary-button" on:click={loginToGitHub}>Login</button>
+  <button class="FormButton-primary" on:click={loginToGitHub}>Login</button>
 </div>

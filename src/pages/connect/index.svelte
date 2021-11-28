@@ -47,7 +47,7 @@
 </svelte:head>
 
 <Page>
-  <section slot="content" class="form-container">
+  <section slot="content" class="Form-container">
     {#if mustLogin}
       <Login />
     {:else}
