@@ -15,12 +15,12 @@
     All
   </label>
   <label>
-    <input type="radio" bind:group={filter} name="filter" value={'open'} />
-    Open
+    <input type="radio" bind:group={filter} name="filter" value={'closed'} />
+    Answered
   </label>
   <label>
-    <input type="radio" bind:group={filter} name="filter" value={'closed'} />
-    Closed
+    <input type="radio" bind:group={filter} name="filter" value={'open'} />
+    Open
   </label>
 </div>
 
