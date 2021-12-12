@@ -35,7 +35,7 @@
   }
 </script>
 
-<div class="Questions-container">
+<div class="Questions-container" on:click>
   {#each questions as question (question.id)}
     <div class="Question-container">
       <Question {question} on:editQuestion={onEditQuestion} />

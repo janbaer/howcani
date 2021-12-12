@@ -7,6 +7,7 @@
   import { loadQuestions, questionsStore } from '/@/stores/questions.store.js';
   import { loadLabels, labelsStore } from '/@/stores/labels.store.js';
   import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
+  import { isTabletOrDesktopSize } from '/@/helpers/media-queries.helpers.js';
 
   import Page from '/@/components/page.svelte';
   import Header from './components/header.svelte';
@@ -44,6 +45,17 @@
     });
   }
 
+  function hideSidebar() {
+    if (isTabletOrDesktopSize()) {
+      return;
+    }
+
+    const isToggled = get(toggleSidebarStore);
+    if (isToggled) {
+      toggleSidebar();
+    }
+  }
+
   function addQuestion() {
     questionsElement.addQuestion();
   }
@@ -62,6 +74,7 @@
       {...$questionsStore}
       bind:this={questionsElement}
       on:loadMore={loadMoreQuestions}
+      on:click={hideSidebar}
     />
   </Page>
 {/if}
