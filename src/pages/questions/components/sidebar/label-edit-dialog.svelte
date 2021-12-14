@@ -3,7 +3,6 @@
   import ModalDialog from '/@/components/modal-dialog.svelte';
   import FormInput from '/@/components/form-input.svelte';
   import FormColorInput from '/@/components/form-color-input.svelte';
-  import { labelsStore } from '/@/stores/labels.store.js';
 
   export let isActive = false;
   export let label = null;

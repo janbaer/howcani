@@ -40,8 +40,8 @@
   }
 
   function toggleSidebar() {
-    toggleSidebarStore.update((isToggled) => {
-      return !isToggled;
+    toggleSidebarStore.update((isVisible) => {
+      return !isVisible;
     });
   }
 

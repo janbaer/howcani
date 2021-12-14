@@ -24,7 +24,7 @@
   >
     <div class="Sidebar-logo">
       <img src="/images/favicon-32x32.png" alt="HowCanI" />
-      <a href="#">
+      <a href={'#'}>
         <span class="text-2xl font-extrabold">HowCanI</span>
       </a>
     </div>

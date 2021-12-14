@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-
   import { get } from 'svelte/store';
 
   import { questionsStore } from '/@/stores/questions.store.js';

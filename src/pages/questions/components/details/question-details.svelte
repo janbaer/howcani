@@ -5,7 +5,6 @@
   import ModalDialog from '/@/components/modal-dialog.svelte';
   import FormInput from '/@/components/form-input.svelte';
   import QuestionDetailsContent from './question-details-content.svelte';
-  import questionService from '/@/services/question.service.js';
   import { labelsStore } from '/@/stores/labels.store.js';
   import { mapLabelNames } from '/@/helpers/labels.helpers.js';
 

@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { fade } from 'svelte/transition';
-  import { isEscKey } from './utils.js';
+  import { isEscKey } from '/@/helpers/utils.helpers.js';
   import CloseSvg from '/@/assets/svg/x.svg?component';
 
   export let isActive = false;

@@ -2,8 +2,8 @@
   import { createEventDispatcher } from 'svelte';
   import 'codemirror';
   import 'codemirror/lib/codemirror.css';
-  import Editor from '@svelte-parts/editor';
   import 'codemirror/mode/gfm/gfm';
+  import Editor from '@svelte-parts/editor';
   import '@svelte-parts/editor/md-light.css';
 
   const dispatchEvent = createEventDispatcher();

@@ -4,16 +4,15 @@
   import { cubicInOut } from 'svelte/easing';
   import { configStore } from '/@/stores/config.store.js';
   import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
-  import LabelEditDialog from './label-edit-dialog.svelte';
   import DeleteSvg from '/@/assets/svg/delete.svg?component';
   import EditSvg from '/@/assets/svg/edit.svg?component';
-
   import fadeScale from '/@/helpers/fade-scale.animation';
+  import LabelEditDialog from './label-edit-dialog.svelte';
 
-  export let label;
+  export let label = {};
   export let checked = false;
-  let showEditButtons = false;
 
+  let showEditButtons = false;
   let labelEditDialog;
 
   const dispatchEvent = createEventDispatcher();
@@ -39,8 +38,10 @@
 
 <div
   class="LabelContainer"
+  on:focus={() => (showEditButtons = true)}
   on:mouseover={() => (showEditButtons = true)}
   on:mouseout={() => (showEditButtons = false)}
+  on:blur={() => (showEditButtons = false)}
 >
   <input type="checkbox" bind:checked on:change={onSelectLabelChange} />
   <span style="color: {label.color}">{label.name}</span>

@@ -1,7 +1,5 @@
 <script>
-  function isLocalHost() {
-    return window.location.hostname === 'localhost';
-  }
+  import { isLocalHost } from '/@/helpers/env.helpers.js';
 
   function loginToGitHub() {
     const oauthClientId = isLocalHost() ? 'c5571ab869190bdc5f33' : '82a001ac3b1f5f2aa7ff';

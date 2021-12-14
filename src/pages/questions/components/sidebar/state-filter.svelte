@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+
   export let filter = '';
 
   const dispatchEvent = createEventDispatcher();
