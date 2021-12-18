@@ -3,9 +3,9 @@
   import { marked } from 'marked';
   import 'github-markdown-css/github-markdown.css';
 
-  import TagSvg from '/@/assets/svg/tag.svg?component';
-  import CheckSvg from '/@/assets/svg/check.svg?component';
-  import QuestionSvg from '/@/assets/svg/question.svg?component';
+  import TagSvg from '/@/assets/svg/tag.svg';
+  import CheckSvg from '/@/assets/svg/check.svg';
+  import QuestionSvg from '/@/assets/svg/question.svg';
 
   export let question = {};
 

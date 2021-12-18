@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import SearchSvg from '/@/assets/svg/search.svg?component';
+  import SearchSvg from '/@/assets/svg/search.svg';
 
   export let searchTerm = '';
 

@@ -2,7 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { fade } from 'svelte/transition';
   import { isEscKey } from '/@/helpers/utils.helpers.js';
-  import CloseSvg from '/@/assets/svg/x.svg?component';
+  import CloseSvg from '/@/assets/svg/x.svg';
 
   export let isActive = false;
   export let maxWidth = '80%';

@@ -1,9 +1,9 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { push as navigate } from 'svelte-spa-router';
-  import AddSvg from '/@/assets/svg/add.svg?component';
-  import GitHubSvg from '/@/assets/svg/github.svg?component';
-  import BurgerSvg from '/@/assets/svg/burger.svg?component';
+  import AddSvg from '/@/assets/svg/add.svg';
+  import GitHubSvg from '/@/assets/svg/github.svg';
+  import BurgerSvg from '/@/assets/svg/burger.svg';
 
   const dispatchEvent = createEventDispatcher();
 

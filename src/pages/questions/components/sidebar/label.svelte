@@ -4,8 +4,8 @@
   import { cubicInOut } from 'svelte/easing';
   import { configStore } from '/@/stores/config.store.js';
   import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
-  import DeleteSvg from '/@/assets/svg/delete.svg?component';
-  import EditSvg from '/@/assets/svg/edit.svg?component';
+  import DeleteSvg from '/@/assets/svg/delete.svg';
+  import EditSvg from '/@/assets/svg/edit.svg';
   import fadeScale from '/@/helpers/fade-scale.animation';
   import LabelEditDialog from './label-edit-dialog.svelte';
 
