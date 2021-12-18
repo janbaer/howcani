@@ -1,3 +1,3 @@
-export function focus(element) {
+export default function focus(element) {
   element.focus();
 }

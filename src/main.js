@@ -2,7 +2,7 @@ import App from './app.svelte';
 import './global.css';
 
 const app = new App({
-  target: document.getElementById('app'),
+  target: window.document.getElementById('app'),
   // hydrate: true,
 });
 

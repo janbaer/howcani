@@ -28,7 +28,9 @@ export default class QuestionService {
 
     issue = await this.github.postIssue(issue);
     if (question.isAnswered) {
-      issue = await this.github.patchIssue(issue.id, { state: 'answered' });
+      issue = await this.github.patchIssue(issue.number, {
+        state: this._mapState(question.isAnswered),
+      });
     }
 
     return this._mapIssueToQuestion(issue);
@@ -47,7 +49,7 @@ export default class QuestionService {
       title: question.title,
       body: question.body,
       labels: question.labels.map((label) => label.name),
-      state: question.isAnswered ? 'closed' : 'open',
+      state: this._mapState(question.isAnswered),
     };
   }
 
@@ -58,7 +60,7 @@ export default class QuestionService {
       title: issue.title,
       body: issue.body,
       isAnswered: issue.state === 'closed',
-      user: this._mapUser(issue.user || issue.owner),
+      user: this._mapUser(issue.user),
       created: issue.created_at,
       modified: issue.modified_at,
       closed: issue.closed_at,
@@ -78,5 +80,9 @@ export default class QuestionService {
       login: user.login,
       avatarUrl: user.avatar_url,
     };
+  }
+
+  _mapState(isAnswered) {
+    return isAnswered ? 'closed' : 'open';
   }
 }

@@ -7,17 +7,17 @@ import svelteSVG from 'vite-plugin-svelte-svg';
 export default defineConfig({
   plugins: [
     svelteSVG({
-      svgoConfig: {}
+      svgoConfig: {},
     }),
     svelte({
       preprocess: sveltePreprocess({
-        postcss: true
-      })
-    })
+        postcss: true,
+      }),
+    }),
   ],
   resolve: {
     alias: {
-      '/@/': '/src/'
-    }
-  }
+      '/@/': '/src/',
+    },
+  },
 });

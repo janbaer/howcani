@@ -4,12 +4,20 @@ import GithubService from './../services/github.service';
 
 export const labelsStore = writable([]);
 
+function _mapLabel(label) {
+  return {
+    id: label.id,
+    name: label.name,
+    color: `#${label.color}`,
+  };
+}
+
 export async function loadLabels(config) {
   const { user, repository, oauthToken } = config;
   const githubService = new GithubService(user, repository, oauthToken);
 
   const labels = await githubService.getLabels();
-  labelsStore.set(labels.map(mapLabel));
+  labelsStore.set(labels.map(_mapLabel));
 }
 
 export async function updateLabel(config, label) {
@@ -31,12 +39,4 @@ export async function deleteLabel(config, label) {
   await githubService.deleteLabel(label.name);
 
   loadLabels(config);
-}
-
-function mapLabel(label) {
-  return {
-    id: label.id,
-    name: label.name,
-    color: `#${label.color}`,
-  };
 }

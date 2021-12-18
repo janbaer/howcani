@@ -1,5 +1,6 @@
-import UnauthorizedError from './unauthorized-error';
 import { StatusCodes } from 'http-status-codes';
+
+import UnauthorizedError from './unauthorized-error';
 
 const GITHUB_ROOT_URL = 'https://api.github.com';
 
@@ -110,7 +111,7 @@ export default class GithubService {
       const user = await this._get(`/users/${username}`);
       return user;
     } catch (err) {
-      console.error(`Github user ${username} does not exist`);
+      console.error(`Github user ${username} does not exist`); // eslint-disable-line no-console
       return undefined;
     }
   }
@@ -121,7 +122,7 @@ export default class GithubService {
     if (user) {
       const { avatar_url, email, login, name } = user; // eslint-disable-line camelcase
       return {
-        avatarUrl: avatar_url,
+        avatarUrl: avatar_url, // eslint-disable-line camelcase
         email,
         loginName: login,
         userName: name,
@@ -140,7 +141,7 @@ export default class GithubService {
       const repository = await this._get(`/repos/${username}/${repositoryName}`);
       return repository;
     } catch (err) {
-      console.error(`Github repository ${repositoryname} for user ${username} does not exist`);
+      console.error(`Github repository ${repositoryName} for user ${username} does not exist`); // eslint-disable-line no-console
       return undefined;
     }
   }

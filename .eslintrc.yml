@@ -1,0 +1,33 @@
+root: true
+
+extends:
+  - "eslint:recommended"
+
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: "module"
+
+env:
+  jest: true
+  es6: true
+  browser: true
+
+rules:
+  quotes:
+    - 1
+    - single
+  semi:
+    - 1
+    - always
+
+plugins:
+  - svelte3
+  - json-light
+
+overrides:
+  - files: ['*.svelte']
+    parser: "svelte/svelte3"
+
+globals:
+  localStorage: false
+  IntersectionObserver: false
