@@ -1,0 +1,13 @@
+{
+  "name": "HowCanI",
+  "short_name": "HowCanI",
+  "display": "standalone",
+  "start_url": "/",
+  "theme_color": "#1e87f0",
+  "background_color": "#1e87f0",
+  "lang": "en-US",
+  "icons": [
+    { "src": "images/favicon-32x32.png", "type": "image/png",  "sizes": "32x32" },
+    { "src": "images/favicon-96x96.png", "type": "image/png",  "sizes": "96x96" }
+  ]
+}
