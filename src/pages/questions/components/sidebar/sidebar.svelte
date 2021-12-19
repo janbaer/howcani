@@ -12,17 +12,17 @@
   export let labels = [];
 
   function onStartSearch({ detail: query }) {
-    const searchQuery = get(questionsStore);
+    const { searchQuery } = get(questionsStore);
     dispatchEvent('searchQueryChanged', { ...searchQuery, query });
   }
 
   function onStateFilterChanged({ detail: state }) {
-    const searchQuery = get(questionsStore);
+    const { searchQuery } = get(questionsStore);
     dispatchEvent('searchQueryChanged', { ...searchQuery, state });
   }
 
   function onLabelSelectionChanged({ detail: labels }) {
-    const searchQuery = get(questionsStore);
+    const { searchQuery } = get(questionsStore);
     dispatchEvent('searchQueryChanged', { ...searchQuery, labels });
   }
 </script>
