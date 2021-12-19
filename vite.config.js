@@ -5,6 +5,9 @@ import { svelteSVG } from 'rollup-plugin-svelte-svg';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    outDir: 'build',
+  },
   plugins: [
     svelteSVG({
       svgoConfig: {},

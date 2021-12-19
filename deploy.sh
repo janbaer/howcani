@@ -9,22 +9,16 @@ fi
 
 echo "Deploying new version $VERSION to gh-pages branch"
 
-mkdir -p ./deploy
-
+mkdir -p deploy
 cd ./deploy
 
-git rm -r .
+if [ -f "*" ]; then
+  git rm -r .
+fi
 
 cp -R ../build/. .
 
-rm *.map
-
-if [ -f "./styles/*.*.map" ]; then
-  rm ./styles/*.*.map
-fi
-
 touch .nojekyll
-
 echo -n "howcani.janbaer.de" > CNAME
 
 git add -u && git add .
