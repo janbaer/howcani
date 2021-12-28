@@ -17,7 +17,9 @@
   "license": "ISC",
   "jest": {
     "rootDir": "./src",
-    "collectCoverageFrom": ["src/**/**.js"],
+    "collectCoverageFrom": [
+      "src/**/**.js"
+    ],
     "coveragePathIgnorePatterns": [],
     "verbose": true,
     "transform": {}
@@ -27,7 +29,7 @@
     "@tailwindcss/jit": "0.1.18",
     "@types/jest": "27.0.3",
     "autoprefixer": "10.4.0",
-    "cssnano": "5.0.13",
+    "cssnano": "5.0.14",
     "eslint": "8.5.0",
     "eslint-plugin-json-light": "1.0.3",
     "husky": "7.0.4",
@@ -40,7 +42,7 @@
     "svelte": "3.44.3",
     "svelte-preprocess": "4.10.1",
     "tailwindcss": "2.2.16",
-    "vite": "2.7.3",
+    "vite": "2.7.8",
     "vite-plugin-svelte-svg": "1.0.0"
   },
   "dependencies": {
@@ -48,8 +50,8 @@
     "@svelte-parts/editor": "0.0.20",
     "eslint-plugin-svelte3": "^3.2.1",
     "github-markdown-css": "5.1.0",
-    "http-status-codes": "2.1.4",
-    "marked": "4.0.7",
+    "http-status-codes": "2.2.0",
+    "marked": "4.0.8",
     "svelte-spa-router": "3.2.0",
     "svelte-tags-input": "2.8.1"
   }
