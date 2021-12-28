@@ -1,11 +1,11 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { marked } from 'marked';
-  import 'github-markdown-css/github-markdown.css';
 
   import TagSvg from '/@/assets/svg/tag.svg';
   import CheckSvg from '/@/assets/svg/check.svg';
   import QuestionSvg from '/@/assets/svg/question.svg';
+
+  import MarkdownView from '/@/components/markdown-view.svelte';
 
   export let question = {};
 
@@ -28,8 +28,8 @@
     </h2>
   </div>
   <hr />
-  <div class="Question-body markdown-body">
-    {@html marked(question.body)}
+  <div class="Question-body">
+    <MarkdownView content={question.body} />
   </div>
   <div class="Question-footer">
     <div>
