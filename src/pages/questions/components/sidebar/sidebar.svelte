@@ -34,3 +34,10 @@
   <hr />
   <Labels {labels} on:labelSelectionChanged={onLabelSelectionChanged} />
 </div>
+
+<style>
+  .Sidebar-container {
+    display: flex;
+    flex-direction: column;
+  }
+</style>

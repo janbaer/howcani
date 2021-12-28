@@ -86,7 +86,7 @@
       'modal-body modal-body'
       'modal-footer modal-footer-buttons';
 
-    @apply py-4 px-6;
+    @apply p-4 lg:p-5;
   }
 
   .ModalDialog-headerContainer {
@@ -101,7 +101,6 @@
 
   .ModalDialog-bodyContainer {
     grid-area: modal-body;
-    @apply my-5;
   }
 
   .ModalDialog-footerContainer {

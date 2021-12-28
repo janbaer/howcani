@@ -11,11 +11,15 @@
   --content-height: calc(100vh - var(--header-height) - var(--footer-height));
   --sidebar-width: 250px;
   --min-width-tablet: 1024px;
+
+  --margin-width: 0.8rem;
 }
 
+/* @media (min-width: var(--min-width-tablet)) { this is unfortunately not working  */
 @media (min-width: 1024px) {
   :root {
     --content-height: calc(100vh - var(--footer-height));
+    --margin-width: 1.1rem;
   }
 }
 
@@ -32,17 +36,26 @@ label {
 }
 
 .SvgImage {
-  display: inline-block;
-  height: 24px;
-  width: 24px;
+  @apply inline-block h-6;
+}
+
+.Form {
+  @apply flex flex-col gap-4 lg:gap-5 bg-white sm:w-full lg:w-6/12 p-6 rounded-xl;
+}
+.Form-header {
+  @apply text-2xl text-gray-900 text-lg mb-1 font-medium;
+}
+.FormHelpText-paragraph {
+  @apply leading-relaxed mb-4 text-gray-600 text-base font-normal;
+}
+.FormButton-primary {
+  @apply text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg;
 }
 
 .FormInput-container {
-  @apply relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  @apply relative flex flex-row items-center gap-4 lg:gap-5;
 }
+
 .FormInput-label {
   @apply leading-7 text-sm text-gray-600;
   flex-basis: 100px;
@@ -65,13 +78,20 @@ label {
 /* Some style fixes for the svelte-tags element */
 .svelte-tags-input-layout {
   border: none !important;
-  gap: 10px;
+  gap: var(--margin-width);
 }
 
 .svelte-tags-input-layout > label {
+  display: none;
   @apply leading-7 text-sm text-gray-600;
   margin: 0 !important;
   flex-basis: 90px;
+}
+
+@media (min-width: 1024px) {
+  .svelte-tags-input-layout > label {
+    display: block;
+  }
 }
 
 .svelte-tags-input-layout > input {
@@ -85,20 +105,4 @@ label {
 
 .svelte-tags-input-matchs {
   z-index: 99;
-}
-
-.Form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  @apply bg-white sm:w-full lg:w-6/12 p-6 rounded-xl;
-}
-.Form-header {
-  @apply text-2xl text-gray-900 text-lg mb-1 font-medium;
-}
-.FormHelpText-paragraph {
-  @apply leading-relaxed mb-4 text-gray-600 text-base font-normal;
-}
-.FormButton-primary {
-  @apply text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg;
 }

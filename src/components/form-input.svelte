@@ -19,7 +19,12 @@
 </script>
 
 <div class="FormInput-container">
-  <label for={name} class="FormInput-label" class:FormInputLabel-hasError={!isValid}>
+  <label
+    for={name}
+    class="FormInput-label"
+    class:FormInputLabel-forCheckbox={type === 'checkbox'}
+    class:FormInputLabel-hasError={!isValid}
+  >
     {caption}:
   </label>
   {#if type === 'text'}
@@ -43,3 +48,17 @@
     />
   {/if}
 </div>
+
+<style>
+  .FormInput-label {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .FormInput-label {
+      display: block;
+    }
+  }
+  .FormInputLabel-forCheckbox {
+    display: block;
+  }
+</style>

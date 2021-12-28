@@ -46,7 +46,6 @@
 
     display: flex;
     align-items: center;
-    padding-right: 10px;
   }
 
   .Sidebar-container {

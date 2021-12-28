@@ -20,32 +20,26 @@
   }
 </script>
 
-<div class="Header-container">
-  <div class="Header-leftContainer">
-    <button class="Header-button" on:click={addDocument} title="Add new question">
-      <AddSvg />
-    </button>
-  </div>
-  <div class="Header-rightContainer">
-    <button class="Header-button" on:click={gotoConnectPage} title="Login & connect">
-      <GitHubSvg class="SvgImage" />
-    </button>
-    <button on:click={toggleSidebar} class="HeaderSidebar-button" title="Toggle sidebar">
-      <BurgerSvg class="SvgImage" />
-    </button>
-  </div>
+<div class="Header-leftContainer">
+  <button class="Header-button" on:click={addDocument} title="Add new question">
+    <AddSvg />
+  </button>
+</div>
+<div class="Header-rightContainer">
+  <button class="Header-button" on:click={gotoConnectPage} title="Login & connect">
+    <GitHubSvg class="SvgImage" />
+  </button>
+  <button on:click={toggleSidebar} class="HeaderSidebar-button" title="Toggle sidebar">
+    <BurgerSvg class="SvgImage" />
+  </button>
 </div>
 
 <style type="postcss">
-  .Header-container {
-    display: flex;
-    flex: 1;
-  }
   .Header-leftContainer {
-    margin-left: 5px;
-    flex: 1;
+    @apply flex flex-1 ml-2;
   }
   .Header-rightContainer {
+    @apply mr-2;
   }
   .HeaderSidebar-button {
     @apply focus:outline-none text-white w-6 h-6 lg:hidden;

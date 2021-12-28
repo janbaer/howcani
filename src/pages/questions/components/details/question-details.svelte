@@ -94,8 +94,6 @@
 
 <style type="postcss">
   .QuestionDetailsContent-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    @apply flex flex-col gap-4 lg:gap-5;
   }
 </style>
