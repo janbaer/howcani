@@ -3,8 +3,7 @@
 
   function loginToGitHub() {
     const oauthClientId = isLocalHost() ? 'c5571ab869190bdc5f33' : '82a001ac3b1f5f2aa7ff';
-    /* window.location.href = `http://localhost:9001/api/login?clientId=${oauthClientId}`; */
-    window.location.href = `https://github-oauth-bridge.jan-baer.vercel.app/api/login?clientId=${oauthClientId}`;
+    window.location.href = `https://github-oauth-bridge.vercel.app//api/login?clientId=${oauthClientId}`;
   }
 </script>
 
