@@ -36,15 +36,15 @@
 
 <style type="postcss">
   .Header-leftContainer {
-    @apply flex flex-1 ml-2;
+    /* @apply flex flex-1 ml-2; */
   }
   .Header-rightContainer {
-    @apply mr-2;
+    /* @apply mr-2; */
   }
   .HeaderSidebar-button {
-    @apply focus:outline-none text-white w-6 h-6 lg:hidden;
+    /* @apply focus:outline-none text-white w-6 h-6 lg:hidden; */
   }
   .Header-button {
-    @apply text-white mr-2.5;
+    /* @apply text-white mr-2.5; */
   }
 </style>

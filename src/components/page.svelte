@@ -29,9 +29,9 @@
       </a>
     </div>
 
-    <nav class="Sidebar-nav">
+    <aside class="Sidebar-nav">
       <slot name="sidebar" />
-    </nav>
+    </aside>
   </div>
 {/if}
 
@@ -85,5 +85,6 @@
 
   .Sidebar-nav {
     flex: 1;
+    display: flex;
   }
 </style>

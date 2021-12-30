@@ -46,17 +46,17 @@
     @apply border border-gray-200 p-4 rounded-lg shadow-md;
   }
   .Question-header {
-    @apply cursor-pointer;
+    /* @apply cursor-pointer; */
   }
   h2 {
-    @apply font-normal leading-normal mt-0 mb-2 text-blue-800;
+    /* @apply font-normal leading-normal mt-0 mb-2 text-blue-800; */
   }
   .Question-body {
-    @apply py-2;
+    /* @apply py-2; */
   }
   .Question-footer {
   }
   .Question-label {
-    @apply mx-2;
+    /* @apply mx-2; */
   }
 </style>

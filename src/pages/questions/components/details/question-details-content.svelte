@@ -62,7 +62,7 @@
     height: calc(100vh - 440px);
   }
   .QuestionContent-editor {
-    @apply rounded border shadow;
+    /* @apply rounded border shadow; */
   }
   .QuestionContent-markdown {
     overflow-y: auto;

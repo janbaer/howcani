@@ -86,7 +86,7 @@
       'modal-body modal-body'
       'modal-footer modal-footer-buttons';
 
-    @apply p-4 lg:p-5;
+    /* @apply p-4 lg:p-5; */
   }
 
   .ModalDialog-headerContainer {

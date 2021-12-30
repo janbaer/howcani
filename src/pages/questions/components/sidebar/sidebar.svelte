@@ -30,14 +30,15 @@
 <div class="Sidebar-container">
   <SearchInput on:startSearch={onStartSearch} />
   <hr />
-  <StateFilter on:stateFilterChanged={onStateFilterChanged} />
+  <!--StateFilter on:stateFilterChanged={onStateFilterChanged} /-->
   <hr />
-  <Labels {labels} on:labelSelectionChanged={onLabelSelectionChanged} />
+  <!--Labels {labels} on:labelSelectionChanged={onLabelSelectionChanged} /-->
 </div>
 
 <style>
   .Sidebar-container {
     display: flex;
     flex-direction: column;
+    padding: 1rem;
   }
 </style>

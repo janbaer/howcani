@@ -29,7 +29,7 @@
 
 <style type="postcss">
   .Labels-container {
-    @apply p-4 bg-gray-50;
+    /* @apply p-4 bg-gray-50; */
     overflow-y: auto;
     height: calc(100vh - 160px);
   }

@@ -17,14 +17,15 @@
   "license": "ISC",
   "jest": {
     "rootDir": "./src",
-    "collectCoverageFrom": ["src/**/**.js"],
+    "collectCoverageFrom": [
+      "src/**/**.js"
+    ],
     "coveragePathIgnorePatterns": [],
     "verbose": true,
     "transform": {}
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "1.0.0-next.32",
-    "@tailwindcss/jit": "0.1.18",
     "@types/jest": "27.0.3",
     "autoprefixer": "10.4.0",
     "cssnano": "5.0.14",
@@ -39,7 +40,6 @@
     "rollup-plugin-svelte-svg": "1.0.0-beta.6",
     "svelte": "3.44.3",
     "svelte-preprocess": "4.10.1",
-    "tailwindcss": "2.2.16",
     "vite": "2.7.8",
     "vite-plugin-svelte-svg": "1.0.0"
   },

@@ -18,36 +18,14 @@
   });
 </script>
 
-<div class="FormInput-container">
-  <label
-    for={name}
-    class="FormInput-label"
-    class:FormInputLabel-forCheckbox={type === 'checkbox'}
-    class:FormInputLabel-hasError={!isValid}
-  >
-    {caption}:
-  </label>
+<label for={name}>
+  {caption}:
   {#if type === 'text'}
-    <input
-      {name}
-      type="text"
-      class="FormInput-input"
-      class:FormInput-error={!isValid}
-      class:FormInput-readonly={readonly}
-      {readonly}
-      bind:value
-      bind:this={inputElement}
-    />
+    <input {name} type="text" {readonly} bind:value bind:this={inputElement} />
   {:else if type === 'checkbox'}
-    <input
-      {name}
-      type="checkbox"
-      class:FormInput-readonly={readonly}
-      {readonly}
-      bind:checked={value}
-    />
+    <input {name} type="checkbox" {readonly} bind:checked={value} />
   {/if}
-</div>
+</label>
 
 <style>
   .FormInput-label {
