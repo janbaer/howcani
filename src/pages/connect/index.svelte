@@ -7,8 +7,6 @@
   import { mdiMenu, mdiMagnify, mdiGithub } from '@mdi/js';
 
   import { configStore } from '/@/stores/config.store';
-  import GithubService from '/@/services/github.service.js';
-  import Page from '/@/components/page.svelte';
 
   import Login from './components/login.svelte';
   import RepositorySelection from './components/repository-selection.svelte';

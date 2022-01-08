@@ -1,19 +1,16 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
-  import { cubicInOut } from 'svelte/easing';
   import { Checkbox } from 'svelte-materialify';
   import { configStore } from '/@/stores/config.store.js';
   import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
   import DeleteSvg from '/@/assets/svg/delete.svg';
   import EditSvg from '/@/assets/svg/edit.svg';
-  import fadeScale from '/@/helpers/fade-scale.animation';
   import LabelEditDialog from './label-edit-dialog.svelte';
 
   export let label = {};
   export let checked = false;
 
-  let showEditButtons = false;
   let labelEditDialog;
 
   const dispatchEvent = createEventDispatcher();
