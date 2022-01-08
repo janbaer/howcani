@@ -3,6 +3,9 @@
   import { get } from 'svelte/store';
   import { push as navigate, replace } from 'svelte-spa-router';
 
+  import { AppBar, Button, Icon } from 'svelte-materialify';
+  import { mdiMenu, mdiMagnify, mdiGithub } from '@mdi/js';
+
   import { configStore } from '/@/stores/config.store';
   import GithubService from '/@/services/github.service.js';
   import Page from '/@/components/page.svelte';
@@ -46,12 +49,22 @@
   <title>HowCanI - Connect to GitHub repository</title>
 </svelte:head>
 
-<Page>
-  <section slot="content" class="Form-container">
-    {#if mustLogin}
-      <Login />
-    {:else}
-      <RepositorySelection />
-    {/if}
-  </section>
-</Page>
+<AppBar dense class="primary-color theme--dark">
+  <span slot="title">HowCanI 2</span>
+  <div style="flex-grow:1" />
+</AppBar>
+
+<section>
+  {#if mustLogin}
+    <Login />
+  {:else}
+    <RepositorySelection />
+  {/if}
+</section>
+
+<style>
+  section {
+    padding: 1rem;
+    grid-area: content;
+  }
+</style>

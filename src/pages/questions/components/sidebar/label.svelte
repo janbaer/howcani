@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
   import { cubicInOut } from 'svelte/easing';
+  import { Checkbox } from 'svelte-materialify';
   import { configStore } from '/@/stores/config.store.js';
   import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
   import DeleteSvg from '/@/assets/svg/delete.svg';
@@ -18,7 +19,7 @@
   const dispatchEvent = createEventDispatcher();
 
   function onEditLabel() {
-    labelEditDialog.showModal(label);
+    labelEditDialog.showModal({ ...label });
   }
 
   function onCloseDialog({ detail: label }) {
@@ -36,54 +37,42 @@
   }
 </script>
 
-<div
-  class="LabelContainer"
-  on:focus={() => (showEditButtons = true)}
-  on:mouseover={() => (showEditButtons = true)}
-  on:mouseout={() => (showEditButtons = false)}
-  on:blur={() => (showEditButtons = false)}
->
-  <input type="checkbox" bind:checked on:change={onSelectLabelChange} />
-  <span style="color: {label.color}">{label.name}</span>
-
-  {#if showEditButtons}
-    <div
-      transition:fadeScale={{
-        delay: 150,
-        duration: 1000,
-        easing: cubicInOut,
-        baseScale: 0,
-      }}
-    >
-      <button on:click={onEditLabel}>
-        <EditSvg class="SvgImage" />
-      </button>
-      <button on:click={onDeleteLabel}>
-        <DeleteSvg class="SvgImage" />
-      </button>
-    </div>
-  {/if}
-</div>
+<Checkbox bind:checked on:change={onSelectLabelChange}>
+  <div class="LabelContainer">
+    <span style="color: {label.color}">{label.name}</span>
+    <button on:click={onEditLabel}>
+      <EditSvg class="SvgImage" />
+    </button>
+    <button on:click={onDeleteLabel}>
+      <DeleteSvg class="SvgImage" />
+    </button>
+  </div>
+</Checkbox>
 
 <LabelEditDialog bind:this={labelEditDialog} on:closeDialog={onCloseDialog} />
 
 <style>
+  :global(.s-checkbox__wrapper) {
+    color: #9e9e9e !important;
+  }
+
   .LabelContainer {
     display: flex;
     align-items: center;
-    height: 26px;
+    width: 170px;
   }
 
-  input {
-    margin-right: 5px;
-  }
-
-  span {
+  .LabelContainer > span {
     flex: 1;
   }
 
-  button {
+  .LabelContainer > button {
     margin: 0 1px;
     color: #7b8ca8c2;
+    opacity: 0.5;
+  }
+  .LabelContainer > button:hover {
+    color: grey;
+    opacity: 1;
   }
 </style>

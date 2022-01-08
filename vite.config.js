@@ -15,6 +15,9 @@ export default defineConfig({
     }),
     svelte({
       preprocess: sveltePreprocess({
+        scss: {
+          includePaths: ['theme'],
+        },
         postcss: true,
       }),
     }),

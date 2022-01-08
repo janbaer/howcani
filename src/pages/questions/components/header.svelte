@@ -18,6 +18,7 @@
   function addDocument() {
     dispatchEvent('addDocument');
   }
+
 </script>
 
 <div class="Header-leftContainer">

@@ -1,4 +1,5 @@
 <script>
+  import { Card, CardText, CardActions, Button } from 'svelte-materialify';
   import { isLocalHost } from '/@/helpers/env.helpers.js';
 
   function loginToGitHub() {
@@ -7,11 +8,15 @@
   }
 </script>
 
-<div class="Form">
-  <h2 class="Form-header title-font">Login to GitHub</h2>
-  <p class="FormHelpText-paragraph">
-    To be able to work with HowCanI you need to login with your GitHub account and then select a Git
-    repository where the data should be saved.
-  </p>
-  <button class="FormButton-primary" on:click={loginToGitHub}>Login</button>
-</div>
+<Card outlined style="max-width:600px;">
+  <CardText>
+    <h2 class="heading text-h4 mb-3">Login to GitHub</h2>
+    <p>
+      To be able to work with HowCanI you need to login with your GitHub account and then select a
+      Git repository where the data should be saved.
+    </p>
+  </CardText>
+  <CardActions>
+    <Button class="primary-color" on:click={loginToGitHub}>Login</Button>
+  </CardActions>
+</Card>

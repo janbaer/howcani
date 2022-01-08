@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { Card, CardTitle, CardText, CardActions, Button } from 'svelte-materialify';
 
   import TagSvg from '/@/assets/svg/tag.svg';
   import CheckSvg from '/@/assets/svg/check.svg';
@@ -16,47 +17,40 @@
   }
 </script>
 
-<div class="Question-card">
-  <div class="Question-header" on:click={showQuestionDetailsDialog}>
-    <h2>
+<Card>
+  <CardTitle>
+    <h3 on:click={showQuestionDetailsDialog}>
       {#if question.isAnswered}
         <CheckSvg class="SvgImage" fill="ForestGreen" />
       {:else}
         <QuestionSvg class="SvgImage" fill="IndianRed" />
       {/if}
       <span>{question.title}</span>
-    </h2>
-  </div>
-  <hr />
-  <div class="Question-body">
-    <MarkdownView content={question.body} />
-  </div>
-  <div class="Question-footer">
+    </h3>
+  </CardTitle>
+  <CardText>
+    <div class="Question-body">
+      <MarkdownView content={question.body} />
+    </div>
+  </CardText>
+  <CardActions>
     <div>
       <TagSvg class="SvgImage" fill="DeepSkyBlue" />
       {#each question.labels as label}
         <span class="Question-label" style="color: #{label.color}">{label.name}</span>
       {/each}
     </div>
-  </div>
-</div>
+  </CardActions>
+</Card>
 
 <style type="postcss">
-  .Question-card {
-    @apply border border-gray-200 p-4 rounded-lg shadow-md;
+  h3 {
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1.25rem;
   }
-  .Question-header {
-    /* @apply cursor-pointer; */
-  }
-  h2 {
-    /* @apply font-normal leading-normal mt-0 mb-2 text-blue-800; */
-  }
-  .Question-body {
-    /* @apply py-2; */
-  }
-  .Question-footer {
-  }
-  .Question-label {
-    /* @apply mx-2; */
+  h3:hover {
+    text-decoration: underline;
+    color: var(--link-color);
   }
 </style>

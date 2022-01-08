@@ -3,6 +3,8 @@
   import { quintOut } from 'svelte/easing';
   import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
 
+  export let hideSidebar = true;
+
   const resizeObserver = new ResizeObserver((entries) => {
     if (window.innerWidth >= 1024) {
       toggleSidebarStore.set(true);
@@ -17,7 +19,7 @@
   <slot name="header" />
 </header>
 
-{#if $toggleSidebarStore}
+{#if !hideSidebar && $toggleSidebarStore}
   <div
     class="Sidebar-container"
     transition:fly={{ delay: 50, duration: 400, x: -230, y: 0, opacity: 0.5, easing: quintOut }}

@@ -1,7 +1,10 @@
 <script>
+  import { MaterialApp, Footer } from 'svelte-materialify';
   import Router from 'svelte-spa-router';
   import Questions from './pages/questions/index.svelte';
   import Connect from './pages/connect/index.svelte';
+
+  let theme = 'light';
 
   let year = new Date().getFullYear();
 
@@ -11,19 +14,19 @@
   };
 </script>
 
-<main>
+<MaterialApp {theme}>
   <Router {routes} />
-  <footer>
-    <span><strong>HowCanI</strong> - Copyright {year} by Jan Baer</span>
-  </footer>
-</main>
+  <Footer padless class="indigo theme--dark justify-center flex-column">
+    <span>HowCanI - Copyright {year} by <b>Jan Baer</b></span>
+  </Footer>
+</MaterialApp>
 
 <style>
-  main {
+  :global(.s-app) {
     height: 100vh;
     display: grid;
 
-    grid-template-rows: 40px 1fr 30px;
+    grid-template-rows: 46px 1fr 30px;
     grid-template-columns: 1fr;
     grid-template-areas:
       'header'
@@ -31,23 +34,23 @@
       'footer';
   }
 
+  :global(.s-app-bar) {
+    grid-area: header;
+  }
+
+  :global(.s-footer) {
+    grid-area: footer;
+    text-align: center;
+  }
+
   @media (min-width: 1024px) {
-    main {
-      grid-template-rows: 40px 1fr 30px;
+    :global(.s-app) {
+      grid-template-rows: 46px 1fr 30px;
       grid-template-columns: var(--sidebar-width) 1fr;
       grid-template-areas:
-        'sidebar header'
+        'header header'
         'sidebar content'
         'footer footer';
     }
-  }
-
-  footer {
-    grid-area: footer;
-    background-color: var(--main-bg-color);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
 </style>

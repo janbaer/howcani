@@ -1,10 +1,21 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import ModalDialog from '/@/components/modal-dialog.svelte';
-  import FormInput from '/@/components/form-input.svelte';
-  import FormColorInput from '/@/components/form-color-input.svelte';
+  import {
+    Dialog,
+    Card,
+    CardTitle,
+    CardText,
+    CardActions,
+    Button,
+    TextField,
+    Checkbox,
+    Row,
+    Col,
+  } from 'svelte-materialify';
 
-  export let isActive = false;
+  import { isEscKey } from '/@/helpers/utils.helpers.js';
+
+  export let active = false;
   export let label = null;
 
   let isLabelValid = true;
@@ -20,47 +31,51 @@
   export function showModal(l) {
     label = l;
 
-    isActive = true;
+    active = true;
   }
 
+  function onWindowKeydown(event) {
+    if (active && isEscKey(event)) {
+      cancelDialog();
+    }
+  }
   function beforeClose(e) {
     e.detail.canClose = isLabelValid;
   }
+  async function cancelDialog() {
+    active = false;
+  }
 
-  async function closeModalDialog({ detail: isCancelled }) {
-    isActive = false;
-    if (isCancelled) {
-      return;
-    }
-
+  async function confirmDialog() {
+    active = false;
     dispatchEvent('closeDialog', label);
   }
 </script>
 
-{#if isActive}
-  <ModalDialog maxWidth="800px" {isActive} on:close={closeModalDialog} on:beforeClose={beforeClose}>
-    <div class="QuestionDetailsContent-container" slot="content">
-      <FormInput
-        name="labelName"
-        caption="Name"
-        isValid={isLabelValid}
-        autoFocus={true}
-        bind:value={label.name}
-      />
-      <FormColorInput
-        name="labelColor"
-        caption="Color"
-        isValid={isLabelValid}
-        bind:value={label.color}
-      />
-    </div>
-  </ModalDialog>
-{/if}
+<svelte:window on:keydown={onWindowKeydown} />
 
-<style type="postcss">
-  .QuestionDetailsContent-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-</style>
+{#if active}
+  <Dialog {active}>
+    <Card class="pt-5">
+      <CardText>
+        <Row>
+          <Col>
+            <TextField bind:value={label.name}>Name</TextField>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <TextField type="color" bind:value={label.color}>Color</TextField>
+          </Col>
+        </Row>
+      </CardText>
+      <CardActions class="pr-4">
+        <Row>
+          <Col class="d-flex justify-center">
+            <Button on:click={confirmDialog} class="primary-color" size="large">Ok</Button>
+          </Col>
+        </Row>
+      </CardActions>
+    </Card>
+  </Dialog>
+{/if}
