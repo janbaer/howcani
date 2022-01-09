@@ -1,17 +1,13 @@
 <script>
   import { onMount } from 'svelte';
   import { get } from 'svelte/store';
-  import { push as navigate, replace } from 'svelte-spa-router';
-
-  import { AppBar, Button, Icon } from 'svelte-materialify';
-  import { mdiMenu, mdiMagnify, mdiGithub } from '@mdi/js';
+  import { replace } from 'svelte-spa-router';
+  import { querystring as queryStringStore } from 'svelte-spa-router';
+  import { AppBar } from 'svelte-materialify';
 
   import { configStore } from '/@/stores/config.store';
-
   import Login from './components/login.svelte';
   import RepositorySelection from './components/repository-selection.svelte';
-
-  import { querystring as queryStringStore } from 'svelte-spa-router';
 
   let mustLogin = false;
 

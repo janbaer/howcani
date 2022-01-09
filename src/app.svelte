@@ -34,15 +34,6 @@
       'footer';
   }
 
-  :global(.s-app-bar) {
-    grid-area: header;
-  }
-
-  :global(.s-footer) {
-    grid-area: footer;
-    text-align: center;
-  }
-
   @media (min-width: 1024px) {
     :global(.s-app) {
       grid-template-rows: 46px 1fr 30px;
@@ -52,5 +43,14 @@
         'sidebar content'
         'footer footer';
     }
+  }
+
+  :global(.s-app-bar) {
+    grid-area: header;
+  }
+
+  :global(.s-footer) {
+    grid-area: footer;
+    text-align: center;
   }
 </style>

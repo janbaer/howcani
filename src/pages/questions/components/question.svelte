@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { Card, CardTitle, CardText, CardActions, Button } from 'svelte-materialify';
+  import { Card, CardTitle, CardText, CardActions } from 'svelte-materialify';
 
   import TagSvg from '/@/assets/svg/tag.svg';
   import CheckSvg from '/@/assets/svg/check.svg';

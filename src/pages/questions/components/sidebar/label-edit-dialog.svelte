@@ -3,12 +3,10 @@
   import {
     Dialog,
     Card,
-    CardTitle,
     CardText,
     CardActions,
     Button,
     TextField,
-    Checkbox,
     Row,
     Col,
   } from 'svelte-materialify';
@@ -17,8 +15,6 @@
 
   export let active = false;
   export let label = null;
-
-  let isLabelValid = true;
 
   const dispatchEvent = createEventDispatcher();
 
@@ -39,9 +35,7 @@
       cancelDialog();
     }
   }
-  function beforeClose(e) {
-    e.detail.canClose = isLabelValid;
-  }
+
   async function cancelDialog() {
     active = false;
   }

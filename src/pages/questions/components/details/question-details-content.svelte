@@ -29,11 +29,6 @@
     },
   };
 
-  const accessEditor = (editor) => {
-    console.log('accessEditor', editor);
-    editor.focus();
-  };
-
   function onChange(newValue) {
     dispatchEvent('change', newValue);
   }
@@ -52,7 +47,7 @@
   class:QuestionContent-editor={showEditor}
 >
   {#if showEditor}
-    <Editor {config} initialValue={content} {onChange} {accessEditor} />
+    <Editor {config} initialValue={content} {onChange} />
   {:else}
     <MarkdownView {content} />
   {/if}
