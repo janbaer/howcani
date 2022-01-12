@@ -5,6 +5,8 @@
   export let labels = [];
   export let selectedLabelsSet = new Set([]);
 
+  import { List, ListItem } from 'svelte-materialify';
+
   const dispatchEvent = createEventDispatcher();
 
   function onLabelSelectionChanged({ detail: label }) {
@@ -18,19 +20,24 @@
 </script>
 
 <div class="Labels-container">
-  <ul>
+  <List>
     {#each labels as label}
-      <li>
+      <ListItem>
         <Label {label} checked={false} on:labelSelectionChanged={onLabelSelectionChanged} />
-      </li>
+      </ListItem>
     {/each}
-  </ul>
+  </List>
 </div>
 
 <style type="postcss">
   .Labels-container {
-    @apply p-4 bg-gray-50;
     overflow-y: auto;
-    height: calc(100vh - 160px);
+    height: 100vh;
+    background-color: white;
+  }
+  @media (min-width: 1024px) {
+    .Labels-container {
+      height: calc(100vh - 76px);
+    }
   }
 </style>

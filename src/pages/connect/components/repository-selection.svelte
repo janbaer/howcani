@@ -1,9 +1,8 @@
 <script>
-  import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import { push as navigate } from 'svelte-spa-router';
+  import { Card, CardText, CardActions, Row, Col, TextField, Button } from 'svelte-materialify';
+
   import GithubService from '/@/services/github.service.js';
-  import FormInput from '/@/components/form-input.svelte';
   import { configStore } from '/@/stores/config.store';
 
   let user = '';
@@ -57,16 +56,30 @@
   }
 </script>
 
-<form class="Form" on:submit|preventDefault={handleSubmit}>
-  <h2 class="Form-header title-font">Connect to GitHub repository</h2>
-  <p class="FormHelpText-paragraph">Please enter your GitHub user name and repository</p>
-  <FormInput name="name" caption="Name" isValid={isUserValid} bind:value={user} readonly={true} />
-  <FormInput
-    name="repository"
-    caption="Repository"
-    isValid={isRepositoryValid}
-    autoFocus={true}
-    bind:value={repository}
-  />
-  <button class="FormButton-primary" type="submit">Connect</button>
+<form on:submit|preventDefault={handleSubmit}>
+  <Card outlined style="max-width:600px;">
+    <CardText>
+      <h2 class="heading text-h4 mb-3">Connect to GitHub repository</h2>
+      <p>Please enter your GitHub user name and select a repository</p>
+      <Row>
+        <Col>
+          <TextField readonly filled value={user}>User</TextField>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <TextField
+            placeholder="Enter repository name"
+            bind:value={repository}
+            error={!isRepositoryValid}
+          >
+            Repository
+          </TextField>
+        </Col>
+      </Row>
+    </CardText>
+    <CardActions>
+      <Button class="primary-color" type="submit">Connect</Button>
+    </CardActions>
+  </Card>
 </form>

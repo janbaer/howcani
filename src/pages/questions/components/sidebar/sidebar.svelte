@@ -1,43 +1,50 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { get } from 'svelte/store';
 
   import { questionsStore } from '/@/stores/questions.store.js';
+  import { NavigationDrawer, Overlay } from 'svelte-materialify';
+  import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
 
   import Labels from './labels.svelte';
-  import SearchInput from './search-input.svelte';
-  import StateFilter from './state-filter.svelte';
+
+  export let labels = [];
+  export let isPermanent = true;
 
   const dispatchEvent = createEventDispatcher();
-  export let labels = [];
+  let isSidebarActive = false;
 
-  function onStartSearch({ detail: query }) {
-    const { searchQuery } = get(questionsStore);
-    dispatchEvent('searchQueryChanged', { ...searchQuery, query });
-  }
+  onMount(() => {
+    isSidebarActive = get(toggleSidebarStore);
 
-  function onStateFilterChanged({ detail: state }) {
-    const { searchQuery } = get(questionsStore);
-    dispatchEvent('searchQueryChanged', { ...searchQuery, state });
-  }
+    toggleSidebarStore.subscribe((newValue) => {
+      isSidebarActive = newValue;
+    });
+  });
 
   function onLabelSelectionChanged({ detail: labels }) {
     const { searchQuery } = get(questionsStore);
     dispatchEvent('searchQueryChanged', { ...searchQuery, labels });
   }
+
+  function closeSidebar() {
+    toggleSidebarStore.set(false);
+  }
 </script>
 
-<div class="Sidebar-container">
-  <SearchInput on:startSearch={onStartSearch} />
-  <hr />
-  <StateFilter on:stateFilterChanged={onStateFilterChanged} />
-  <hr />
+<NavigationDrawer
+  style="height:100%"
+  class="primary-color theme--dark"
+  absolute={!isPermanent}
+  active={isPermanent || isSidebarActive}
+>
   <Labels {labels} on:labelSelectionChanged={onLabelSelectionChanged} />
-</div>
+</NavigationDrawer>
+<Overlay
+  index={1}
+  active={!isPermanent && isSidebarActive}
+  absolute={!isPermanent}
+  on:click={closeSidebar}
+/>
 
-<style>
-  .Sidebar-container {
-    display: flex;
-    flex-direction: column;
-  }
-</style>
+<style></style>

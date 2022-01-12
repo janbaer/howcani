@@ -7,6 +7,7 @@ import { svelteSVG } from 'rollup-plugin-svelte-svg';
 export default defineConfig({
   build: {
     outDir: 'build',
+    minify: false,
   },
   plugins: [
     svelteSVG({
@@ -15,6 +16,9 @@ export default defineConfig({
     }),
     svelte({
       preprocess: sveltePreprocess({
+        scss: {
+          includePaths: ['theme'],
+        },
         postcss: true,
       }),
     }),

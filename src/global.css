@@ -1,16 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 :root {
   --main-bg-color: #1e87f0;
+  --link-color: #3f51b5; /* Indigo */
 
   --header-height: 40px;
   --footer-height: 30px;
 
   --content-height: calc(100vh - var(--header-height) - var(--footer-height));
   --sidebar-width: 250px;
-  --min-width-tablet: 1024px;
+  --min-width-tablet: 1025px;
 
   --margin-width: 0.8rem;
 }
@@ -23,86 +20,8 @@
   }
 }
 
-@layer base {
-  body {
-  }
-}
-
-label {
-  @apply italic;
-}
-
-#app {
-}
-
 .SvgImage {
-  @apply inline-block h-6;
-}
-
-.Form {
-  @apply flex flex-col gap-4 lg:gap-5 bg-white sm:w-full lg:w-6/12 p-6 rounded-xl;
-}
-.Form-header {
-  @apply text-2xl text-gray-900 text-lg mb-1 font-medium;
-}
-.FormHelpText-paragraph {
-  @apply leading-relaxed mb-4 text-gray-600 text-base font-normal;
-}
-.FormButton-primary {
-  @apply text-white bg-blue-500 border-0 py-2 px-6 focus:outline-none hover:bg-blue-600 rounded text-lg;
-}
-
-.FormInput-container {
-  @apply relative flex flex-row items-center gap-4 lg:gap-5;
-}
-
-.FormInput-label {
-  @apply leading-7 text-sm text-gray-600;
-  flex-basis: 100px;
-}
-
-.FormInputLabel-hasError {
-  @apply text-red-400;
-}
-
-.FormInput-input {
-  @apply w-full bg-white rounded border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out;
-}
-.FormInput-error {
-  @apply border-red-400;
-}
-.FormInput-readonly {
-  @apply bg-gray-100;
-}
-
-/* Some style fixes for the svelte-tags element */
-.svelte-tags-input-layout {
-  border: none !important;
-  gap: var(--margin-width);
-}
-
-.svelte-tags-input-layout > label {
-  display: none;
-  @apply leading-7 text-sm text-gray-600;
-  margin: 0 !important;
-  flex-basis: 90px;
-}
-
-@media (min-width: 1024px) {
-  .svelte-tags-input-layout > label {
-    display: block;
-  }
-}
-
-.svelte-tags-input-layout > input {
-  @apply w-full bg-white rounded border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out !important;
-}
-
-.svelte-tags-input-layout > .svelte-tags-input-tag {
-  background-color: BurlyWood !important;
-  color: black !important;
-}
-
-.svelte-tags-input-matchs {
-  z-index: 99;
+  height: 24px;
+  width: 24px;
+  display: inline-block;
 }
