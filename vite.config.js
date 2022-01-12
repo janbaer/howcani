@@ -7,6 +7,7 @@ import { svelteSVG } from 'rollup-plugin-svelte-svg';
 export default defineConfig({
   build: {
     outDir: 'build',
+    minify: false,
   },
   plugins: [
     svelteSVG({
