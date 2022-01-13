@@ -10,7 +10,10 @@
   import { loadQuestions, questionsStore } from '/@/stores/questions.store.js';
   import { loadLabels, labelsStore } from '/@/stores/labels.store.js';
   import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
-  import { isTabletOrDesktopSize } from '/@/helpers/media-queries.helpers.js';
+  import {
+    isTabletOrDesktopSize,
+    isMinIPadPortraitSize,
+  } from '/@/helpers/media-queries.helpers.js';
 
   import Questions from './components/questions.svelte';
   import Sidebar from './components/sidebar/sidebar.svelte';
@@ -18,6 +21,9 @@
   let config;
   let questionsElement;
   let searchTerm = '';
+  let isSidebarActive = true;
+  let isToggleSidebarButtonVisible = false;
+  let showAppTitle = true;
 
   onMount(() => {
     config = get(configStore);
@@ -31,8 +37,27 @@
     loadQuestions(config, searchQuery, 1);
     loadLabels(config);
 
-    toggleSidebarStore.set(isTabletOrDesktopSize());
+    if (!isTabletOrDesktopSize()) {
+      isSidebarActive = true;
+      isToggleSidebarButtonVisible = true;
+    }
+    toggleSidebarStore.set(isSidebarActive);
   });
+
+  const resizeObserver = new window.ResizeObserver(() => {
+    isToggleSidebarButtonVisible = !isTabletOrDesktopSize();
+    if (isTabletOrDesktopSize() && !isSidebarActive) {
+      isSidebarActive = true;
+      toggleSidebarStore.set(true);
+    }
+
+    if (!isTabletOrDesktopSize() && isSidebarActive) {
+      isSidebarActive = false;
+      toggleSidebarStore.set(false);
+    }
+    showAppTitle = isMinIPadPortraitSize();
+  });
+  resizeObserver.observe(document.scrollingElement);
 
   function loadMoreQuestions() {
     const { page, searchQuery } = get(questionsStore);
@@ -40,9 +65,8 @@
   }
 
   function toggleSidebar() {
-    toggleSidebarStore.update((isSidebarActive) => {
-      return !isSidebarActive;
-    });
+    isSidebarActive = !isSidebarActive;
+    toggleSidebarStore.set(isSidebarActive);
   }
 
   function hideSidebar() {
@@ -89,14 +113,14 @@
 {#if config}
   <AppBar dense class="primary-color theme--dark">
     <div slot="icon">
-      {#if !isTabletOrDesktopSize()}
+      {#if isToggleSidebarButtonVisible}
         <Button fab depressed text on:click={toggleSidebar}>
           <Icon path={mdiMenu} />
         </Button>
       {/if}
     </div>
     <span slot="title">
-      {#if isTabletOrDesktopSize()}
+      {#if showAppTitle}
         HowCanI 2
       {/if}
     </span>
@@ -124,7 +148,7 @@
     <Sidebar
       labels={$labelsStore}
       on:searchQueryChanged={onSearchQueryChanged}
-      isPermanent={isTabletOrDesktopSize()}
+      isPermanent={!isToggleSidebarButtonVisible}
     />
   </div>
   <div class="Content-container">
