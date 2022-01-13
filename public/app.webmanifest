@@ -3,8 +3,8 @@
   "short_name": "HowCanI",
   "display": "standalone",
   "start_url": "/",
-  "theme_color": "#1e87f0",
-  "background_color": "#1e87f0",
+  "theme_color": "#6200ee",
+  "background_color": "#6200ee",
   "lang": "en-US",
   "icons": [
     { "src": "images/favicon-32x32.png", "type": "image/png",  "sizes": "32x32" },
