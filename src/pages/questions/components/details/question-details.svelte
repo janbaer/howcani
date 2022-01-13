@@ -36,7 +36,7 @@
     if (question) {
       isTitleValid = !!question.title;
     }
-    okButtonClass = isTitleValid ? 'primary-color' : 'disabled';
+    okButtonClass = isTitleValid ? 'primary-color' : '';
   }
 
   onMount(() => {

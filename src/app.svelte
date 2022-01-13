@@ -16,7 +16,7 @@
 
 <MaterialApp {theme}>
   <Router {routes} />
-  <Footer padless class="indigo theme--dark justify-center flex-column">
+  <Footer padless class="primary-color theme--dark justify-center flex-column">
     <span>HowCanI - Copyright {year} by <b>Jan Baer</b></span>
   </Footer>
 </MaterialApp>
@@ -51,6 +51,5 @@
 
   :global(.s-footer) {
     grid-area: footer;
-    text-align: center;
   }
 </style>

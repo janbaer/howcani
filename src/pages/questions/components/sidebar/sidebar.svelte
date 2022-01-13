@@ -47,4 +47,8 @@
   on:click={closeSidebar}
 />
 
-<style></style>
+<style>
+  :global(.s-list-item__content) {
+    padding: 0 !important;
+  }
+</style>
