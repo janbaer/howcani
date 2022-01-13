@@ -16,11 +16,15 @@
   export let active = false;
   export let label = null;
 
+  let isLabelValid = true;
+  let okButtonClass = 'primary-color';
+
   const dispatchEvent = createEventDispatcher();
 
   $: {
     if (label) {
       isLabelValid = !!label.name;
+      okButtonClass = isLabelValid ? 'primary-color' : '';
     }
   }
 
@@ -66,7 +70,12 @@
       <CardActions class="pr-4">
         <Row>
           <Col class="d-flex justify-center">
-            <Button on:click={confirmDialog} class="primary-color" size="large">Ok</Button>
+            <Button
+              on:click={confirmDialog}
+              class={okButtonClass}
+              size="large"
+              disabled={!isLabelValid}>Ok</Button
+            >
           </Col>
         </Row>
       </CardActions>
