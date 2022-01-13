@@ -1,6 +1,6 @@
 {
   "name": "howcani",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "module",
   "scripts": {
     "start": "vite",
@@ -17,9 +17,7 @@
   "license": "ISC",
   "jest": {
     "rootDir": "./src",
-    "collectCoverageFrom": [
-      "src/**/**.js"
-    ],
+    "collectCoverageFrom": ["src/**/**.js"],
     "coveragePathIgnorePatterns": [],
     "verbose": true,
     "transform": {}
