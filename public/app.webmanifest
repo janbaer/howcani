@@ -2,6 +2,7 @@
   "name": "HowCanI",
   "short_name": "HowCanI",
   "display": "standalone",
+  "description": "HowCanI do anything?",
   "start_url": "/",
   "theme_color": "#6200ee",
   "background_color": "#6200ee",
