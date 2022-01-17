@@ -5,6 +5,8 @@
   import 'codemirror/mode/gfm/gfm';
   import Editor from '@svelte-parts/editor';
   import '@svelte-parts/editor/md-light.css';
+  import { Icon } from 'svelte-materialify';
+  import { mdiPencil } from '@mdi/js';
 
   import EditorSvg from '/@/assets/svg/edit.svg';
   import MarkdownView from '/@/components/markdown-view.svelte';
@@ -39,7 +41,7 @@
 </script>
 
 <button class="QuestionContent-toggleEditorButton" on:click={toggleEditor} title="Toggle editor">
-  <EditorSvg class="SvgImage" />
+  <Icon path={mdiPencil} size="24px" />
 </button>
 <div
   class="QuestionContent-container"

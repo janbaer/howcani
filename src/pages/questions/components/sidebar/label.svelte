@@ -4,8 +4,8 @@
   import { Checkbox } from 'svelte-materialify';
   import { configStore } from '/@/stores/config.store.js';
   import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
-  import DeleteSvg from '/@/assets/svg/delete.svg';
-  import EditSvg from '/@/assets/svg/edit.svg';
+  import { Icon } from 'svelte-materialify';
+  import { mdiTrashCan, mdiPencil } from '@mdi/js';
   import LabelEditDialog from './label-edit-dialog.svelte';
 
   export let label = {};
@@ -38,10 +38,10 @@
   <div class="LabelContainer">
     <span style="color: {label.color}">{label.name}</span>
     <button on:click={onEditLabel}>
-      <EditSvg class="SvgImage" />
+      <Icon path={mdiPencil} size="24px" class="grey-text" />
     </button>
     <button on:click={onDeleteLabel}>
-      <DeleteSvg class="SvgImage" />
+      <Icon path={mdiTrashCan} size="24px" class="grey-text" />
     </button>
   </div>
 </Checkbox>

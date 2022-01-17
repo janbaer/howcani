@@ -17,7 +17,9 @@
   "license": "ISC",
   "jest": {
     "rootDir": "./src",
-    "collectCoverageFrom": ["src/**/**.js"],
+    "collectCoverageFrom": [
+      "src/**/**.js"
+    ],
     "coveragePathIgnorePatterns": [],
     "verbose": true,
     "transform": {}
@@ -47,6 +49,7 @@
     "@bytemd/plugin-gfm": "1.10.13",
     "@mdi/js": "6.5.95",
     "@svelte-parts/editor": "0.0.20",
+    "date-fns": "2.28.0",
     "eslint-plugin-svelte3": "^3.4.0",
     "github-markdown-css": "5.1.0",
     "http-status-codes": "2.2.0",
