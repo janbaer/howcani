@@ -8,7 +8,6 @@
   import { Icon } from 'svelte-materialify';
   import { mdiPencil } from '@mdi/js';
 
-  import EditorSvg from '/@/assets/svg/edit.svg';
   import MarkdownView from '/@/components/markdown-view.svelte';
 
   export let content;
