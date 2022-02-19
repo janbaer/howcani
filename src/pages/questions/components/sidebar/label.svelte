@@ -38,7 +38,7 @@
   <div class="LabelContainer">
     <span style="color: {label.color}">{label.name}</span>
     <button on:click={onEditLabel}>
-      <Icon path={mdiPencil} size="24px" class="grey-text" />
+      <Icon class="Label-buttonIcon grey-text" path={mdiPencil} size="24px" />
     </button>
     <button on:click={onDeleteLabel}>
       <Icon path={mdiTrashCan} size="24px" class="grey-text" />
@@ -51,6 +51,11 @@
 <style>
   :global(.s-checkbox__wrapper) {
     color: #9e9e9e !important;
+  }
+
+  :global(.s-list-item .s-icon) {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
   }
 
   .LabelContainer {
