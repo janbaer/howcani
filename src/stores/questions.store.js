@@ -7,7 +7,7 @@ import QuestionService from './../services/question.service';
 import GithubService from './../services/github.service';
 import SearchQueryBuilderService from './../services/search-query-builder.service';
 
-const QUESTIONS_PER_PAGE = 10;
+const QUESTIONS_PER_PAGE = 15;
 
 export const questionsStore = writable({
   questions: [],
@@ -45,14 +45,8 @@ export async function loadQuestions(config, searchQuery, page) {
 
   const { user, repository, oauthToken } = config;
   const githubService = new GithubService(user, repository, oauthToken);
-  const searchQueryBuilderService = new SearchQueryBuilderService(
-    user,
-    repository
-  );
-  const questionService = new QuestionService(
-    githubService,
-    searchQueryBuilderService
-  );
+  const searchQueryBuilderService = new SearchQueryBuilderService(user, repository);
+  const questionService = new QuestionService(githubService, searchQueryBuilderService);
 
   const questionsResponse = await questionService.fetchQuestions(
     searchQuery,
