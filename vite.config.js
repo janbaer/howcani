@@ -6,7 +6,7 @@ import sveltePreprocess from 'svelte-preprocess';
 export default defineConfig({
   build: {
     outDir: 'build',
-    minify: false,
+    minify: true,
   },
   plugins: [
     svelte({
