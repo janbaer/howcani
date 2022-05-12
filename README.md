@@ -8,3 +8,9 @@ But because it's time to try something new I decided to use Svelte instead.
 ```
 git tag -a 3.2.6 -m "3.2.66 - Fix wrong domain name in CNAME" && git push --tags
 ```
+
+or use the short version:
+
+```
+git tag 3.2.6 && git push --tags
+```
