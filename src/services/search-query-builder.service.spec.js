@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 // import SearchQueryBuilderService from './search-query-builder.service';
 
 describe('SearchQueryBuilderService spec', () => {

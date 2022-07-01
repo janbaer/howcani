@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { mapLabelNames } from './labels.helpers';
 
 describe('LabelsHelpers spec', () => {
