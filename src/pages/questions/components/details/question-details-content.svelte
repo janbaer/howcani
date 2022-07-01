@@ -16,7 +16,9 @@
   let showEditor = false;
 
   onMount(() => {
-    showEditor = initialShowEditor;
+    if (initialShowEditor) {
+      setTimeout(toggleEditor, 300)
+    }
   });
 
   const dispatchEvent = createEventDispatcher();
