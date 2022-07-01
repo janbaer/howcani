@@ -8,9 +8,11 @@
     "deploy": "yarn build && ./deploy.sh $npm_package_version",
     "lint": "eslint ./src --ext .js --ext .json",
     "serve": "vite preview",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky install"
   },
   "author": {
     "name": "Jan Baer",
