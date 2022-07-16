@@ -24,4 +24,8 @@ export default defineConfig({
     },
   },
   test: {},
+  server: {
+    port: 3000,
+    strictPort: true,
+  },
 });
