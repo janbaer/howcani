@@ -51,7 +51,7 @@
   </CardActions>
 </Card>
 
-<style type="scss">
+<style lang="scss">
   h3 {
     cursor: pointer;
     font-size: 1rem;
