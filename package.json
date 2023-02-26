@@ -23,13 +23,13 @@
     "@bytemd/plugin-gfm": "1.20.2",
     "@mdi/js": "7.1.96",
     "@svelte-parts/editor": "0.0.26",
-    "@sveltejs/vite-plugin-svelte": "2.0.2",
-    "@vitest/ui": "0.28.5",
+    "@sveltejs/vite-plugin-svelte": "2.0.3",
+    "@vitest/ui": "0.29.1",
     "autoprefixer": "10.4.13",
     "c8": "7.13.0",
     "cssnano": "5.1.15",
     "date-fns": "2.29.3",
-    "eslint": "8.34.0",
+    "eslint": "8.35.0",
     "eslint-plugin-json-light": "1.0.3",
     "eslint-plugin-svelte3": "^4.0.0",
     "github-markdown-css": "5.2.0",
@@ -46,8 +46,8 @@
     "svelte-preprocess": "5.0.1",
     "svelte-spa-router": "3.3.0",
     "svelte-tags-input": "4.0.0",
-    "vite": "4.1.2",
-    "vitest": "0.28.5"
+    "vite": "4.1.4",
+    "vitest": "0.29.1"
   },
   "dependencies": {}
 }
