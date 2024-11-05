@@ -1,5 +1,4 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
 
   import viewport from '/@/actions/view-port.action.js';
@@ -9,24 +8,28 @@
   import { configStore } from '/@/stores/config.store.js';
   import { createQuestion, updateQuestion } from '/@/stores/questions.store.js';
 
-  export let questions = [];
-  export let loading = false;
-  export let hasMoreData = false;
+  /**
+   * @typedef {Object} Props
+   * @property {any} [questions]
+   * @property {boolean} [loading]
+   * @property {boolean} [hasMoreData]
+   */
 
-  const dispatchEvent = createEventDispatcher();
+  /** @type {Props} */
+  let { questions = [], loading = false, hasMoreData = false, loadMore } = $props();
 
-  let questionDetailsDialog;
+  let questionDetailsDialog = $state();
 
   export function addQuestion() {
     const newQuestion = { title: '', body: '', labels: [], isAnswered: false };
     questionDetailsDialog.showModal(newQuestion);
   }
 
-  function onEditQuestion({ detail: question }) {
+  function onEditQuestion(question) {
     questionDetailsDialog.showModal({ ...question });
   }
 
-  function onCloseQuestionDetails({ detail: question }) {
+  function onCloseQuestionDetails(question) {
     const config = get(configStore);
     if (!question.id) {
       createQuestion(config, question);
@@ -36,14 +39,18 @@
   }
 </script>
 
-<div class="Questions-container" on:click>
+{#snippet questionSnippet(question)}
+  <div class="Question-container">
+    <Question {question} editQuestion={onEditQuestion} />
+  </div>
+{/snippet}
+
+<div class="Questions-container">
   {#each questions as question (question.id)}
-    <div class="Question-container">
-      <Question {question} on:editQuestion={onEditQuestion} />
-    </div>
+    {@render questionSnippet(question)}
   {/each}
   {#if hasMoreData}
-    <div class="Question-container" use:viewport on:enterViewport={() => dispatchEvent('loadMore')}>
+    <div class="Question-container" use:viewport onenterViewport={() => loadMore()}>
       {#if loading}
         <Spinner />
       {/if}
@@ -53,7 +60,7 @@
 
 <QuestionDetails
   bind:this={questionDetailsDialog}
-  on:closeQuestionDetails={onCloseQuestionDetails}
+  {onCloseQuestionDetails}
 />
 
 <style type="postcss">

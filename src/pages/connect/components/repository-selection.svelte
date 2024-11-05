@@ -5,10 +5,10 @@
   import GithubService from '/@/services/github.service.js';
   import { configStore } from '/@/stores/config.store';
 
-  let user = '';
-  let repository = '';
+  let user = $state('');
+  let repository = $state('');
   let isUserValid = true;
-  let isRepositoryValid = true;
+  let isRepositoryValid = $state(true);
 
   configStore.subscribe((config) => {
     if (!config.oauthToken) {
@@ -54,9 +54,16 @@
       navigate('/');
     }
   }
+
+  function preventDefault(fn) {
+    return function (event) {
+      event.preventDefault();
+      fn.call(this, event);
+    };
+  }
 </script>
 
-<form on:submit|preventDefault={handleSubmit}>
+<form onsubmit={preventDefault(handleSubmit)}>
   <Card outlined style="max-width:600px;">
     <CardText>
       <h2 class="heading text-h4 mb-3">Connect to GitHub repository</h2>

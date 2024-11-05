@@ -18,12 +18,12 @@
   import Questions from './components/questions.svelte';
   import Sidebar from './components/sidebar/sidebar.svelte';
 
-  let config;
-  let questionsElement;
-  let searchTerm = '';
+  let config = $state();
+  let questionsElement = $state();
+  let searchTerm = $state('');
   let isSidebarActive = true;
-  let isToggleSidebarButtonVisible = false;
-  let showAppTitle = true;
+  let isToggleSidebarButtonVisible = $state(false);
+  let showAppTitle = $state(true);
 
   onMount(() => {
     config = get(configStore);
@@ -101,7 +101,7 @@
     loadQuestions(config, searchQuery, 1);
   }
 
-  function onSearchQueryChanged({ detail: searchQuery }) {
+  function onSearchQueryChanged(searchQuery) {
     loadQuestions(config, searchQuery, 1);
   }
 </script>
@@ -112,24 +112,28 @@
 
 {#if config}
   <AppBar dense class="primary-color theme--dark">
-    <div slot="icon">
-      {#if isToggleSidebarButtonVisible}
-        <Button fab depressed text on:click={toggleSidebar}>
-          <Icon path={mdiMenu} />
-        </Button>
-      {/if}
-    </div>
-    <span slot="title">
-      {#if showAppTitle}
-        HowCanI 2
-      {/if}
-    </span>
-    <div class="flex-grow-0 flex-sm-grow-1" />
+    {#snippet icon()}
+      <div >
+        {#if isToggleSidebarButtonVisible}
+          <Button fab depressed text on:click={toggleSidebar}>
+            <Icon path={mdiMenu} />
+          </Button>
+        {/if}
+      </div>
+    {/snippet}
+    {#snippet title()}
+      <span >
+        {#if showAppTitle}
+          HowCanI 2
+        {/if}
+      </span>
+    {/snippet}
+    <div class="flex-grow-0 flex-sm-grow-1"></div>
     <div class="d-flex flex-row flex-grow-1 flex-sm-grow-0">
       <TextField
         bind:value={searchTerm}
-        on:keydown={onSearchInputKeyPress}
-        on:change={onSearchClick}
+        onkeydown={onSearchInputKeyPress}
+        onchange={onSearchClick}
         placeholder="Search"
         clearable
       />
@@ -147,17 +151,16 @@
   <div class="Sidebar-container">
     <Sidebar
       labels={$labelsStore}
-      on:searchQueryChanged={onSearchQueryChanged}
       isPermanent={!isToggleSidebarButtonVisible}
+      {onSearchQueryChanged}
     />
   </div>
   <div class="Content-container">
     <Questions
-      slot="content"
       {...$questionsStore}
       bind:this={questionsElement}
-      on:loadMore={loadMoreQuestions}
-      on:click={hideSidebar}
+      loadMore={loadMoreQuestions}
+      onclick={hideSidebar}
     />
   </div>
 {/if}

@@ -1,21 +1,17 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-
   import Label from './label.svelte';
-  export let labels = [];
-  export let selectedLabelsSet = new Set([]);
 
   import { List, ListItem } from 'svelte-materialify';
 
-  const dispatchEvent = createEventDispatcher();
+  let { labels = [], selectedLabelsSet = new Set([]), onLabelSelectionChanged } = $props();
 
-  function onLabelSelectionChanged({ detail: label }) {
+  function labelSelectionChanged(label) {
     if (label.checked) {
       selectedLabelsSet.add(label.name);
     } else {
       selectedLabelsSet.delete(label.name);
     }
-    dispatchEvent('labelSelectionChanged', [...selectedLabelsSet]);
+    onLabelSelectionChanged([...selectedLabelsSet]);
   }
 </script>
 
@@ -23,7 +19,7 @@
   <List>
     {#each labels as label}
       <ListItem>
-        <Label {label} checked={false} on:labelSelectionChanged={onLabelSelectionChanged} />
+        <Label {label} checked={false} onLabelSelectionChanged={labelSelectionChanged} />
       </ListItem>
     {/each}
   </List>

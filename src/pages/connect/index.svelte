@@ -9,7 +9,7 @@
   import Login from './components/login.svelte';
   import RepositorySelection from './components/repository-selection.svelte';
 
-  let mustLogin = false;
+  let mustLogin = $state(false);
 
   let config;
 
@@ -44,8 +44,10 @@
 </svelte:head>
 
 <AppBar dense class="primary-color theme--dark">
-  <span slot="title">HowCanI 2</span>
-  <div style="flex-grow:1" />
+  {#snippet title()}
+    <span >HowCanI 2</span>
+  {/snippet}
+  <div style="flex-grow:1"></div>
 </AppBar>
 
 <section>

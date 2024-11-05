@@ -1,5 +1,4 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import {
     Dialog,
     Card,
@@ -13,20 +12,23 @@
 
   import { isEscKey } from '/@/helpers/utils.helpers.js';
 
-  export let active = false;
-  export let label = null;
+  /**
+   * @typedef {Object} Props
+   * @property {boolean} [active]
+   * @property {any} [label]
+   * @property {function} [onCloseDialog]
+   */
 
-  let isLabelValid = true;
-  let okButtonClass = 'primary-color';
+  /** @type {Props} */
+  let { active = $bindable(false), label = $bindable(null), onCloseDialog } = $props();
 
-  const dispatchEvent = createEventDispatcher();
+  let isLabelValid = $state(true);
+  let okButtonClass = $state('primary-color');
 
-  $: {
-    if (label) {
-      isLabelValid = !!label.name;
-      okButtonClass = isLabelValid ? 'primary-color' : '';
-    }
-  }
+  $effect(() => {
+    isLabelValid = !!label?.name;
+    okButtonClass = isLabelValid ? 'primary-color' : '';
+  });
 
   export function showModal(l) {
     label = l;
@@ -46,11 +48,11 @@
 
   async function confirmDialog() {
     active = false;
-    dispatchEvent('closeDialog', label);
+    onCloseDialog(label);
   }
 </script>
 
-<svelte:window on:keydown={onWindowKeydown} />
+<svelte:window onkeydown={onWindowKeydown} />
 
 {#if active}
   <Dialog {active}>

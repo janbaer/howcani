@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import { get } from 'svelte/store';
 
   import { questionsStore } from '/@/stores/questions.store.js';
@@ -8,11 +8,17 @@
 
   import Labels from './labels.svelte';
 
-  export let labels = [];
-  export let isPermanent = true;
+  /**
+   * @typedef {Object} Props
+   * @property {any} [labels]
+   * @property {boolean} [isPermanent]
+   * @property {function} [onSearchQueryChanged]
+   */
 
-  const dispatchEvent = createEventDispatcher();
-  let isSidebarActive = false;
+  /** @type {Props} */
+  let { labels = [], isPermanent = true, onSearchQueryChanged } = $props();
+
+  let isSidebarActive = $state(false);
 
   onMount(() => {
     isSidebarActive = get(toggleSidebarStore);
@@ -22,9 +28,9 @@
     });
   });
 
-  function onLabelSelectionChanged({ detail: labels }) {
+  function onLabelSelectionChanged(labels) {
     const { searchQuery } = get(questionsStore);
-    dispatchEvent('searchQueryChanged', { ...searchQuery, labels });
+    onSearchQueryChanged({ ...searchQuery, labels });
   }
 
   function closeSidebar() {
@@ -38,7 +44,7 @@
   absolute={!isPermanent}
   active={isPermanent || isSidebarActive}
 >
-  <Labels {labels} on:labelSelectionChanged={onLabelSelectionChanged} />
+  <Labels {labels} {onLabelSelectionChanged} />
 </NavigationDrawer>
 <Overlay
   index={1}

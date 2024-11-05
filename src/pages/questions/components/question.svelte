@@ -1,18 +1,18 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import { Card, CardTitle, CardText, CardActions, Row, Col, Icon } from 'svelte-materialify';
   import { mdiTag, mdiCheck, mdiHelp, mdiUpdate } from '@mdi/js';
   import { formatISO9075 } from 'date-fns';
 
   import MarkdownView from '/@/components/markdown-view.svelte';
 
-  export let question = {};
+  /**
+   * @typedef {Object} Props
+   * @property {any} [question]
+   * @property {event} [editQuestion]
+   */
 
-  const dispatchEvent = createEventDispatcher();
-
-  function showQuestionDetailsDialog() {
-    dispatchEvent('editQuestion', question);
-  }
+  /** @type {Props} */
+  let { question = {}, editQuestion } = $props();
 
   function formatCreated({ created }) {
     return formatISO9075(new Date(created));
@@ -21,7 +21,7 @@
 
 <Card>
   <CardTitle>
-    <h3 on:click={showQuestionDetailsDialog}>
+    <h3 onclick={() => editQuestion(question)}>
       {#if question.isAnswered}
         <Icon path={mdiCheck} size="24px" class="green-text" />
       {:else}
