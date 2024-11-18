@@ -16,3 +16,8 @@
 <div class="markdown-body">
   {@html marked(content, markedOptions)}
 </div>
+<style>
+  .markdown-body {
+    min-height: inherit;
+  }
+</style>
