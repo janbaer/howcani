@@ -1,12 +1,10 @@
 <script>
-  import { get } from 'svelte/store';
-
   import viewport from '/@/actions/view-port.action.js';
   import Question from './question.svelte';
   import Spinner from '/@/components/spinner.svelte';
   import QuestionDetails from './details/question-details.svelte';
-  import { configStore } from '/@/stores/config.store.js';
-  import { createQuestion, updateQuestion } from '/@/stores/questions.store.js';
+  import configStore from '/@/stores/config-store.svelte.js';
+  import questionStore from '/@/stores/questions-store.svelte.js';
 
   /**
    * @typedef {Object} Props
@@ -30,11 +28,10 @@
   }
 
   function onCloseQuestionDetails(question) {
-    const config = get(configStore);
     if (!question.id) {
-      createQuestion(config, question);
+      questionStore.create(configStore, question);
     } else {
-      updateQuestion(config, question);
+      questionStore.update(configStore, question);
     }
   }
 </script>

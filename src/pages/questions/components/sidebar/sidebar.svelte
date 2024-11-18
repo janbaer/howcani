@@ -1,10 +1,9 @@
 <script>
-  import { onMount } from 'svelte';
   import { get } from 'svelte/store';
 
-  import { questionsStore } from '/@/stores/questions.store.js';
+  import questionsStore from '/@/stores/questions-store.svelte.js';
   import { NavigationDrawer, Overlay } from 'svelte-materialify';
-  import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
+  import sidebarStore from '/@/stores/sidebar-store.svelte.js';
 
   import Labels from './labels.svelte';
 
@@ -18,23 +17,13 @@
   /** @type {Props} */
   let { labels = [], isPermanent = true, onSearchQueryChanged } = $props();
 
-  let isSidebarActive = $state(false);
-
-  onMount(() => {
-    isSidebarActive = get(toggleSidebarStore);
-
-    toggleSidebarStore.subscribe((newValue) => {
-      isSidebarActive = newValue;
-    });
-  });
-
   function onLabelSelectionChanged(labels) {
-    const { searchQuery } = get(questionsStore);
+    const { searchQuery } = questionsStore;
     onSearchQueryChanged({ ...searchQuery, labels });
   }
 
   function closeSidebar() {
-    toggleSidebarStore.set(false);
+    sidebarStore.toggle();
   }
 </script>
 
@@ -42,13 +31,13 @@
   style="height:100%"
   class="primary-color theme--dark"
   absolute={!isPermanent}
-  active={isPermanent || isSidebarActive}
+  active={isPermanent || sidebarStore.active}
 >
   <Labels {labels} {onLabelSelectionChanged} />
 </NavigationDrawer>
 <Overlay
   index={1}
-  active={!isPermanent && isSidebarActive}
+  active={!isPermanent && sidebarStore.active}
   absolute={!isPermanent}
   on:click={closeSidebar}
 />

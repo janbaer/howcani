@@ -1,8 +1,7 @@
 <script>
-  import { get } from 'svelte/store';
   import { Checkbox } from 'svelte-materialify';
-  import { configStore } from '/@/stores/config.store.js';
-  import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
+  import configStore from '/@/stores/config-store.svelte.js';
+  import labelsStore from '/@/stores/labels-store.svelte';
   import { Icon } from 'svelte-materialify';
   import { mdiTrashCan, mdiPencil } from '@mdi/js';
   import LabelEditDialog from './label-edit-dialog.svelte';
@@ -24,13 +23,11 @@
   }
 
   function onCloseDialog(label) {
-    const config = get(configStore);
-    updateLabel(config, label);
+    labelsStore.update(configStore, label);
   }
 
   function onDeleteLabel() {
-    const config = get(configStore);
-    deleteLabel(config, label);
+    labelsStore.delete(configStore, label);
   }
 
   function onSelectLabelChange() {

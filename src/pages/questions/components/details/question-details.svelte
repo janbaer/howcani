@@ -17,7 +17,7 @@
   import { isEscKey } from '/@/helpers/utils.helpers.js';
   import { isTabletOrDesktopSize } from '/@/helpers/media-queries.helpers';
   import QuestionDetailsContent from './question-details-content.svelte';
-  import { labelsStore } from '/@/stores/labels.store.js';
+  import labelsStore from '/@/stores/labels-store.svelte';
   import { mapLabelNames } from '/@/helpers/labels.helpers.js';
 
   /**
@@ -57,7 +57,7 @@
   export function showModal(q) {
     question = q;
 
-    allLabelNames = get(labelsStore).map((l) => l.name);
+    allLabelNames = labelsStore.labels.map((l) => l.name);
     selectedLabelNames = question.labels.map((l) => l.name);
 
     active = true;
@@ -74,7 +74,7 @@
   async function confirmDialog() {
     active = false;
 
-    const selectedLabels = mapLabelNames(get(labelsStore), selectedLabelNames);
+    const selectedLabels = mapLabelNames(labelsStore.labels, selectedLabelNames);
     question.labels = selectedLabels;
 
     onCloseQuestionDetails(question);

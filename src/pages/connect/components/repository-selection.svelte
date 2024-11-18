@@ -3,18 +3,17 @@
   import { Card, CardText, CardActions, Row, Col, TextField, Button } from 'svelte-materialify';
 
   import GithubService from '/@/services/github.service.js';
-  import { configStore } from '/@/stores/config.store';
+  import configStore from '/@/stores/config-store.svelte.js';
 
   let user = $state('');
   let repository = $state('');
   let isUserValid = true;
   let isRepositoryValid = $state(true);
 
-  configStore.subscribe((config) => {
-    if (!config.oauthToken) {
-      return;
+  $effect(() => {
+    if (configStore.oauthToken) {
+      readUser(configStore.oauthToken);
     }
-    readUser(config.oauthToken);
   });
 
   async function readUser(oauthToken) {
@@ -46,11 +45,7 @@
     }
 
     if (isUserValid && isRepositoryValid) {
-      configStore.update((config) => {
-        config.user = user;
-        config.repository = repository;
-        return config;
-      });
+      configStore.save(user, repository, configStore.oauthToken);
       navigate('/');
     }
   }
