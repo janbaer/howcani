@@ -1,5 +1,5 @@
 <script>
-  import { Card, CardTitle, CardText, CardActions, Row, Col, Icon } from 'svelte-materialify';
+  import { Card, CardTitle, CardText, CardActions, Row, Col, Icon, Tooltip } from 'svelte-materialify';
   import { mdiTag, mdiCheck, mdiHelp, mdiUpdate } from '@mdi/js';
   import { formatISO9075 } from 'date-fns';
 
@@ -14,8 +14,8 @@
   /** @type {Props} */
   let { question = {}, editQuestion } = $props();
 
-  function formatCreated({ created }) {
-    return formatISO9075(new Date(created));
+  function formatTimestamp(timestamp) {
+    return formatISO9075(new Date(timestamp));
   }
 </script>
 
@@ -44,8 +44,11 @@
         {/each}
       </Col>
       <Col class="d-flex justify-end pr-5">
-        <Icon path={mdiUpdate} size="24px" class="teal-text mr-1" />
-        <span>{formatCreated(question)}</span>
+        <Tooltip bottom>
+          <span slot="tip">Last updated</span>
+          <Icon path={mdiUpdate} size="24px" class="teal-text mr-1" />
+        </Tooltip>
+        <span>{formatTimestamp(question.updated)}</span>
       </Col>
     </Row>
   </CardActions>
