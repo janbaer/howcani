@@ -23,8 +23,7 @@
   let showAppTitle = $state(true);
 
   onMount(() => {
-    configStore.load();
-    if (!configStore.user) {
+    if (!configStore.load()) {
       navigate('/connect');
       return;
     }

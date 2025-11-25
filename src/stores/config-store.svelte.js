@@ -26,6 +26,7 @@ class ConfigStore {
     this.#user = localStorageConfig.user;
     this.#repository = localStorageConfig.repository;
     this.#oauthToken = localStorageConfig.oauthToken;
+    return !!this.#user;
   }
   save(user, repository, oauthToken) {
     this.#user = user;
