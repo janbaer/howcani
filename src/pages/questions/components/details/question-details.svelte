@@ -1,6 +1,5 @@
 <script>
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import Tags from 'svelte-tags-input';
   import {
     Dialog,
@@ -30,19 +29,12 @@
   /** @type {Props} */
   let { active = $bindable(false), question = $bindable(null), onCloseQuestionDetails } = $props();
 
-  let isTitleValid = $state(true);
+  let isTitleValid = $derived(question ? !!question.title : true);
+  let okButtonClass = $derived(isTitleValid ? 'primary-color' : '');
 
   let allLabelNames = $state([]);
   let selectedLabelNames = $state([]);
   let dialogWidth = $state();
-  let okButtonClass = $state('primary-color');
-
-  $effect(() => {
-    if (question) {
-      isTitleValid = !!question.title;
-    }
-    okButtonClass = isTitleValid ? 'primary-color' : '';
-  });
 
   onMount(() => {
     dialogWidth = isTabletOrDesktopSize() ? '70%' : '98%';

@@ -1,6 +1,4 @@
 <script>
-  import { get } from 'svelte/store';
-
   import questionsStore from '/@/stores/questions-store.svelte.js';
   import { NavigationDrawer, Overlay } from 'svelte-materialify';
   import sidebarStore from '/@/stores/sidebar-store.svelte.js';

@@ -65,7 +65,7 @@ class QuestionsStore {
     this.#page = page;
     this.#hasMoreData = questionsResponse.questions.length > 0;
 
-    this.#questions = [...this.#questions, ...questionsResponse.questions];
+    this.#questions.push(...questionsResponse.questions);
 
     this.#loading = false;
   }
