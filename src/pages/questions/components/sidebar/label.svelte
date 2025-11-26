@@ -1,52 +1,53 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-  import { get } from 'svelte/store';
   import { Checkbox } from 'svelte-materialify';
-  import { configStore } from '/@/stores/config.store.js';
-  import { updateLabel, deleteLabel } from '/@/stores/labels.store.js';
+  import configStore from '/@/stores/config-store.svelte.js';
+  import labelsStore from '/@/stores/labels-store.svelte';
   import { Icon } from 'svelte-materialify';
   import { mdiTrashCan, mdiPencil } from '@mdi/js';
   import LabelEditDialog from './label-edit-dialog.svelte';
 
-  export let label = {};
-  export let checked = false;
+  /**
+   * @typedef {Object} Props
+   * @property {any} [label]
+   * @property {boolean} [checked]
+   * @property {function} [onLabelSelectionChanged]
+   */
 
-  let labelEditDialog;
+  /** @type {Props} */
+  let { label = {}, checked = $bindable(false), onLabelSelectionChanged } = $props();
 
-  const dispatchEvent = createEventDispatcher();
+  let labelEditDialog = $state();
 
   function onEditLabel() {
     labelEditDialog.showModal({ ...label });
   }
 
-  function onCloseDialog({ detail: label }) {
-    const config = get(configStore);
-    updateLabel(config, label);
+  function onCloseDialog(label) {
+    labelsStore.update(configStore, label);
   }
 
   function onDeleteLabel() {
-    const config = get(configStore);
-    deleteLabel(config, label);
+    labelsStore.delete(configStore, label);
   }
 
   function onSelectLabelChange() {
-    dispatchEvent('labelSelectionChanged', { name: label.name, checked });
+    onLabelSelectionChanged({ name: label.name, checked });
   }
 </script>
 
 <Checkbox bind:checked on:change={onSelectLabelChange}>
   <div class="LabelContainer">
     <span style="color: {label.color}">{label.name}</span>
-    <button on:click={onEditLabel}>
+    <button onclick={onEditLabel}>
       <Icon class="Label-buttonIcon grey-text" path={mdiPencil} size="24px" />
     </button>
-    <button on:click={onDeleteLabel}>
+    <button onclick={onDeleteLabel}>
       <Icon path={mdiTrashCan} size="24px" class="grey-text" />
     </button>
   </div>
 </Checkbox>
 
-<LabelEditDialog bind:this={labelEditDialog} on:closeDialog={onCloseDialog} />
+<LabelEditDialog bind:this={labelEditDialog} {onCloseDialog} />
 
 <style>
   :global(.s-checkbox__wrapper) {

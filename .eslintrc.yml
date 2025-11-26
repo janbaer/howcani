@@ -4,7 +4,7 @@ extends:
   - "eslint:recommended"
 
 parserOptions:
-  ecmaVersion: 2018
+  ecmaVersion: 13
   sourceType: "module"
 
 env:
@@ -31,3 +31,5 @@ overrides:
 globals:
   localStorage: false
   IntersectionObserver: false
+  $state: false
+  $effect: false

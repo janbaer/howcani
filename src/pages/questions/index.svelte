@@ -1,15 +1,14 @@
 <script>
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import { push as navigate } from 'svelte-spa-router';
 
   import { AppBar, Button, Icon, TextField } from 'svelte-materialify';
   import { mdiMenu, mdiMagnify, mdiGithub, mdiNotePlusOutline } from '@mdi/js';
 
-  import { configStore } from '/@/stores/config.store';
-  import { loadQuestions, questionsStore } from '/@/stores/questions.store.js';
-  import { loadLabels, labelsStore } from '/@/stores/labels.store.js';
-  import { toggleSidebarStore } from '/@/stores/sidebar-toggle.store.js';
+  import configStore from '/@/stores/config-store.svelte';
+  import questionsStore from '/@/stores/questions-store.svelte.js';
+  import labelsStore from '/@/stores/labels-store.svelte';
+  import sidebarStore from '/@/stores/sidebar-store.svelte.js';
   import {
     isTabletOrDesktopSize,
     isMinIPadPortraitSize,
@@ -18,55 +17,41 @@
   import Questions from './components/questions.svelte';
   import Sidebar from './components/sidebar/sidebar.svelte';
 
-  let config;
-  let questionsElement;
-  let searchTerm = '';
-  let isSidebarActive = true;
-  let isToggleSidebarButtonVisible = false;
-  let showAppTitle = true;
+  let questionsElement = $state();
+  let searchTerm = $state('');
+  let isToggleSidebarButtonVisible = $state(false);
+  let showAppTitle = $state(true);
 
   onMount(() => {
-    config = get(configStore);
-
-    if (!config.user) {
+    if (!configStore.load()) {
       navigate('/connect');
       return;
     }
 
-    const { searchQuery } = get(questionsStore);
-    loadQuestions(config, searchQuery, 1);
-    loadLabels(config);
+    questionsStore.load(configStore, questionsStore.searchQuery, 1);
+    labelsStore.load(configStore);
 
     if (!isTabletOrDesktopSize()) {
-      isSidebarActive = true;
-      isToggleSidebarButtonVisible = true;
+      sidebarStore.active = true;
+      isToggleSidebarButtonVisible = false;
     }
-    toggleSidebarStore.set(isSidebarActive);
   });
 
   const resizeObserver = new window.ResizeObserver(() => {
     isToggleSidebarButtonVisible = !isTabletOrDesktopSize();
-    if (isTabletOrDesktopSize() && !isSidebarActive) {
-      isSidebarActive = true;
-      toggleSidebarStore.set(true);
+    if (isTabletOrDesktopSize() && !sidebarStore.active) {
+      sidebarStore.toggle();
     }
 
-    if (!isTabletOrDesktopSize() && isSidebarActive) {
-      isSidebarActive = false;
-      toggleSidebarStore.set(false);
+    if (!isTabletOrDesktopSize() && sidebarStore.active) {
+      sidebarStore.toggle();
     }
     showAppTitle = isMinIPadPortraitSize();
   });
   resizeObserver.observe(document.scrollingElement);
 
   function loadMoreQuestions() {
-    const { page, searchQuery } = get(questionsStore);
-    loadQuestions(config, searchQuery, page + 1);
-  }
-
-  function toggleSidebar() {
-    isSidebarActive = !isSidebarActive;
-    toggleSidebarStore.set(isSidebarActive);
+    questionsStore.load(configStore, questionsStore.searchQuery, questionsStore.page + 1);
   }
 
   function hideSidebar() {
@@ -74,10 +59,7 @@
       return;
     }
 
-    const isToggled = get(toggleSidebarStore);
-    if (isToggled) {
-      toggleSidebar();
-    }
+    sidebarStore.active = false;
   }
 
   function addQuestion() {
@@ -96,13 +78,13 @@
   }
 
   function onSearchClick() {
-    const { searchQuery } = get(questionsStore);
+    const { searchQuery } = questionsStore;
     searchQuery.query = searchTerm;
-    loadQuestions(config, searchQuery, 1);
+    questionsStore.load(configStore, searchQuery, 1);
   }
 
-  function onSearchQueryChanged({ detail: searchQuery }) {
-    loadQuestions(config, searchQuery, 1);
+  function onSearchQueryChanged(searchQuery) {
+    questionsStore.load(configStore, searchQuery, 1);
   }
 </script>
 
@@ -110,26 +92,30 @@
   <title>HowCanI Home</title>
 </svelte:head>
 
-{#if config}
+{#if configStore.user}
   <AppBar dense class="primary-color theme--dark">
-    <div slot="icon">
-      {#if isToggleSidebarButtonVisible}
-        <Button fab depressed text on:click={toggleSidebar}>
-          <Icon path={mdiMenu} />
-        </Button>
-      {/if}
-    </div>
-    <span slot="title">
-      {#if showAppTitle}
-        HowCanI 2
-      {/if}
-    </span>
-    <div class="flex-grow-0 flex-sm-grow-1" />
+    {#snippet icon()}
+      <div >
+        {#if isToggleSidebarButtonVisible}
+          <Button fab depressed text on:click={() => sidebarStore.toggle()}>
+            <Icon path={mdiMenu} />
+          </Button>
+        {/if}
+      </div>
+    {/snippet}
+    {#snippet title()}
+      <span >
+        {#if showAppTitle}
+          HowCanI 2
+        {/if}
+      </span>
+    {/snippet}
+    <div class="flex-grow-0 flex-sm-grow-1"></div>
     <div class="d-flex flex-row flex-grow-1 flex-sm-grow-0">
       <TextField
         bind:value={searchTerm}
-        on:keydown={onSearchInputKeyPress}
-        on:change={onSearchClick}
+        onkeydown={onSearchInputKeyPress}
+        onchange={onSearchClick}
         placeholder="Search"
         clearable
       />
@@ -146,18 +132,19 @@
   </AppBar>
   <div class="Sidebar-container">
     <Sidebar
-      labels={$labelsStore}
-      on:searchQueryChanged={onSearchQueryChanged}
+      labels={labelsStore.labels}
       isPermanent={!isToggleSidebarButtonVisible}
+      {onSearchQueryChanged}
     />
   </div>
   <div class="Content-container">
     <Questions
-      slot="content"
-      {...$questionsStore}
+      questions={questionsStore.questions}
+      loading={questionsStore.loading}
+      hasMoreData={questionsStore.hasMoreData}
       bind:this={questionsElement}
-      on:loadMore={loadMoreQuestions}
-      on:click={hideSidebar}
+      loadMore={loadMoreQuestions}
+      onclick={hideSidebar}
     />
   </div>
 {/if}

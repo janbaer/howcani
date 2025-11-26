@@ -1,6 +1,5 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte';
-  import { get } from 'svelte/store';
+  import { onMount } from 'svelte';
   import Tags from 'svelte-tags-input';
   import {
     Dialog,
@@ -17,27 +16,25 @@
   import { isEscKey } from '/@/helpers/utils.helpers.js';
   import { isTabletOrDesktopSize } from '/@/helpers/media-queries.helpers';
   import QuestionDetailsContent from './question-details-content.svelte';
-  import { labelsStore } from '/@/stores/labels.store.js';
+  import labelsStore from '/@/stores/labels-store.svelte';
   import { mapLabelNames } from '/@/helpers/labels.helpers.js';
 
-  export let active = false;
-  export let question = null;
+  /**
+   * @typedef {Object} Props
+   * @property {boolean} [active]
+   * @property {any} [question]
+   * @property {event} [onCloseQuestionDetails]
+   */
 
-  let isTitleValid = true;
+  /** @type {Props} */
+  let { active = $bindable(false), question = $bindable(null), onCloseQuestionDetails } = $props();
 
-  let allLabelNames = [];
-  let selectedLabelNames = [];
-  let dialogWidth;
-  let okButtonClass = 'primary-color';
+  let isTitleValid = $derived(question ? !!question.title : true);
+  let okButtonClass = $derived(isTitleValid ? 'primary-color' : '');
 
-  const dispatchEvent = createEventDispatcher();
-
-  $: {
-    if (question) {
-      isTitleValid = !!question.title;
-    }
-    okButtonClass = isTitleValid ? 'primary-color' : '';
-  }
+  let allLabelNames = $state([]);
+  let selectedLabelNames = $state([]);
+  let dialogWidth = $state();
 
   onMount(() => {
     dialogWidth = isTabletOrDesktopSize() ? '70%' : '98%';
@@ -52,7 +49,7 @@
   export function showModal(q) {
     question = q;
 
-    allLabelNames = get(labelsStore).map((l) => l.name);
+    allLabelNames = labelsStore.labels.map((l) => l.name);
     selectedLabelNames = question.labels.map((l) => l.name);
 
     active = true;
@@ -69,18 +66,18 @@
   async function confirmDialog() {
     active = false;
 
-    const selectedLabels = mapLabelNames(get(labelsStore), selectedLabelNames);
+    const selectedLabels = mapLabelNames(labelsStore.labels, selectedLabelNames);
     question.labels = selectedLabels;
 
-    dispatchEvent('closeQuestionDetails', question);
+    onCloseQuestionDetails(question);
   }
 
-  function changeBody({ detail: newValue }) {
+  function changeBody(newValue) {
     question.body = newValue;
   }
 </script>
 
-<svelte:window on:keydown={onWindowKeydown} />
+<svelte:window onkeydown={onWindowKeydown} />
 
 {#if active}
   <Dialog {active} width={dialogWidth}>
@@ -110,7 +107,7 @@
           <Col class="pt-0">
             <QuestionDetailsContent
               content={question.body}
-              on:change={changeBody}
+              onChange={changeBody}
               initialShowEditor={!question.id}
             />
           </Col>
@@ -119,9 +116,9 @@
       <CardActions class="pr-5">
         <Row>
           <Col class="d-flex justify-end">
-            <Button on:click={cancelDialog} class="mr-4" size="large">Cancel</Button>
+            <Button onclick={cancelDialog} class="mr-4" size="large">Cancel</Button>
             <Button
-              on:click={confirmDialog}
+              onclick={confirmDialog}
               class={okButtonClass}
               disabled={!isTitleValid}
               size="large">Ok</Button

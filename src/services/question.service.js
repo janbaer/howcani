@@ -62,7 +62,7 @@ export default class QuestionService {
       isAnswered: issue.state === 'closed',
       user: this._mapUser(issue.user),
       created: issue.created_at,
-      modified: issue.modified_at,
+      updated: issue.updated_at,
       closed: issue.closed_at,
       labels: issue.labels.map(this._mapLabel),
     };

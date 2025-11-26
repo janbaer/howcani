@@ -1,27 +1,27 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-  import { Card, CardTitle, CardText, CardActions, Row, Col, Icon } from 'svelte-materialify';
+  import { Card, CardTitle, CardText, CardActions, Row, Col, Icon, Tooltip } from 'svelte-materialify';
   import { mdiTag, mdiCheck, mdiHelp, mdiUpdate } from '@mdi/js';
   import { formatISO9075 } from 'date-fns';
 
   import MarkdownView from '/@/components/markdown-view.svelte';
 
-  export let question = {};
+  /**
+   * @typedef {Object} Props
+   * @property {any} [question]
+   * @property {event} [editQuestion]
+   */
 
-  const dispatchEvent = createEventDispatcher();
+  /** @type {Props} */
+  let { question = {}, editQuestion } = $props();
 
-  function showQuestionDetailsDialog() {
-    dispatchEvent('editQuestion', question);
-  }
-
-  function formatCreated({ created }) {
-    return formatISO9075(new Date(created));
+  function formatTimestamp(timestamp) {
+    return formatISO9075(new Date(timestamp));
   }
 </script>
 
 <Card>
   <CardTitle>
-    <h3 on:click={showQuestionDetailsDialog}>
+    <h3 onclick={() => editQuestion(question)}>
       {#if question.isAnswered}
         <Icon path={mdiCheck} size="24px" class="green-text" />
       {:else}
@@ -44,8 +44,11 @@
         {/each}
       </Col>
       <Col class="d-flex justify-end pr-5">
-        <Icon path={mdiUpdate} size="24px" class="teal-text mr-1" />
-        <span>{formatCreated(question)}</span>
+        <Tooltip bottom>
+          <span slot="tip">Last updated</span>
+          <Icon path={mdiUpdate} size="24px" class="teal-text mr-1" />
+        </Tooltip>
+        <span>{formatTimestamp(question.updated)}</span>
       </Col>
     </Row>
   </CardActions>

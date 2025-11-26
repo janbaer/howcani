@@ -5,35 +5,29 @@
   import { querystring as queryStringStore } from 'svelte-spa-router';
   import { AppBar } from 'svelte-materialify';
 
-  import { configStore } from '/@/stores/config.store';
+  import configStore from '/@/stores/config-store.svelte';
   import Login from './components/login.svelte';
   import RepositorySelection from './components/repository-selection.svelte';
 
-  let mustLogin = false;
-
-  let config;
+  let mustLogin = $state(false);
 
   onMount(() => {
+    configStore.load();
+
     const querystring = get(queryStringStore);
     if (querystring) {
       const searchParams = new URLSearchParams(querystring);
-      if (searchParams.get('token')) {
-        configStore.update((config) => {
-          config.oauthToken = searchParams.get('token');
-          return config;
-        });
+      const token = searchParams.get('token');
+      if (token) {
+        configStore.save(configStore.user, configStore.repository, token);
         replace('/connect');
       } else if (searchParams.get('logoff') !== null) {
-        configStore.update((config) => {
-          config.oauthToken = undefined;
-          return config;
-        });
+        configStore.clear();
         replace('/connect');
       }
     }
 
-    config = get(configStore);
-    if (!config.oauthToken) {
+    if (!configStore.oauthToken) {
       mustLogin = true;
     }
   });
@@ -44,8 +38,10 @@
 </svelte:head>
 
 <AppBar dense class="primary-color theme--dark">
-  <span slot="title">HowCanI 2</span>
-  <div style="flex-grow:1" />
+  {#snippet title()}
+    <span >HowCanI 2</span>
+  {/snippet}
+  <div style="flex-grow:1"></div>
 </AppBar>
 
 <section>

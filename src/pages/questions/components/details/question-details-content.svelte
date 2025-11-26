@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import 'codemirror';
   import 'codemirror/lib/codemirror.css';
   import 'codemirror/mode/gfm/gfm';
@@ -10,10 +10,17 @@
 
   import MarkdownView from '/@/components/markdown-view.svelte';
 
-  export let content;
-  export let initialShowEditor = true;
+  /**
+   * @typedef {Object} Props
+   * @property {any} content
+   * @property {boolean} [initialShowEditor]
+   * @property {function} [onChange]
+   */
 
-  let showEditor = false;
+  /** @type {Props} */
+  let { content, initialShowEditor = true, onChange } = $props();
+
+  let showEditor = $state(false);
 
   onMount(() => {
     if (initialShowEditor) {
@@ -21,7 +28,6 @@
     }
   });
 
-  const dispatchEvent = createEventDispatcher();
   const config = {
     lineNumbers: true,
     lineWrapping: true,
@@ -32,16 +38,12 @@
     },
   };
 
-  function onChange(newValue) {
-    dispatchEvent('change', newValue);
-  }
-
   function toggleEditor() {
     showEditor = !showEditor;
   }
 </script>
 
-<button class="QuestionContent-toggleEditorButton" on:click={toggleEditor} title="Toggle editor">
+<button class="QuestionContent-toggleEditorButton" onclick={toggleEditor} title="Toggle editor">
   <Icon path={mdiPencil} size="24px" />
 </button>
 <div
