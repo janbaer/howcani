@@ -1,16 +1,38 @@
-# HowCanI 2
+# sv
 
-This project contains the source code for my HowCanI project. It's a rewrite of the original version which I developed a few years ago with using AngularJS.
-But because it's time to try something new I decided to use Svelte instead.
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## how to deploy a new version
+## Creating a project
 
+If you're seeing this, you've probably already done this step. Congrats!
+
+```sh
+# create a new project in the current directory
+npx sv create
+
+# create a new project in my-app
+npx sv create my-app
 ```
-git tag -a 3.2.6 -m "3.2.66 - Fix wrong domain name in CNAME" && git push --tags
+
+## Developing
+
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```sh
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
 ```
 
-or use the short version:
+## Building
 
+To create a production version of your app:
+
+```sh
+npm run build
 ```
-git tag 3.2.6 && git push --tags
-```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
