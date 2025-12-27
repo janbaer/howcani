@@ -1,13 +1,20 @@
 import { Elysia } from "elysia";
+import { runMigrations } from "./db";
+import { authRoutes, userRoutes } from "./routes";
+
+// Run database migrations on startup
+runMigrations();
 
 const port = process.env.PORT || 3000;
 
 const app = new Elysia()
-  // API routes
+  // Health check
   .get("/api/health", () => ({
     status: "ok",
     timestamp: new Date().toISOString(),
   }))
+  // API routes
+  .group("/api", (app) => app.use(authRoutes).use(userRoutes))
   // Serve built assets from dist
   .get("/assets/*", async ({ params }) => {
     const filePath = `./dist/${params["*"]}`;
