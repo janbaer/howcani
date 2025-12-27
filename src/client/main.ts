@@ -1,14 +1,17 @@
 import App from "./App.svelte";
-import { mount } from "svelte";
-import { initLiveReload } from "./lib/live-reload";
+import { mount, unmount } from "svelte";
 
-// Initialize live reload in development
-if (import.meta.env.DEV) {
-  initLiveReload();
+const target = document.getElementById("app")!;
+let app = mount(App, { target });
+
+// Hot Module Replacement support
+if (import.meta.hot) {
+  import.meta.hot.accept((newModule) => {
+    if (app) {
+      unmount(app);
+    }
+    app = mount(App, { target });
+  });
 }
-
-const app = mount(App, {
-  target: document.getElementById("app")!,
-});
 
 export default app;

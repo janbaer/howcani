@@ -68,7 +68,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
     }
   )
   .post("/refresh", async ({ cookie, status }) => {
-    const refreshToken = cookie[REFRESH_TOKEN_COOKIE].value;
+    const refreshToken = cookie[REFRESH_TOKEN_COOKIE].value as string | undefined;
 
     if (!refreshToken) {
       return status(401, { error: "NO_REFRESH_TOKEN", message: "No refresh token provided" });

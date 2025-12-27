@@ -5,7 +5,7 @@
 <div class="flex min-h-screen flex-col items-center justify-center p-8">
   <h1 class="mb-8 text-4xl font-bold">HowCanI</h1>
   <p class="mb-4 text-muted-foreground">
-    Your personal knowledge base - powered by Bun + Hono + Svelte
+    Your personal knowledge base - powered by Bun + Elysia + Svelte
   </p>
 
   <div class="flex items-center gap-4">

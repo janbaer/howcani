@@ -5,3 +5,6 @@ exact = true
 [test]
 # Test configuration
 coverage = true
+
+[serve.static]
+plugins = ["bun-plugin-svelte"]
