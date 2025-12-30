@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from "bits-ui";
   import { getAuthState, logout } from "../lib/auth.svelte";
   import { navigate } from "../lib/router.svelte";
 
@@ -19,12 +18,12 @@
       You are now logged in to your personal knowledge base.
     </p>
 
-    <Button.Root
+    <button
       onclick={logout}
       class="rounded-md bg-secondary px-6 py-2 text-sm font-medium uppercase tracking-wide text-secondary-foreground hover:bg-secondary/90"
     >
       Logout
-    </Button.Root>
+    </button>
   </div>
 {:else}
   <div class="max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
@@ -33,11 +32,11 @@
       To be able to work with HowCanI you need to login with your account to access your personal knowledge base.
     </p>
 
-    <Button.Root
+    <button
       onclick={goToLogin}
       class="rounded-md bg-primary px-6 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
     >
       Login
-    </Button.Root>
+    </button>
   </div>
 {/if}

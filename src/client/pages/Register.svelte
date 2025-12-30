@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Button } from "bits-ui";
   import { register, getAuthState, clearError } from "../lib/auth.svelte";
   import { navigate } from "../lib/router.svelte";
 
@@ -97,13 +96,13 @@
         />
       </div>
 
-      <Button.Root
+      <button
         type="submit"
         disabled={isSubmitting || !username || !password || !confirmPassword}
         class="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Creating account..." : "Create Account"}
-      </Button.Root>
+      </button>
     </form>
 
     <div class="mt-6 text-center text-sm text-muted-foreground">
