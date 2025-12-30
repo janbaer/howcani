@@ -8,7 +8,7 @@ interface AuthState {
   error: string | null;
 }
 
-let state = $state<AuthState>({
+let state: AuthState = $state({
   user: null,
   isAuthenticated: false,
   isLoading: true,
