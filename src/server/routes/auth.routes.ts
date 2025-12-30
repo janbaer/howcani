@@ -35,9 +35,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
     {
       body: t.Object({
         username: t.String({ minLength: 3, maxLength: 20 }),
-        email: t.String({ format: "email" }),
         password: t.String({ minLength: 8 }),
-        displayName: t.Optional(t.String()),
       }),
     }
   )

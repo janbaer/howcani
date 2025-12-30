@@ -10,9 +10,7 @@ import {
 
 export interface RegisterInput {
   username: string;
-  email: string;
   password: string;
-  displayName?: string;
 }
 
 export interface LoginInput {
@@ -48,13 +46,6 @@ export class AuthService {
       };
     }
 
-    if (!input.email || !input.email.includes("@")) {
-      return {
-        success: false,
-        error: { code: "INVALID_EMAIL", message: "Invalid email address" },
-      };
-    }
-
     if (!input.password || input.password.length < 8) {
       return {
         success: false,
@@ -70,20 +61,13 @@ export class AuthService {
       };
     }
 
-    if (userRepository.emailExists(input.email)) {
-      return {
-        success: false,
-        error: { code: "EMAIL_TAKEN", message: "Email is already registered" },
-      };
-    }
-
-    // Create user
+    // Create user with auto-generated email
     const passwordHash = await hashPassword(input.password);
+    const email = `${input.username}@local`;
     const user = userRepository.create({
       username: input.username,
-      email: input.email,
+      email,
       passwordHash,
-      displayName: input.displayName,
     });
 
     // Generate tokens

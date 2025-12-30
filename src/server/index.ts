@@ -33,6 +33,8 @@ export default {
 
   routes: {
     "/": index,
+    "/login": index,
+    "/register": index,
   },
 
   async fetch(req: Request) {
@@ -51,10 +53,9 @@ export default {
       }
     }
 
-    // SPA fallback
-    return new Response(index as unknown as BodyInit, {
-      headers: { "Content-Type": "text/html" },
-    });
+    // SPA fallback for other routes - serve the index HTML
+    // Bun will handle bundling the script automatically
+    return new Response(index as unknown as BodyInit);
   },
 
   development: isDev,
