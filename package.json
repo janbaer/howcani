@@ -28,6 +28,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "bits-ui": "2.14.4",
     "elysia": "1.4.19",
     "jose": "6.1.3"
   }

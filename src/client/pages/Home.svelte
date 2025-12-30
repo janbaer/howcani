@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Button } from "bits-ui";
+
   let count = $state(0);
 </script>
 
@@ -9,11 +11,11 @@
   </p>
 
   <div class="flex items-center gap-4">
-    <button
+    <Button.Root
       class="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
       onclick={() => count++}
     >
       Count: {count}
-    </button>
+    </Button.Root>
   </div>
 </div>
