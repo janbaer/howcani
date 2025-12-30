@@ -1,6 +1,13 @@
 import { Elysia } from "elysia";
 import { runMigrations } from "./db";
-import { authRoutes, userRoutes } from "./routes";
+import {
+  authRoutes,
+  userRoutes,
+  projectRoutes,
+  categoryRoutes,
+  itemRoutes,
+  searchRoutes,
+} from "./routes";
 import index from "../index.html";
 
 runMigrations();
@@ -9,6 +16,10 @@ const api = new Elysia().group("/api", (app) =>
   app
     .use(authRoutes)
     .use(userRoutes)
+    .use(projectRoutes)
+    .use(categoryRoutes)
+    .use(itemRoutes)
+    .use(searchRoutes)
     .get("/health", () => ({
       status: "ok",
       timestamp: new Date().toISOString(),
