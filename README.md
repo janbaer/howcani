@@ -1,38 +1,5 @@
-# sv
+# HowCanI 3
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+This project contains the source code for my HowCanI project. It's a rewrite of the rewrite of the original version which I developed a few years ago using AngularJS. The second version was developed by myself using Svelte 3 first and later Svelte 5. This version was still hosted on GitHub and used GitHub issues for storing the FAQ items. It was a client-only web application with no backend server. Instead, it was driven by GitHub Pages.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+With version 3, I want to change a few things. First of all, I want to have a proper backend server for storing the FAQ items. This will allow me to have more control over the data and also to implement features like user authentication and authorization. I decided against Node.js and instead I want to give Bun a try. Bun is a modern JavaScript runtime like Node.js, but it is built with performance in mind. It also comes with a built-in package manager and a lot of other features that make it easier to develop web applications. The database will be SQLite, because it's supported out of the box by Bun. The webpage will be hosted in the future in my home-lab. Using my Home-Wireguard-VPN, I can reach it from everywhere. More details about this project will be added by Claude soon.
