@@ -1,6 +1,5 @@
 export {
-  createAccessToken,
-  createRefreshToken,
+  createToken,
   verifyToken,
   extractBearerToken,
   type TokenPayload,

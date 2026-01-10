@@ -43,7 +43,7 @@ async function request<T>(
     const data = await response.json();
 
     if (!response.ok) {
-      return { error: data as ApiError };
+      return { error: data.error as ApiError };
     }
 
     return { data: data as T };
@@ -63,36 +63,25 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
-  accessToken: string;
+  token: string;
 }
 
 export const auth = {
-  async login(login: string, password: string): Promise<ApiResponse<AuthResponse>> {
+  async login(username: string, password: string): Promise<ApiResponse<AuthResponse>> {
     return request<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ login, password }),
-    });
-  },
-
-  async register(
-    username: string,
-    password: string
-  ): Promise<ApiResponse<AuthResponse>> {
-    return request<AuthResponse>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });
   },
 
-  async refresh(): Promise<ApiResponse<{ accessToken: string }>> {
-    return request<{ accessToken: string }>("/auth/refresh", {
+  async register(
+    username: string,
+    email: string,
+    password: string
+  ): Promise<ApiResponse<AuthResponse>> {
+    return request<AuthResponse>("/auth/register", {
       method: "POST",
-    });
-  },
-
-  async logout(): Promise<ApiResponse<{ success: boolean }>> {
-    return request<{ success: boolean }>("/auth/logout", {
-      method: "POST",
+      body: JSON.stringify({ username, email, password }),
     });
   },
 

@@ -1,4 +1,5 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
+import { StatusCodes } from "http-status-codes";
 import { extractBearerToken, verifyToken, type TokenPayload } from "../auth";
 
 export const authPlugin = new Elysia({ name: "auth" })
@@ -14,9 +15,15 @@ export const authPlugin = new Elysia({ name: "auth" })
   })
   .macro({
     auth: {
-      beforeHandle({ user, status }) {
+      beforeHandle({ user, set }) {
         if (!user) {
-          return status(401, { error: "Unauthorized", message: "Authentication required" });
+          set.status = StatusCodes.UNAUTHORIZED;
+          return {
+            error: {
+              message: "Authentication required",
+              code: "UNAUTHORIZED",
+            },
+          };
         }
       },
     },

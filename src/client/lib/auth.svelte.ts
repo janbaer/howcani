@@ -19,11 +19,11 @@ export function getAuthState() {
   return state;
 }
 
-export async function login(login: string, password: string): Promise<boolean> {
+export async function login(username: string, password: string): Promise<boolean> {
   state.isLoading = true;
   state.error = null;
 
-  const result = await auth.login(login, password);
+  const result = await auth.login(username, password);
 
   if (result.error) {
     state.error = result.error.message;
@@ -32,7 +32,7 @@ export async function login(login: string, password: string): Promise<boolean> {
   }
 
   if (result.data) {
-    setAccessToken(result.data.accessToken);
+    setAccessToken(result.data.token);
     state.user = result.data.user;
     state.isAuthenticated = true;
     state.isLoading = false;
@@ -46,12 +46,13 @@ export async function login(login: string, password: string): Promise<boolean> {
 
 export async function register(
   username: string,
+  email: string,
   password: string
 ): Promise<boolean> {
   state.isLoading = true;
   state.error = null;
 
-  const result = await auth.register(username, password);
+  const result = await auth.register(username, email, password);
 
   if (result.error) {
     state.error = result.error.message;
@@ -60,7 +61,7 @@ export async function register(
   }
 
   if (result.data) {
-    setAccessToken(result.data.accessToken);
+    setAccessToken(result.data.token);
     state.user = result.data.user;
     state.isAuthenticated = true;
     state.isLoading = false;
@@ -73,7 +74,6 @@ export async function register(
 }
 
 export async function logout(): Promise<void> {
-  await auth.logout();
   setAccessToken(null);
   state.user = null;
   state.isAuthenticated = false;
@@ -84,19 +84,14 @@ export async function logout(): Promise<void> {
 export async function checkAuth(): Promise<void> {
   state.isLoading = true;
 
-  // Try to refresh the token first
-  const refreshResult = await auth.refresh();
+  const userResult = await auth.me();
 
-  if (refreshResult.data) {
-    setAccessToken(refreshResult.data.accessToken);
-
-    // Get user info
-    const userResult = await auth.me();
-
-    if (userResult.data) {
-      state.user = userResult.data;
-      state.isAuthenticated = true;
-    }
+  if (userResult.data) {
+    state.user = userResult.data;
+    state.isAuthenticated = true;
+  } else {
+    state.user = null;
+    state.isAuthenticated = false;
   }
 
   state.isLoading = false;

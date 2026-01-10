@@ -36,14 +36,14 @@
     <form onsubmit={handleSubmit} class="space-y-4">
       <div>
         <label for="username" class="block text-sm font-medium text-card-foreground mb-1">
-          Username or Email
+          Username
         </label>
         <input
           type="text"
           id="username"
           bind:value={username}
           class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="Enter your username or email"
+          placeholder="Enter your username"
           required
         />
       </div>

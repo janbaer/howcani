@@ -3,6 +3,7 @@
   import { navigate } from "../lib/router.svelte";
 
   let username = $state("");
+  let email = $state("");
   let password = $state("");
   let confirmPassword = $state("");
   let isSubmitting = $state(false);
@@ -14,7 +15,7 @@
     e.preventDefault();
     validationError = "";
 
-    if (!username || !password) {
+    if (!username || !email || !password) {
       validationError = "Please fill in all required fields";
       return;
     }
@@ -30,7 +31,7 @@
     }
 
     isSubmitting = true;
-    await register(username, password);
+    await register(username, email, password);
     isSubmitting = false;
   }
 
@@ -63,7 +64,21 @@
           placeholder="Choose a username"
           required
           minlength="3"
-          maxlength="20"
+          maxlength="30"
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-card-foreground mb-1">
+          Email <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          bind:value={email}
+          class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          placeholder="your@email.com"
+          required
         />
       </div>
 
@@ -98,7 +113,7 @@
 
       <button
         type="submit"
-        disabled={isSubmitting || !username || !password || !confirmPassword}
+        disabled={isSubmitting || !username || !email || !password || !confirmPassword}
         class="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Creating account..." : "Create Account"}

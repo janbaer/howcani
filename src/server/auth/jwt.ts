@@ -4,8 +4,7 @@ import type { JWTPayload } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET || "development-secret-change-in-production";
 const secret = new TextEncoder().encode(JWT_SECRET);
 
-const ACCESS_TOKEN_EXPIRATION = "1h";
-const REFRESH_TOKEN_EXPIRATION = "7d";
+const TOKEN_EXPIRATION = "7d";
 
 export interface TokenPayload extends JWTPayload {
   userId: string;
@@ -13,22 +12,12 @@ export interface TokenPayload extends JWTPayload {
   email: string;
 }
 
-export async function createAccessToken(
+export async function createToken(
   payload: Omit<TokenPayload, "iat" | "exp">
 ): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(ACCESS_TOKEN_EXPIRATION)
-    .setIssuedAt()
-    .sign(secret);
-}
-
-export async function createRefreshToken(
-  payload: Omit<TokenPayload, "iat" | "exp">
-): Promise<string> {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(REFRESH_TOKEN_EXPIRATION)
+    .setExpirationTime(TOKEN_EXPIRATION)
     .setIssuedAt()
     .sign(secret);
 }

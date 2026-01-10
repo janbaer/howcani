@@ -2,26 +2,25 @@ import { userRepository, type User } from "../repositories";
 import {
   hashPassword,
   verifyPassword,
-  createAccessToken,
-  createRefreshToken,
+  createToken,
   verifyToken,
   type TokenPayload,
 } from "../auth";
 
 export interface RegisterInput {
   username: string;
+  email: string;
   password: string;
 }
 
 export interface LoginInput {
-  login: string; // username or email
+  username: string;
   password: string;
 }
 
 export interface AuthResult {
   user: Omit<User, "password_hash">;
-  accessToken: string;
-  refreshToken: string;
+  token: string;
 }
 
 export interface AuthError {
@@ -38,77 +37,96 @@ function sanitizeUser(user: User): Omit<User, "password_hash"> {
 
 export class AuthService {
   async register(input: RegisterInput): Promise<Result<AuthResult>> {
-    // Validate input
-    if (!input.username || input.username.length < 3 || input.username.length > 20) {
+    // Validate username
+    if (!input.username || input.username.length < 3 || input.username.length > 30) {
       return {
         success: false,
-        error: { code: "INVALID_USERNAME", message: "Username must be 3-20 characters" },
+        error: { code: "VALIDATION_ERROR", message: "Username must be 3-30 characters" },
       };
     }
 
+    // Validate username format (alphanumeric with hyphens/underscores)
+    if (!/^[a-zA-Z0-9_-]+$/.test(input.username)) {
+      return {
+        success: false,
+        error: { code: "VALIDATION_ERROR", message: "Username can only contain letters, numbers, hyphens, and underscores" },
+      };
+    }
+
+    // Validate password
     if (!input.password || input.password.length < 8) {
       return {
         success: false,
-        error: { code: "INVALID_PASSWORD", message: "Password must be at least 8 characters" },
+        error: { code: "VALIDATION_ERROR", message: "Password must be at least 8 characters" },
       };
     }
 
-    // Check uniqueness
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!input.email || !emailRegex.test(input.email)) {
+      return {
+        success: false,
+        error: { code: "VALIDATION_ERROR", message: "Invalid email format" },
+      };
+    }
+
+    // Check username uniqueness
     if (userRepository.usernameExists(input.username)) {
       return {
         success: false,
-        error: { code: "USERNAME_TAKEN", message: "Username is already taken" },
+        error: { code: "VALIDATION_ERROR", message: "Username already exists" },
       };
     }
 
-    // Create user with auto-generated email
+    // Check email uniqueness
+    if (userRepository.findByEmail(input.email)) {
+      return {
+        success: false,
+        error: { code: "VALIDATION_ERROR", message: "Email already exists" },
+      };
+    }
+
+    // Create user
     const passwordHash = await hashPassword(input.password);
-    const email = `${input.username}@local`;
     const user = userRepository.create({
       username: input.username,
-      email,
+      email: input.email,
       passwordHash,
     });
 
-    // Generate tokens
+    // Generate token
     const tokenPayload = {
       userId: user.id,
       username: user.username,
       email: user.email,
     };
 
-    const [accessToken, refreshToken] = await Promise.all([
-      createAccessToken(tokenPayload),
-      createRefreshToken(tokenPayload),
-    ]);
+    const token = await createToken(tokenPayload);
 
     return {
       success: true,
       data: {
         user: sanitizeUser(user),
-        accessToken,
-        refreshToken,
+        token,
       },
     };
   }
 
   async login(input: LoginInput): Promise<Result<AuthResult>> {
-    if (!input.login || !input.password) {
+    if (!input.username || !input.password) {
       return {
         success: false,
-        error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" },
+        error: { code: "UNAUTHORIZED", message: "Invalid credentials" },
       };
     }
 
-    // Find user by username or email
-    const user = input.login.includes("@")
-      ? userRepository.findByEmail(input.login)
-      : userRepository.findByUsername(input.login);
+    // Find user by username
+    const user = userRepository.findByUsername(input.username);
 
     if (!user) {
       return {
         success: false,
-        error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" },
+        error: { code: "UNAUTHORIZED", message: "Invalid credentials" },
       };
     }
 
@@ -117,61 +135,25 @@ export class AuthService {
     if (!isValid) {
       return {
         success: false,
-        error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" },
+        error: { code: "UNAUTHORIZED", message: "Invalid credentials" },
       };
     }
 
-    // Generate tokens
+    // Generate token
     const tokenPayload = {
       userId: user.id,
       username: user.username,
       email: user.email,
     };
 
-    const [accessToken, refreshToken] = await Promise.all([
-      createAccessToken(tokenPayload),
-      createRefreshToken(tokenPayload),
-    ]);
+    const token = await createToken(tokenPayload);
 
     return {
       success: true,
       data: {
         user: sanitizeUser(user),
-        accessToken,
-        refreshToken,
+        token,
       },
-    };
-  }
-
-  async refresh(refreshToken: string): Promise<Result<{ accessToken: string }>> {
-    const payload = await verifyToken(refreshToken);
-
-    if (!payload) {
-      return {
-        success: false,
-        error: { code: "INVALID_TOKEN", message: "Invalid or expired refresh token" },
-      };
-    }
-
-    // Verify user still exists
-    const user = userRepository.findById(payload.userId);
-    if (!user) {
-      return {
-        success: false,
-        error: { code: "USER_NOT_FOUND", message: "User not found" },
-      };
-    }
-
-    // Generate new access token
-    const accessToken = await createAccessToken({
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-    });
-
-    return {
-      success: true,
-      data: { accessToken },
     };
   }
 

@@ -7,6 +7,10 @@
   function goToLogin() {
     navigate("/login");
   }
+
+  function goToRegister() {
+    navigate("/register");
+  }
 </script>
 
 {#if authState.isAuthenticated}
@@ -27,16 +31,24 @@
   </div>
 {:else}
   <div class="max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
-    <h2 class="mb-4 text-2xl font-light text-card-foreground">Login to get started</h2>
+    <h2 class="mb-4 text-2xl font-light text-card-foreground">Get Started</h2>
     <p class="mb-6 text-muted-foreground">
-      To be able to work with HowCanI you need to login with your account to access your personal knowledge base.
+      To access your personal knowledge base, please login with your account or create a new one.
     </p>
 
-    <button
-      onclick={goToLogin}
-      class="rounded-md bg-primary px-6 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
-    >
-      Login
-    </button>
+    <div class="flex gap-3">
+      <button
+        onclick={goToLogin}
+        class="flex-1 rounded-md bg-primary px-6 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
+      >
+        Login
+      </button>
+      <button
+        onclick={goToRegister}
+        class="flex-1 rounded-md border border-primary bg-transparent px-6 py-2 text-sm font-medium uppercase tracking-wide text-primary hover:bg-primary/10"
+      >
+        Create Account
+      </button>
+    </div>
   </div>
 {/if}
