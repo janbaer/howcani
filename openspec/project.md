@@ -34,6 +34,7 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - **Co-located Tests**: Tests live alongside code using `.spec.ts` naming convention
 - **Real Database**: Use SQLite in-memory for tests, no mocking
 - **Tools**: Bun test with pytest-style Arrange-Act-Assert structure
+- **Lint**: Always run `bun lint` before committing. Fix all reported errors.
 
 ### Git Workflow
 - Feature branches for development
