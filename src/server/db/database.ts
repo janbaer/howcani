@@ -1,8 +1,23 @@
 import { Database } from "bun:sqlite";
 import { existsSync, mkdirSync } from "fs";
+import { dirname } from "path";
 
-const DATA_DIR = "./data";
-const DB_PATH = `${DATA_DIR}/howcani.db`;
+const NODE_ENV = process.env.NODE_ENV || "development";
+
+function getDatabasePath(): string {
+  switch (NODE_ENV) {
+    case "test":
+      return "./data/howcani.test.db";
+    case "production":
+      return process.env.DATABASE_URL || "./data/howcani.db";
+    case "development":
+    default:
+      return "./data/howcani.db";
+  }
+}
+
+const DB_PATH = getDatabasePath();
+const DATA_DIR = dirname(DB_PATH);
 
 // Ensure data directory exists
 if (!existsSync(DATA_DIR)) {
@@ -16,4 +31,4 @@ export const db = new Database(DB_PATH, { create: true, strict: true });
 db.run("PRAGMA journal_mode = WAL");
 db.run("PRAGMA foreign_keys = ON");
 
-console.log(`[db] Connected to ${DB_PATH}`);
+console.log(`[db] Connected to ${DB_PATH} (env: ${NODE_ENV})`);
