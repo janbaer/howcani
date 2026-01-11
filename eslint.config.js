@@ -24,6 +24,16 @@ export default ts.config(
     },
   },
   {
+    files: ["**/*.svelte.ts"],
+    languageOptions: {
+      parser: ts.parser,
+    },
+    rules: {
+      "prefer-const": "off", // Svelte 5 runes require 'let'
+      "svelte/prefer-svelte-reactivity": "off", // Not all state needs to be reactive
+    },
+  },
+  {
     ignores: ["build/", ".svelte-kit/", "dist/", "node_modules/"],
   }
 );

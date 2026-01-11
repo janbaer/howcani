@@ -13,6 +13,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         return status(404, { error: "USER_NOT_FOUND", message: "User not found" });
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash: _, ...safeUser } = user;
       return safeUser;
     },
@@ -49,6 +50,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         return status(500, { error: "UPDATE_FAILED", message: "Failed to update user" });
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash: _, ...safeUser } = updated;
       return safeUser;
     },

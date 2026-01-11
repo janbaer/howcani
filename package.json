@@ -25,7 +25,8 @@
     "prettier-plugin-svelte": "^3.3.3",
     "svelte": "^5.45.6",
     "svelte-check": "^4.3.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "8.52.0"
   },
   "dependencies": {
     "elysia": "1.4.19",

@@ -6,7 +6,7 @@ let app = mount(App, { target });
 
 // Hot Module Replacement support
 if (import.meta.hot) {
-  import.meta.hot.accept((newModule) => {
+  import.meta.hot.accept(() => {
     if (app) {
       unmount(app);
     }

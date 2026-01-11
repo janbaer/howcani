@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { authService } from "../services/auth.service";
+import type { User } from "../repositories/user.repository";
 
-const testUsers = new Map<string, any>();
+const testUsers = new Map<string, User>();
 
 const mockUserRepository = {
   create: mock((data) => {
