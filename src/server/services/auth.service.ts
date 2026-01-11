@@ -35,58 +35,77 @@ function sanitizeUser(user: User): Omit<User, "password_hash"> {
   return safeUser;
 }
 
+function createError(code: string, message: string): { success: false; error: AuthError } {
+  return { success: false, error: { code, message } };
+}
+
+function validateUsername(username: string): AuthError | null {
+  if (!username || username.length < 3 || username.length > 30) {
+    return { code: "VALIDATION_ERROR", message: "Username must be 3-30 characters" };
+  }
+
+  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    return { code: "VALIDATION_ERROR", message: "Username can only contain letters, numbers, hyphens, and underscores" };
+  }
+
+  return null;
+}
+
+function validatePassword(password: string): AuthError | null {
+  if (!password || password.length < 8) {
+    return { code: "VALIDATION_ERROR", message: "Password must be at least 8 characters" };
+  }
+  return null;
+}
+
+function validateEmail(email: string): AuthError | null {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return { code: "VALIDATION_ERROR", message: "Invalid email format" };
+  }
+  return null;
+}
+
+async function generateAuthResult(user: User): Promise<AuthResult> {
+  const tokenPayload = {
+    userId: user.id,
+    username: user.username,
+    email: user.email,
+  };
+
+  const token = await createToken(tokenPayload);
+
+  return {
+    user: sanitizeUser(user),
+    token,
+  };
+}
+
 export class AuthService {
   async register(input: RegisterInput): Promise<Result<AuthResult>> {
-    // Validate username
-    if (!input.username || input.username.length < 3 || input.username.length > 30) {
-      return {
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Username must be 3-30 characters" },
-      };
+    const usernameError = validateUsername(input.username);
+    if (usernameError) {
+      return createError(usernameError.code, usernameError.message);
     }
 
-    // Validate username format (alphanumeric with hyphens/underscores)
-    if (!/^[a-zA-Z0-9_-]+$/.test(input.username)) {
-      return {
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Username can only contain letters, numbers, hyphens, and underscores" },
-      };
+    const passwordError = validatePassword(input.password);
+    if (passwordError) {
+      return createError(passwordError.code, passwordError.message);
     }
 
-    // Validate password
-    if (!input.password || input.password.length < 8) {
-      return {
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Password must be at least 8 characters" },
-      };
+    const emailError = validateEmail(input.email);
+    if (emailError) {
+      return createError(emailError.code, emailError.message);
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!input.email || !emailRegex.test(input.email)) {
-      return {
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Invalid email format" },
-      };
-    }
-
-    // Check username uniqueness
     if (userRepository.usernameExists(input.username)) {
-      return {
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Username already exists" },
-      };
+      return createError("VALIDATION_ERROR", "Username already exists");
     }
 
-    // Check email uniqueness
     if (userRepository.findByEmail(input.email)) {
-      return {
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Email already exists" },
-      };
+      return createError("VALIDATION_ERROR", "Email already exists");
     }
 
-    // Create user
     const passwordHash = await hashPassword(input.password);
     const user = userRepository.create({
       username: input.username,
@@ -94,85 +113,42 @@ export class AuthService {
       passwordHash,
     });
 
-    // Generate token
-    const tokenPayload = {
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-    };
-
-    const token = await createToken(tokenPayload);
-
     return {
       success: true,
-      data: {
-        user: sanitizeUser(user),
-        token,
-      },
+      data: await generateAuthResult(user),
     };
   }
 
   async login(input: LoginInput): Promise<Result<AuthResult>> {
     if (!input.username || !input.password) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "Invalid credentials" },
-      };
+      return createError("UNAUTHORIZED", "Invalid credentials");
     }
 
-    // Find user by username
     const user = userRepository.findByUsername(input.username);
-
     if (!user) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "Invalid credentials" },
-      };
+      return createError("UNAUTHORIZED", "Invalid credentials");
     }
 
-    // Verify password
     const isValid = await verifyPassword(input.password, user.password_hash);
     if (!isValid) {
-      return {
-        success: false,
-        error: { code: "UNAUTHORIZED", message: "Invalid credentials" },
-      };
+      return createError("UNAUTHORIZED", "Invalid credentials");
     }
-
-    // Generate token
-    const tokenPayload = {
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-    };
-
-    const token = await createToken(tokenPayload);
 
     return {
       success: true,
-      data: {
-        user: sanitizeUser(user),
-        token,
-      },
+      data: await generateAuthResult(user),
     };
   }
 
   async getCurrentUser(accessToken: string): Promise<Result<Omit<User, "password_hash">>> {
     const payload = await verifyToken(accessToken);
-
     if (!payload) {
-      return {
-        success: false,
-        error: { code: "INVALID_TOKEN", message: "Invalid or expired token" },
-      };
+      return createError("INVALID_TOKEN", "Invalid or expired token");
     }
 
     const user = userRepository.findById(payload.userId);
     if (!user) {
-      return {
-        success: false,
-        error: { code: "USER_NOT_FOUND", message: "User not found" },
-      };
+      return createError("USER_NOT_FOUND", "User not found");
     }
 
     return {
