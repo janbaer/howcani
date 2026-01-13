@@ -6,7 +6,6 @@ export interface User {
   username: string;
   email: string;
   password_hash: string;
-  display_name: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -15,13 +14,11 @@ export interface CreateUserDTO {
   username: string;
   email: string;
   passwordHash: string;
-  displayName?: string;
 }
 
 export interface UpdateUserDTO {
   username?: string;
   email?: string;
-  displayName?: string;
 }
 
 export class UserRepository extends BaseRepository<User> {
@@ -34,9 +31,9 @@ export class UserRepository extends BaseRepository<User> {
     const now = this.now();
 
     db.run(
-      `INSERT INTO users (id, username, email, password_hash, display_name, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, data.username, data.email, data.passwordHash, data.displayName ?? null, now, now]
+      `INSERT INTO users (id, username, email, password_hash, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, data.username, data.email, data.passwordHash, now, now]
     );
 
     return this.findById(id)!;
@@ -56,10 +53,6 @@ export class UserRepository extends BaseRepository<User> {
     if (data.email !== undefined) {
       updates.push("email = ?");
       values.push(data.email);
-    }
-    if (data.displayName !== undefined) {
-      updates.push("display_name = ?");
-      values.push(data.displayName);
     }
 
     if (updates.length === 0) return user;
@@ -82,17 +75,11 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   emailExists(email: string): boolean {
-    const result = db
-      .query<{ count: number }, [string]>(`SELECT COUNT(*) as count FROM users WHERE email = ?`)
-      .get(email);
-    return (result?.count ?? 0) > 0;
+    return this.findByEmail(email) !== null;
   }
 
   usernameExists(username: string): boolean {
-    const result = db
-      .query<{ count: number }, [string]>(`SELECT COUNT(*) as count FROM users WHERE username = ?`)
-      .get(username);
-    return (result?.count ?? 0) > 0;
+    return this.findByUsername(username) !== null;
   }
 
   updatePassword(id: string, passwordHash: string): boolean {

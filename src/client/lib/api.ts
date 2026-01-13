@@ -24,13 +24,13 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   if (accessToken) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
   try {
@@ -56,7 +56,6 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  display_name: string | null;
   created_at: string;
   updated_at: string;
 }

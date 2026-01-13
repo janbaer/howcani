@@ -11,7 +11,6 @@ const mockUserRepository = {
       username: data.username,
       email: data.email,
       password_hash: data.passwordHash,
-      display_name: data.displayName ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

@@ -24,11 +24,39 @@ const MIGRATIONS: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
     `,
   },
+  {
+    version: 2,
+    name: "update_users_table_case_insensitive_username_remove_display_name",
+    up: `
+      -- Create new table with desired schema
+      CREATE TABLE users_new (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Copy data from old table (excluding display_name)
+      INSERT INTO users_new (id, username, email, password_hash, created_at, updated_at)
+      SELECT id, username, email, password_hash, created_at, updated_at FROM users;
+
+      -- Drop old table
+      DROP TABLE users;
+
+      -- Rename new table
+      ALTER TABLE users_new RENAME TO users;
+
+      -- Recreate indexes with case-insensitive collation
+      CREATE INDEX idx_users_username ON users(username COLLATE NOCASE);
+      CREATE INDEX idx_users_email ON users(email);
+    `,
+  },
 ];
 
 export function runMigrations(): void {
-  const result = db.query<{ user_version: number }, []>("PRAGMA user_version").get();
-  const currentVersion = result?.user_version ?? 0;
+  const currentVersion = getCurrentVersion();
 
   console.log(`[db] Current schema version: ${currentVersion}`);
 
@@ -45,8 +73,7 @@ export function runMigrations(): void {
     }
   }
 
-  const newVersion = db.query<{ user_version: number }, []>("PRAGMA user_version").get();
-  console.log(`[db] Schema version: ${newVersion?.user_version}`);
+  console.log(`[db] Schema version: ${getCurrentVersion()}`);
 }
 
 export function getCurrentVersion(): number {
