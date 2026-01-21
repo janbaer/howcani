@@ -3,6 +3,7 @@ import { runMigrations } from "./db";
 import {
   authRoutes,
   userRoutes,
+  itemRoutes,
 } from "./routes";
 import index from "../index.html";
 
@@ -12,6 +13,7 @@ const api = new Elysia().group("/api", (app) =>
   app
     .use(authRoutes)
     .use(userRoutes)
+    .use(itemRoutes)
     .get("/health", () => ({
       status: "ok",
       timestamp: new Date().toISOString(),
