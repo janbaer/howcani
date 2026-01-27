@@ -53,6 +53,24 @@ const MIGRATIONS: Migration[] = [
       CREATE INDEX idx_users_email ON users(email);
     `,
   },
+  {
+    version: 3,
+    name: "create_items_table",
+    up: `
+      CREATE TABLE IF NOT EXISTS items (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        question TEXT NOT NULL,
+        answer TEXT DEFAULT '',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_items_user_id ON items(user_id);
+      CREATE INDEX IF NOT EXISTS idx_items_created_at ON items(created_at DESC);
+    `,
+  },
 ];
 
 export function runMigrations(): void {
