@@ -218,6 +218,66 @@ describe("Item Routes", () => {
       expect(data.items).toHaveLength(0);
       expect(data.total).toBe(0);
     });
+
+    test("clamps negative limit and offset to safe values", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({ question: "Question 1" }),
+        })
+      );
+
+      const res = await app.handle(
+        new Request("http://localhost/api/john/items?limit=-5&offset=-10")
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.items).toHaveLength(1);
+    });
+
+    test("handles non-numeric pagination params gracefully", async () => {
+      await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(
+        new Request("http://localhost/api/john/items?limit=abc&offset=xyz")
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.items).toBeDefined();
+    });
+
+    test("caps limit at 100", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      for (let i = 1; i <= 3; i++) {
+        await app.handle(
+          new Request("http://localhost/api/john/items", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeader(token),
+            },
+            body: JSON.stringify({ question: `Question ${i}` }),
+          })
+        );
+      }
+
+      const res = await app.handle(
+        new Request("http://localhost/api/john/items?limit=9999")
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.items).toHaveLength(3);
+    });
   });
 
   describe("GET /api/:username/items/:id - Get Single Item", () => {
@@ -363,6 +423,64 @@ describe("Item Routes", () => {
       );
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    });
+
+    test("returns 400 when updating with empty question", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const createRes = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({ question: "Original" }),
+        })
+      );
+      const createData = await createRes.json();
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/items/${createData.item.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({ question: "" }),
+        })
+      );
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+    });
+
+    test("returns 400 when updating with whitespace-only question", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const createRes = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({ question: "Original" }),
+        })
+      );
+      const createData = await createRes.json();
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/items/${createData.item.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({ question: "   " }),
+        })
+      );
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
     test("preserves created_at on update", async () => {

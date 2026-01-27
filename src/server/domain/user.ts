@@ -1,3 +1,7 @@
+import type { ValidationResult } from "./common";
+
+export type { ValidationResult };
+
 export interface User {
   id: string;
   username: string;
@@ -5,11 +9,6 @@ export interface User {
   password_hash: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  errors: string[];
 }
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,30}$/;

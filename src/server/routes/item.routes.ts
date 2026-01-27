@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { authPlugin } from "../middleware";
 import { itemRepository } from "../repositories/item.repository";
 import { userRepository } from "../repositories/user.repository";
-import { validateCreateItemData } from "../domain/item";
+import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
 
 export const itemRoutes = new Elysia({ prefix: "/:username/items" })
   .use(authPlugin)
@@ -16,8 +16,10 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         return { error: { message: "User not found", code: "NOT_FOUND" } };
       }
 
-      const limit = query.limit ? parseInt(query.limit, 10) : 50;
-      const offset = query.offset ? parseInt(query.offset, 10) : 0;
+      const parsedLimit = query.limit ? parseInt(query.limit, 10) : 50;
+      const parsedOffset = query.offset ? parseInt(query.offset, 10) : 0;
+      const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 50, 1), 100);
+      const offset = Math.max(Number.isFinite(parsedOffset) ? parsedOffset : 0, 0);
 
       const result = itemRepository.findByUserId(user.id, { limit, offset });
 
@@ -107,6 +109,12 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
       if (user.username !== params.username) {
         set.status = StatusCodes.FORBIDDEN;
         return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
+      }
+
+      const validation = validateUpdateItemData(body);
+      if (!validation.valid) {
+        set.status = StatusCodes.BAD_REQUEST;
+        return { error: { message: validation.errors[0], code: "VALIDATION_ERROR" } };
       }
 
       const existingItem = itemRepository.findByIdAndUserId(params.id, user.userId);

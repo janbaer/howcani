@@ -3,7 +3,11 @@ import {
   type Item,
   validateQuestion,
   validateCreateItemData,
+  validateUpdateItemData,
   type CreateItemData,
+  type UpdateItemData,
+  MAX_QUESTION_LENGTH,
+  MAX_ANSWER_LENGTH,
 } from "./item";
 
 describe("Item Domain", () => {
@@ -61,6 +65,22 @@ describe("Item Domain", () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toContain("Question is required");
+    });
+
+    test("rejects question exceeding max length", () => {
+      const result = validateQuestion("a".repeat(MAX_QUESTION_LENGTH + 1));
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain(
+        `Question must be at most ${MAX_QUESTION_LENGTH} characters`
+      );
+    });
+
+    test("accepts question at max length", () => {
+      const result = validateQuestion("a".repeat(MAX_QUESTION_LENGTH));
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
     });
   });
 
@@ -127,6 +147,100 @@ describe("Item Domain", () => {
 
       expect(result.valid).toBe(true);
       expect(data.answer).toBe(markdownAnswer);
+    });
+
+    test("rejects answer exceeding max length", () => {
+      const data: Partial<CreateItemData> = {
+        question: "Valid question",
+        answer: "a".repeat(MAX_ANSWER_LENGTH + 1),
+      };
+
+      const result = validateCreateItemData(data);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain(
+        `Answer must be at most ${MAX_ANSWER_LENGTH} characters`
+      );
+    });
+  });
+
+  describe("validateUpdateItemData", () => {
+    test("accepts valid update with question and answer", () => {
+      const data: Partial<UpdateItemData> = {
+        question: "Updated question",
+        answer: "Updated answer",
+      };
+
+      const result = validateUpdateItemData(data);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    test("accepts update with only answer", () => {
+      const data: Partial<UpdateItemData> = {
+        answer: "Updated answer",
+      };
+
+      const result = validateUpdateItemData(data);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    test("accepts empty update", () => {
+      const result = validateUpdateItemData({});
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    test("rejects empty question when question is provided", () => {
+      const data: Partial<UpdateItemData> = {
+        question: "",
+      };
+
+      const result = validateUpdateItemData(data);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Question is required");
+    });
+
+    test("rejects whitespace-only question when question is provided", () => {
+      const data: Partial<UpdateItemData> = {
+        question: "   ",
+      };
+
+      const result = validateUpdateItemData(data);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Question is required");
+    });
+
+    test("rejects question exceeding max length", () => {
+      const data: Partial<UpdateItemData> = {
+        question: "a".repeat(MAX_QUESTION_LENGTH + 1),
+      };
+
+      const result = validateUpdateItemData(data);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain(
+        `Question must be at most ${MAX_QUESTION_LENGTH} characters`
+      );
+    });
+
+    test("rejects answer exceeding max length", () => {
+      const data: Partial<UpdateItemData> = {
+        answer: "a".repeat(MAX_ANSWER_LENGTH + 1),
+      };
+
+      const result = validateUpdateItemData(data);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain(
+        `Answer must be at most ${MAX_ANSWER_LENGTH} characters`
+      );
     });
   });
 });
