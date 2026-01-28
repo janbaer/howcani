@@ -32,7 +32,10 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - **Test-First for Core Logic**: Domain models, API endpoints, business rules, database operations
 - **Test-After for UI**: Frontend components tested after implementation or manually
 - **Co-located Tests**: Tests live alongside code using `.spec.ts` naming convention
-- **Real Database**: Use SQLite in-memory for tests, no mocking
+- **Layered Testing**:
+  - Route tests: Mock services using `mock.module()`, test HTTP handling
+  - Service tests: Mock repositories using `mock.module()`, test business logic
+  - Repository tests: Use real SQLite in-memory database, test data access
 - **Tools**: Bun test with pytest-style Arrange-Act-Assert structure
 - **Lint**: Always run `bun lint` before committing. Fix all reported errors.
 

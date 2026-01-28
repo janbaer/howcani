@@ -71,6 +71,34 @@ const MIGRATIONS: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_items_created_at ON items(created_at DESC);
     `,
   },
+  {
+    version: 4,
+    name: "create_tags_and_item_tags_tables",
+    up: `
+      CREATE TABLE IF NOT EXISTS tags (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        name TEXT NOT NULL COLLATE NOCASE,
+        color TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE(user_id, name COLLATE NOCASE)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_tags_user_id ON tags(user_id);
+      CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name COLLATE NOCASE);
+
+      CREATE TABLE IF NOT EXISTS item_tags (
+        item_id TEXT NOT NULL,
+        tag_id TEXT NOT NULL,
+        PRIMARY KEY (item_id, tag_id),
+        FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_item_tags_tag_id ON item_tags(tag_id);
+    `,
+  },
 ];
 
 export function runMigrations(): void {

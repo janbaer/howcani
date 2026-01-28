@@ -1,17 +1,12 @@
 import { describe, test, expect, beforeEach } from "bun:test";
-import { db } from "../database";
-import { runMigrations } from "../migrations";
+import { setupTestDatabase } from "../test-helpers";
 import { UserRepository, type User, type CreateUserDTO } from "../../repositories/user.repository";
 
 describe("UserRepository Integration Tests", () => {
   let userRepo: UserRepository;
 
   beforeEach(() => {
-    db.exec("DROP TABLE IF EXISTS users");
-    db.run("PRAGMA user_version = 0");
-
-    runMigrations();
-
+    setupTestDatabase();
     userRepo = new UserRepository();
   });
 
