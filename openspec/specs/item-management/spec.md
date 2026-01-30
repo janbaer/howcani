@@ -450,6 +450,19 @@ src/server/routes/item.routes.spec.ts
   - Route tests with mocked service
 ```
 
+### Service Dependencies
+
+ItemService depends on other services for cross-entity operations:
+
+| Dependency | Methods Used | Purpose |
+|------------|--------------|---------|
+| TagService | `resolveOrCreateTags()` | Create/find tags when creating/updating items |
+| TagService | `setItemTags()` | Associate tags with items |
+| TagService | `findTagsForItem()` | Include tags in item responses |
+| UserService | `findByUsername()` | Resolve username to userId for queries |
+
+**Note:** ItemService MUST NOT access TagRepository or UserRepository directly.
+
 ### Cross-Reference
 
 - **Related**: [authentication/spec.md] for auth requirements

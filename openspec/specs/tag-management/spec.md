@@ -227,6 +227,32 @@ The system MUST manage many-to-many relationships between items and tags.
 - Allow querying items by tag
 - Allow querying tags for item
 
+### Requirement: Cross-Service Tag Operations
+
+TagService MUST expose methods for other services to manage item-tag associations.
+
+#### Scenario: Set tags for an item
+
+**Given** ItemService needs to associate tags with an item
+
+**When** calling `tagService.setItemTags(itemId, tagIds)`
+
+**Then** TagService should:
+- Replace all existing tag associations for the item
+- Create new associations for provided tagIds
+- Handle atomic update (all or nothing)
+
+#### Scenario: Get tags for an item
+
+**Given** ItemService needs to retrieve tags for an item
+
+**When** calling `tagService.findTagsForItem(itemId)`
+
+**Then** TagService should:
+- Return array of Tag objects associated with the item
+- Return empty array if no tags
+- Not require userId (itemId is sufficient)
+
 #### Scenario: Update item tags removes old associations
 
 **Given** item 123 currently tagged with ["bun", "old-tag"]
@@ -351,6 +377,17 @@ src/server/routes/tag.routes.ts
 src/server/routes/tag.routes.spec.ts
   - Route tests with mocked service
 ```
+
+### TagService Public Methods (CRUD naming)
+
+| Method | Description | Used By |
+|--------|-------------|---------|
+| `resolveOrCreateTags(userId, tagNames)` | Find or create tags by name | ItemService |
+| `setItemTags(itemId, tagIds)` | Set tag associations for item | ItemService |
+| `findTagsForItem(itemId)` | Get tags for an item | ItemService |
+| `listTags(username)` | List all tags for user | Routes |
+| `getSuggestions(username, prefix)` | Get tag suggestions | Routes |
+| `deleteTag(tagId, userId)` | Delete unused tag | Routes |
 
 ### Color Palette (for random selection)
 

@@ -28,6 +28,24 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - **Layer Separation**: Pure business rules with no framework dependencies in domain layer
 - **Dependency Direction**: Framework depends on domain, never reverse
 
+### Layer Access Rules
+
+Services follow strict layer separation for maintainability and testability:
+
+| Layer | Can Access | Cannot Access |
+|-------|------------|---------------|
+| Routes | Services | Repositories, Domain (except types) |
+| Services | Own Repository, Other Services | Other Repositories |
+| Repositories | Domain, Database | Services, Other Repositories |
+| Domain | Nothing | Everything else |
+
+**Rule: Services access other entities through their respective services, never directly through repositories.**
+
+This enables:
+- Cleaner mocking in tests (mock services, not multiple repositories)
+- Single point of change for entity access patterns
+- Clear ownership of business logic per entity
+
 ### Testing Strategy
 - **Test-First for Core Logic**: Domain models, API endpoints, business rules, database operations
 - **Test-After for UI**: Frontend components tested after implementation or manually

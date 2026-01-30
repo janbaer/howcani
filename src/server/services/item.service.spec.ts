@@ -1,14 +1,18 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import type { Item } from "../domain/item";
 import type { Tag } from "../domain/tag";
-import type { User } from "../repositories/user.repository";
 
-const testUsers = new Map<string, User>();
+interface TestUser {
+  id: string;
+  username: string;
+}
+
+const testUsers = new Map<string, TestUser>();
 const testItems = new Map<string, Item>();
 const testTags = new Map<string, Tag>();
 const itemTagMap = new Map<string, string[]>();
 
-const mockUserRepository = {
+const mockUserService = {
   findByUsername: mock((username: string) => testUsers.get(username) ?? null),
 };
 
@@ -55,17 +59,14 @@ const mockItemRepository = {
   }),
 };
 
-const mockTagRepository = {
-  getTagsForItem: mock((itemId: string) => {
+const mockTagService = {
+  findTagsForItem: mock((itemId: string) => {
     const tagIds = itemTagMap.get(itemId) ?? [];
     return tagIds.map((id) => testTags.get(id)).filter(Boolean) as Tag[];
   }),
   setItemTags: mock((itemId: string, tagIds: string[]) => {
     itemTagMap.set(itemId, tagIds);
   }),
-};
-
-const mockTagService = {
   resolveOrCreateTags: mock((userId: string, tagNames: string[]) => {
     const tagIds: string[] = [];
     for (const name of tagNames) {
@@ -100,24 +101,22 @@ const mockTagService = {
 
 mock.module("../repositories", () => ({
   itemRepository: mockItemRepository,
-  tagRepository: mockTagRepository,
-  userRepository: mockUserRepository,
 }));
 
 mock.module("./tag.service", () => ({
   tagService: mockTagService,
 }));
 
+mock.module("./user.service", () => ({
+  userService: mockUserService,
+}));
+
 import { ItemService } from "./item.service";
 
-function createTestUser(username: string): User {
-  const user: User = {
+function createTestUser(username: string): TestUser {
+  const user: TestUser = {
     id: crypto.randomUUID(),
     username,
-    email: `${username}@example.com`,
-    password_hash: "hashed_password",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   };
   testUsers.set(username, user);
   return user;

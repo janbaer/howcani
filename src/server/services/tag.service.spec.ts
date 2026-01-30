@@ -1,12 +1,16 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import type { Tag, TagWithCount } from "../domain/tag";
-import type { User } from "../repositories/user.repository";
 
-const testUsers = new Map<string, User>();
+interface TestUser {
+  id: string;
+  username: string;
+}
+
+const testUsers = new Map<string, TestUser>();
 const testTags = new Map<string, Tag>();
 const itemTagMap = new Map<string, string[]>();
 
-const mockUserRepository = {
+const mockUserService = {
   findByUsername: mock((username: string) => testUsers.get(username) ?? null),
 };
 
@@ -67,19 +71,18 @@ const mockTagRepository = {
 
 mock.module("../repositories", () => ({
   tagRepository: mockTagRepository,
-  userRepository: mockUserRepository,
+}));
+
+mock.module("./user.service", () => ({
+  userService: mockUserService,
 }));
 
 import { TagService } from "./tag.service";
 
-function createTestUser(username: string): User {
-  const user: User = {
+function createTestUser(username: string): TestUser {
+  const user: TestUser = {
     id: crypto.randomUUID(),
     username,
-    email: `${username}@example.com`,
-    password_hash: "hashed_password",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
   };
   testUsers.set(username, user);
   return user;

@@ -1,5 +1,6 @@
-import { tagRepository, userRepository } from "../repositories";
-import { randomColor, type TagWithCount } from "../domain/tag";
+import { tagRepository } from "../repositories";
+import { randomColor, type Tag, type TagWithCount } from "../domain/tag";
+import { userService } from "./user.service";
 
 export type TagError =
   | { code: "USER_NOT_FOUND"; message: string }
@@ -36,8 +37,16 @@ export class TagService {
     return tagIds;
   }
 
+  setItemTags(itemId: string, tagIds: string[]): void {
+    tagRepository.setItemTags(itemId, tagIds);
+  }
+
+  findTagsForItem(itemId: string): Tag[] {
+    return tagRepository.getTagsForItem(itemId);
+  }
+
   listTags(username: string): Result<TagWithCount[]> {
-    const user = userRepository.findByUsername(username);
+    const user = userService.findByUsername(username);
     if (!user) {
       return createError("USER_NOT_FOUND", "User not found");
     }
@@ -47,7 +56,7 @@ export class TagService {
   }
 
   getSuggestions(username: string, prefix: string): Result<string[]> {
-    const user = userRepository.findByUsername(username);
+    const user = userService.findByUsername(username);
     if (!user) {
       return createError("USER_NOT_FOUND", "User not found");
     }

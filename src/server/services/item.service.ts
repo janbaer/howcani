@@ -1,11 +1,7 @@
-import {
-  itemRepository,
-  tagRepository,
-  userRepository,
-  type Item,
-} from "../repositories";
+import { itemRepository, type Item } from "../repositories";
 import type { Tag } from "../domain/tag";
 import { tagService } from "./tag.service";
+import { userService } from "./user.service";
 import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
 
 export interface ItemWithTags extends Item {
@@ -56,12 +52,12 @@ export class ItemService {
 
     if (input.tags && input.tags.length > 0) {
       const tagIds = tagService.resolveOrCreateTags(userId, input.tags);
-      tagRepository.setItemTags(item.id, tagIds);
+      tagService.setItemTags(item.id, tagIds);
     }
 
     return {
       success: true,
-      data: { ...item, tags: tagRepository.getTagsForItem(item.id) },
+      data: { ...item, tags: tagService.findTagsForItem(item.id) },
     };
   }
 
@@ -83,12 +79,12 @@ export class ItemService {
 
     if (input.tags !== undefined) {
       const tagIds = tagService.resolveOrCreateTags(userId, input.tags);
-      tagRepository.setItemTags(itemId, tagIds);
+      tagService.setItemTags(itemId, tagIds);
     }
 
     return {
       success: true,
-      data: { ...item!, tags: tagRepository.getTagsForItem(itemId) },
+      data: { ...item!, tags: tagService.findTagsForItem(itemId) },
     };
   }
 
@@ -103,7 +99,7 @@ export class ItemService {
   }
 
   getItem(itemId: string, username: string): Result<ItemWithTags> {
-    const user = userRepository.findByUsername(username);
+    const user = userService.findByUsername(username);
     if (!user) {
       return createError("USER_NOT_FOUND", "User not found");
     }
@@ -115,7 +111,7 @@ export class ItemService {
 
     return {
       success: true,
-      data: { ...item, tags: tagRepository.getTagsForItem(item.id) },
+      data: { ...item, tags: tagService.findTagsForItem(item.id) },
     };
   }
 
@@ -123,7 +119,7 @@ export class ItemService {
     username: string,
     pagination: { limit?: number; offset?: number } = {}
   ): Result<PaginatedItemsResult> {
-    const user = userRepository.findByUsername(username);
+    const user = userService.findByUsername(username);
     if (!user) {
       return createError("USER_NOT_FOUND", "User not found");
     }
@@ -133,7 +129,7 @@ export class ItemService {
 
     const itemsWithTags = result.items.map((item) => ({
       ...item,
-      tags: tagRepository.getTagsForItem(item.id),
+      tags: tagService.findTagsForItem(item.id),
     }));
 
     return {
