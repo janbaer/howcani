@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test";
-import { db } from "../db/database";
-import { runMigrations } from "../db/migrations";
+import { setupTestDatabase } from "../db/test-helpers";
 import { ItemRepository, type CreateItemDTO } from "./item.repository";
 import { UserRepository } from "./user.repository";
 
@@ -10,11 +9,7 @@ describe("ItemRepository Integration Tests", () => {
   let testUserId: string;
 
   beforeEach(() => {
-    db.exec("DROP TABLE IF EXISTS items");
-    db.exec("DROP TABLE IF EXISTS users");
-    db.run("PRAGMA user_version = 0");
-
-    runMigrations();
+    setupTestDatabase();
 
     userRepo = new UserRepository();
     itemRepo = new ItemRepository();
@@ -204,7 +199,9 @@ describe("ItemRepository Integration Tests", () => {
 
     test("orders by created_at descending by default", () => {
       itemRepo.create({ userId: testUserId, question: "First" });
+      Bun.sleepSync(2);
       itemRepo.create({ userId: testUserId, question: "Second" });
+      Bun.sleepSync(2);
       itemRepo.create({ userId: testUserId, question: "Third" });
 
       const result = itemRepo.findByUserId(testUserId);
@@ -270,7 +267,8 @@ describe("ItemRepository Integration Tests", () => {
 
       const originalUpdatedAt = created.updated_at;
 
-      // Small delay to ensure timestamp differs
+      Bun.sleepSync(2);
+
       const updated = itemRepo.update(created.id, {
         question: "Updated question",
       });

@@ -400,13 +400,16 @@ DELETE /api/:username/items/:id
 
 ## Testing Requirements
 
-- Test-first for domain model and repository
+- Test-first for domain model, service, and repository
 - Test all CRUD operations
 - Test ownership validation thoroughly
 - Test authentication and authorization
 - Test updated_at auto-update
 - Test cascade deletion of tag associations
-- Use in-memory SQLite for repository tests
+- Layered test isolation:
+  - Route tests: Mock services using `mock.module()`
+  - Service tests: Mock repositories using `mock.module()`
+  - Repository tests: Use in-memory SQLite for integration tests
 
 ## Implementation Notes
 
@@ -421,22 +424,44 @@ src/server/domain/item.ts
 src/server/domain/item.spec.ts
   - Unit tests for Item domain
 
-src/server/db/repositories/item-repository.ts
+src/server/repositories/item.repository.ts
   - ItemRepository class
   - CRUD operations
   - Join queries for tags
 
-src/server/db/repositories/item-repository.spec.ts
-  - Integration tests with database
+src/server/repositories/item.repository.spec.ts
+  - Integration tests with in-memory SQLite
 
-src/server/api/items.ts
+src/server/services/item.service.ts
+  - ItemService class
+  - Business logic orchestration
+  - Tag association management
+  - Ownership validation
+
+src/server/services/item.service.spec.ts
+  - Unit tests with mocked repository
+
+src/server/routes/item.routes.ts
   - Elysia route handlers
   - Auth middleware integration
   - Request/response mapping
 
-src/server/api/items.spec.ts
-  - API integration tests
+src/server/routes/item.routes.spec.ts
+  - Route tests with mocked service
 ```
+
+### Service Dependencies
+
+ItemService depends on other services for cross-entity operations:
+
+| Dependency | Methods Used | Purpose |
+|------------|--------------|---------|
+| TagService | `resolveOrCreateTags()` | Create/find tags when creating/updating items |
+| TagService | `setItemTags()` | Associate tags with items |
+| TagService | `findTagsForItem()` | Include tags in item responses |
+| UserService | `findByUsername()` | Resolve username to userId for queries |
+
+**Note:** ItemService MUST NOT access TagRepository or UserRepository directly.
 
 ### Cross-Reference
 

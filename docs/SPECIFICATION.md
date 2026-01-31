@@ -262,8 +262,10 @@ GET /api/:username/tags/suggestions?q=net
 
 ### Testing Tools
 - `bun test` (built-in test runner)
-- SQLite in-memory database for isolation
-- No mocking for database (use real instance)
+- Layered test isolation using `mock.module()`:
+  - Route tests mock services
+  - Service tests mock repositories
+  - Repository tests use real SQLite in-memory database
 
 ### Test Organization
 
@@ -298,7 +300,7 @@ src/server/api/items.spec.ts
 ```
 src/
   server/
-    domain/          → Pure business logic
+    domain/          → Pure business logic (validation, types)
       user.ts
       user.spec.ts
       item.ts
@@ -306,22 +308,43 @@ src/
       tag.ts
       tag.spec.ts
     db/              → Database layer
-      schema.ts
+      database.ts
       migrations.ts
-      repositories/  → Data access
-    api/             → Elysia routes
-      auth.ts
-      auth.spec.ts
-      items.ts
-      items.spec.ts
-      tags.ts
-      tags.spec.ts
+    repositories/    → Data access (thin DB layer)
+      user.repository.ts
+      user.repository.spec.ts
+      item.repository.ts
+      item.repository.spec.ts
+      tag.repository.ts
+      tag.repository.spec.ts
+    services/        → Business logic orchestration
+      auth.service.ts
+      auth.service.spec.ts
+      user.service.ts
+      user.service.spec.ts
+      item.service.ts
+      item.service.spec.ts
+      tag.service.ts
+      tag.service.spec.ts
+    routes/          → Elysia HTTP routes
+      auth.routes.ts
+      auth.routes.spec.ts
+      item.routes.ts
+      item.routes.spec.ts
+      tag.routes.ts
+      tag.routes.spec.ts
     middleware/      → Auth, error handling
+    auth/            → JWT and password utilities
     index.ts         → Server entry point
   client/
     components/      → Svelte components
     lib/             → Utilities, API client
 ```
+
+**Layer Dependencies**
+- Routes → Services → Repositories → Database
+- Domain is referenced by all layers for types and validation
+- Each layer only depends on the layer below it
 
 ### Code Standards
 - Clarity over cleverness

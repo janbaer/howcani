@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { StatusCodes } from "http-status-codes";
 import { authService } from "../services/auth.service";
-import { authPlugin } from "../middleware";
+import { authPlugin, assertAuthenticated } from "../middleware";
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
   .use(authPlugin)
@@ -49,6 +49,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
   .get(
     "/me",
     ({ user, set }) => {
+      assertAuthenticated(user);
       const userData = authService.getUserById(user.userId);
       if (!userData) {
         set.status = StatusCodes.NOT_FOUND;

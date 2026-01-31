@@ -28,11 +28,32 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - **Layer Separation**: Pure business rules with no framework dependencies in domain layer
 - **Dependency Direction**: Framework depends on domain, never reverse
 
+### Layer Access Rules
+
+Services follow strict layer separation for maintainability and testability:
+
+| Layer | Can Access | Cannot Access |
+|-------|------------|---------------|
+| Routes | Services | Repositories, Domain (except types) |
+| Services | Own Repository, Other Services | Other Repositories |
+| Repositories | Domain, Database | Services, Other Repositories |
+| Domain | Nothing | Everything else |
+
+**Rule: Services access other entities through their respective services, never directly through repositories.**
+
+This enables:
+- Cleaner mocking in tests (mock services, not multiple repositories)
+- Single point of change for entity access patterns
+- Clear ownership of business logic per entity
+
 ### Testing Strategy
 - **Test-First for Core Logic**: Domain models, API endpoints, business rules, database operations
 - **Test-After for UI**: Frontend components tested after implementation or manually
 - **Co-located Tests**: Tests live alongside code using `.spec.ts` naming convention
-- **Real Database**: Use SQLite in-memory for tests, no mocking
+- **Layered Testing**:
+  - Route tests: Mock services using `mock.module()`, test HTTP handling
+  - Service tests: Mock repositories using `mock.module()`, test business logic
+  - Repository tests: Use real SQLite in-memory database, test data access
 - **Tools**: Bun test with pytest-style Arrange-Act-Assert structure
 - **Lint**: Always run `bun lint` before committing. Fix all reported errors.
 

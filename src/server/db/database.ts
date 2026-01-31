@@ -16,19 +16,34 @@ function getDatabasePath(): string {
   }
 }
 
-const DB_PATH = getDatabasePath();
-const DATA_DIR = dirname(DB_PATH);
+function initializeDatabase(): Database {
+  const dbPath = getDatabasePath();
+  const dataDir = dirname(dbPath);
 
-// Ensure data directory exists
-if (!existsSync(DATA_DIR)) {
-  mkdirSync(DATA_DIR, { recursive: true });
+  if (!existsSync(dataDir)) {
+    mkdirSync(dataDir, { recursive: true });
+  }
+
+  const database = new Database(dbPath, { create: true, strict: true });
+  database.run("PRAGMA journal_mode = WAL");
+  database.run("PRAGMA foreign_keys = ON");
+
+  console.log(`[db] Connected to ${dbPath} (env: ${NODE_ENV})`);
+
+  return database;
 }
 
-// Create database connection
-export const db = new Database(DB_PATH, { create: true, strict: true });
+export let db: Database = initializeDatabase();
 
-// Enable WAL mode for better performance
-db.run("PRAGMA journal_mode = WAL");
-db.run("PRAGMA foreign_keys = ON");
+export function setDatabase(newDb: Database): void {
+  db.close();
+  db = newDb;
+}
 
-console.log(`[db] Connected to ${DB_PATH} (env: ${NODE_ENV})`);
+export function closeDatabase(): void {
+  db.close();
+}
+
+export function runTransaction<T>(fn: () => T): T {
+  return db.transaction(fn)();
+}

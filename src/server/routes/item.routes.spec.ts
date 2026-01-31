@@ -1,8 +1,183 @@
-import { describe, test, expect, beforeEach, beforeAll } from "bun:test";
+import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { Elysia } from "elysia";
 import { StatusCodes } from "http-status-codes";
-import { db } from "../db/database";
-import { runMigrations } from "../db/migrations";
+import type { ItemWithTags, ItemError } from "../services/item.service";
+import type { Tag } from "../domain/tag";
+
+type ItemResult = { success: true; data: ItemWithTags } | { success: false; error: ItemError };
+type ListResult = { success: true; data: { items: ItemWithTags[]; total: number } } | { success: false; error: ItemError };
+type DeleteResult = { success: true; data: { deleted: true } } | { success: false; error: ItemError };
+
+const testItems = new Map<string, ItemWithTags>();
+const testUsers = new Map<string, { id: string; username: string }>();
+let nextItemId = 1;
+let currentSessionUserId: string | null = null;
+
+function createSuccessResult<T>(data: T): { success: true; data: T } {
+  return { success: true, data };
+}
+
+function createErrorResult(code: ItemError["code"], message: string): { success: false; error: ItemError } {
+  return { success: false, error: { code, message } };
+}
+
+const mockSessionItemService = {
+  createItem: mock((input: { question: string; answer?: string; tags?: string[] }): ItemResult => {
+    const userId = currentSessionUserId!;
+    if (!input.question || input.question.trim() === "") {
+      return createErrorResult("VALIDATION_ERROR", "Question is required");
+    }
+    const item: ItemWithTags = {
+      id: `item-${nextItemId++}`,
+      user_id: userId,
+      question: input.question,
+      answer: input.answer ?? "",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      tags: (input.tags ?? []).map((name, i) => ({
+        id: `tag-${i}`,
+        user_id: userId,
+        name,
+        color: "0e8a16",
+        created_at: new Date().toISOString(),
+      })),
+    };
+    testItems.set(item.id, item);
+    return createSuccessResult(item);
+  }),
+  updateItem: mock((itemId: string, input: { question?: string; answer?: string; tags?: string[] }): ItemResult => {
+    const userId = currentSessionUserId!;
+    const item = testItems.get(itemId);
+    if (!item || item.user_id !== userId) {
+      return createErrorResult("NOT_FOUND", "Item not found");
+    }
+    if (input.question !== undefined && input.question.trim() === "") {
+      return createErrorResult("VALIDATION_ERROR", "Question is required");
+    }
+    const updated: ItemWithTags = {
+      ...item,
+      question: input.question ?? item.question,
+      answer: input.answer ?? item.answer,
+      updated_at: new Date().toISOString(),
+      tags: input.tags !== undefined
+        ? input.tags.map((name, i) => ({
+            id: `tag-${i}`,
+            user_id: userId,
+            name,
+            color: "0e8a16",
+            created_at: new Date().toISOString(),
+          }))
+        : item.tags,
+    };
+    testItems.set(itemId, updated);
+    return createSuccessResult(updated);
+  }),
+  deleteItem: mock((itemId: string): DeleteResult => {
+    const userId = currentSessionUserId!;
+    const item = testItems.get(itemId);
+    if (!item || item.user_id !== userId) {
+      return createErrorResult("NOT_FOUND", "Item not found");
+    }
+    testItems.delete(itemId);
+    return createSuccessResult({ deleted: true });
+  }),
+  getItem: mock((itemId: string, username: string): ItemResult => {
+    const user = testUsers.get(username);
+    if (!user) {
+      return createErrorResult("USER_NOT_FOUND", "User not found");
+    }
+    const item = testItems.get(itemId);
+    if (!item || item.user_id !== user.id) {
+      return createErrorResult("NOT_FOUND", "Item not found");
+    }
+    return createSuccessResult(item);
+  }),
+  listItems: mock((username: string, pagination: { limit?: number; offset?: number } = {}): ListResult => {
+    const user = testUsers.get(username);
+    if (!user) {
+      return createErrorResult("USER_NOT_FOUND", "User not found");
+    }
+    const userItems = Array.from(testItems.values()).filter((i) => i.user_id === user.id);
+    const { limit = 50, offset = 0 } = pagination;
+    return createSuccessResult({
+      items: userItems.slice(offset, offset + limit),
+      total: userItems.length,
+    });
+  }),
+};
+
+const mockItemService = mockSessionItemService;
+
+const mockAuthService = {
+  register: mock(async (input: { username: string; email: string; password: string }) => {
+    const userId = crypto.randomUUID();
+    testUsers.set(input.username, { id: userId, username: input.username });
+    currentSessionUserId = userId;
+    return {
+      success: true,
+      data: {
+        user: {
+          id: userId,
+          username: input.username,
+          email: input.email,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        token: `mock-token-${input.username}`,
+      },
+    };
+  }),
+  validateToken: mock(async (token: string) => {
+    const username = token.replace("mock-token-", "");
+    const user = testUsers.get(username);
+    if (user) {
+      currentSessionUserId = user.id;
+      return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
+    }
+    return null;
+  }),
+};
+
+mock.module("../services/item.service", () => ({
+  itemService: mockItemService,
+}));
+
+mock.module("../services/session", () => ({
+  getSession: mock(() => ({
+    itemService: mockSessionItemService,
+    tagService: {},
+    userId: currentSessionUserId,
+    username: "",
+  })),
+  initSession: mock((userId: string, username: string) => {
+    currentSessionUserId = userId;
+    return { userId, username, itemService: mockSessionItemService, tagService: {} };
+  }),
+  hasSession: mock(() => currentSessionUserId !== null),
+  clearSession: mock(() => {
+    currentSessionUserId = null;
+  }),
+}));
+
+mock.module("../services/auth.service", () => ({
+  authService: mockAuthService,
+}));
+
+mock.module("../auth", () => ({
+  extractBearerToken: (auth: string | undefined) => {
+    if (!auth?.startsWith("Bearer ")) return null;
+    return auth.slice(7);
+  },
+  verifyToken: async (token: string) => {
+    const username = token.replace("mock-token-", "");
+    const user = testUsers.get(username);
+    if (user) {
+      return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
+    }
+    return null;
+  },
+}));
+
 import { itemRoutes } from "./item.routes";
 import { authRoutes } from "./auth.routes";
 import { authPlugin } from "../middleware";
@@ -35,16 +210,11 @@ function authHeader(token: string) {
 }
 
 describe("Item Routes", () => {
-  beforeAll(() => {
-    db.exec("DROP TABLE IF EXISTS items");
-    db.exec("DROP TABLE IF EXISTS users");
-    db.run("PRAGMA user_version = 0");
-    runMigrations();
-  });
-
   beforeEach(() => {
-    db.exec("DELETE FROM items");
-    db.exec("DELETE FROM users");
+    testItems.clear();
+    testUsers.clear();
+    nextItemId = 1;
+    currentSessionUserId = null;
   });
 
   describe("POST /api/:username/items - Create Item", () => {
@@ -543,7 +713,6 @@ describe("Item Routes", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
 
-      // Verify item is deleted
       const getRes = await app.handle(
         new Request(`http://localhost/api/john/items/${createData.item.id}`)
       );
@@ -611,6 +780,177 @@ describe("Item Routes", () => {
       );
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    });
+  });
+
+  describe("Item-Tag Integration", () => {
+    test("creates item with tags", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            question: "How to deploy?",
+            tags: ["bun", "deployment"],
+          }),
+        })
+      );
+
+      expect(res.status).toBe(StatusCodes.CREATED);
+      const data = await res.json();
+      expect(data.item.tags).toHaveLength(2);
+      expect(data.item.tags.map((t: Tag) => t.name)).toEqual(["bun", "deployment"]);
+    });
+
+    test("creates item without tags returns empty tags array", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            question: "No tags question",
+          }),
+        })
+      );
+
+      expect(res.status).toBe(StatusCodes.CREATED);
+      const data = await res.json();
+      expect(data.item.tags).toEqual([]);
+    });
+
+    test("updates item tags", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const createRes = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            question: "Question",
+            tags: ["old-tag"],
+          }),
+        })
+      );
+      const createData = await createRes.json();
+
+      const updateRes = await app.handle(
+        new Request(`http://localhost/api/john/items/${createData.item.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            tags: ["new-tag"],
+          }),
+        })
+      );
+
+      expect(updateRes.status).toBe(StatusCodes.OK);
+      const updateData = await updateRes.json();
+      expect(updateData.item.tags).toHaveLength(1);
+      expect(updateData.item.tags[0].name).toBe("new-tag");
+    });
+
+    test("removes all tags when updating with empty array", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const createRes = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            question: "Question",
+            tags: ["bun"],
+          }),
+        })
+      );
+      const createData = await createRes.json();
+
+      const updateRes = await app.handle(
+        new Request(`http://localhost/api/john/items/${createData.item.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            tags: [],
+          }),
+        })
+      );
+
+      const updateData = await updateRes.json();
+      expect(updateData.item.tags).toEqual([]);
+    });
+
+    test("GET single item includes tags", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const createRes = await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            question: "Tagged question",
+            tags: ["bun"],
+          }),
+        })
+      );
+      const createData = await createRes.json();
+
+      const getRes = await app.handle(
+        new Request(`http://localhost/api/john/items/${createData.item.id}`)
+      );
+
+      const getData = await getRes.json();
+      expect(getData.item.tags).toHaveLength(1);
+      expect(getData.item.tags[0].name).toBe("bun");
+    });
+
+    test("GET list includes tags for each item", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({
+            question: "Q1",
+            tags: ["bun"],
+          }),
+        })
+      );
+
+      const listRes = await app.handle(
+        new Request("http://localhost/api/john/items")
+      );
+
+      const listData = await listRes.json();
+      expect(listData.items[0].tags).toHaveLength(1);
+      expect(listData.items[0].tags[0].name).toBe("bun");
     });
   });
 });

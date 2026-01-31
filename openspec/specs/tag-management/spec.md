@@ -227,6 +227,32 @@ The system MUST manage many-to-many relationships between items and tags.
 - Allow querying items by tag
 - Allow querying tags for item
 
+### Requirement: Cross-Service Tag Operations
+
+TagService MUST expose methods for other services to manage item-tag associations.
+
+#### Scenario: Set tags for an item
+
+**Given** ItemService needs to associate tags with an item
+
+**When** calling `tagService.setItemTags(itemId, tagIds)`
+
+**Then** TagService should:
+- Replace all existing tag associations for the item
+- Create new associations for provided tagIds
+- Handle atomic update (all or nothing)
+
+#### Scenario: Get tags for an item
+
+**Given** ItemService needs to retrieve tags for an item
+
+**When** calling `tagService.findTagsForItem(itemId)`
+
+**Then** TagService should:
+- Return array of Tag objects associated with the item
+- Return empty array if no tags
+- Not require userId (itemId is sufficient)
+
 #### Scenario: Update item tags removes old associations
 
 **Given** item 123 currently tagged with ["bun", "old-tag"]
@@ -299,14 +325,17 @@ Note: Tag creation happens implicitly through item operations, not via explicit 
 
 ## Testing Requirements
 
-- Test-first for domain model and repository
+- Test-first for domain model, service, and repository
 - Test case-insensitive uniqueness
 - Test color validation (valid/invalid hex)
 - Test auto-creation on item operations
 - Test tag suggestions with various queries
 - Test tag cleanup scenarios
 - Test item-tag association updates
-- Use in-memory SQLite for repository tests
+- Layered test isolation:
+  - Route tests: Mock services using `mock.module()`
+  - Service tests: Mock repositories using `mock.module()`
+  - Repository tests: Use in-memory SQLite for integration tests
 
 ## Implementation Notes
 
@@ -321,23 +350,64 @@ src/server/domain/tag.ts
 src/server/domain/tag.spec.ts
   - Unit tests for Tag domain
 
-src/server/db/repositories/tag-repository.ts
+src/server/repositories/tag.repository.ts
   - TagRepository class
   - CRUD operations
   - Suggestion queries
   - Item count queries
 
-src/server/db/repositories/tag-repository.spec.ts
-  - Integration tests
+src/server/repositories/tag.repository.spec.ts
+  - Integration tests with in-memory SQLite
 
-src/server/api/tags.ts
+src/server/services/tag.service.ts
+  - TagService class
+  - Business logic orchestration
+  - Tag resolution and creation
+  - Delete validation (check tag in use)
+
+src/server/services/tag.service.spec.ts
+  - Unit tests with mocked repository
+
+src/server/routes/tag.routes.ts
   - Elysia route handlers
   - List tags
   - Suggestions
+  - Delete tag
 
-src/server/api/tags.spec.ts
-  - API tests
+src/server/routes/tag.routes.spec.ts
+  - Route tests with mocked service
 ```
+
+### TagService Public Methods (CRUD naming)
+
+TagService instances are created per-session with userId in constructor. Methods no longer require userId parameter for session-scoped operations.
+
+| Method | Description | Used By |
+|--------|-------------|---------|
+| `constructor(userId)` | Create session-scoped TagService with cache | Session module |
+| `resolveOrCreateTags(tagNames)` | Find or create tags by name | ItemService |
+| `setItemTags(itemId, tagIds)` | Set tag associations for item | ItemService |
+| `findTagsForItem(itemId)` | Get tags for an item (uses cache) | ItemService |
+| `listTags(username)` | List all tags for user (public access) | Routes |
+| `getSuggestions(username, prefix)` | Get tag suggestions (public access) | Routes |
+| `deleteTag(tagId)` | Delete unused tag (also removes from cache) | Routes |
+
+### Tag Caching
+
+To avoid N+1 queries when listing items with tags, TagService maintains an in-memory cache per user:
+
+```typescript
+interface UserTagCache {
+  tags: Map<string, Tag>;           // tagId → Tag
+  itemTags: Map<string, string[]>;  // itemId → tagId[]
+}
+```
+
+- Cache is initialized automatically in TagService constructor
+- Session-scoped TagService instances are created on login via `initSession()`
+- `findTagsForItem()` always uses cache (session-scoped)
+- Cache is updated when tags are created, deleted, or item-tag associations change
+- Session is cleared on logout/restart (suitable for single-user home lab)
 
 ### Color Palette (for random selection)
 

@@ -205,25 +205,34 @@ src/server/domain/user.spec.ts
   - Validation tests
   - Business rule tests
 
-src/server/db/repositories/user-repository.ts
+src/server/repositories/user.repository.ts
   - UserRepository class
   - CRUD operations
   - Database queries
   - Depends on User domain model
 
-src/server/db/repositories/user-repository.spec.ts
+src/server/repositories/user.repository.spec.ts
   - Integration tests with in-memory SQLite
   - Test all repository operations
+
+src/server/services/user.service.ts
+  - UserService class
+  - Business logic orchestration
+  - User lookup operations (without exposing password_hash)
+
+src/server/services/user.service.spec.ts
+  - Unit tests with mocked repository
 ```
 
 ## Testing Requirements
 
-- Test-first for domain model and repository
-- Use in-memory SQLite for repository tests
+- Test-first for domain model, service, and repository
+- Layered test isolation:
+  - Service tests: Mock repositories using `mock.module()`
+  - Repository tests: Use in-memory SQLite for integration tests
 - Test all validation scenarios
 - Test case-insensitive username uniqueness
 - Test namespace isolation at data layer
-- No mocking of database - use real SQLite instance
 
 ## Implementation Notes
 
