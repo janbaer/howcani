@@ -81,16 +81,14 @@ export class TagRepository extends BaseRepository<Tag> {
   }
 
   setItemTags(itemId: string, tagIds: string[]): void {
-    db.transaction(() => {
-      db.run(`DELETE FROM item_tags WHERE item_id = ?`, [itemId]);
+    db.run(`DELETE FROM item_tags WHERE item_id = ?`, [itemId]);
 
-      for (const tagId of tagIds) {
-        db.run(
-          `INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)`,
-          [itemId, tagId]
-        );
-      }
-    })();
+    for (const tagId of tagIds) {
+      db.run(
+        `INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)`,
+        [itemId, tagId]
+      );
+    }
   }
 
   getTagsForItem(itemId: string): Tag[] {

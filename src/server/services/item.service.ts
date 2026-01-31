@@ -3,6 +3,7 @@ import type { Tag } from "../domain/tag";
 import type { TagService } from "./tag.service";
 import { userService } from "./user.service";
 import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
+import { runTransaction } from "../db/database";
 
 export interface ItemWithTags extends Item {
   tags: Tag[];
@@ -52,21 +53,22 @@ export class ItemService {
       return createError("VALIDATION_ERROR", validation.errors[0]);
     }
 
-    const item = itemRepository.create({
-      userId: this.userId,
-      question: input.question,
-      answer: input.answer ?? "",
+    const itemWithTags = runTransaction(() => {
+      const item = itemRepository.create({
+        userId: this.userId,
+        question: input.question,
+        answer: input.answer ?? "",
+      });
+
+      if (input.tags && input.tags.length > 0) {
+        const tagIds = this.tagService.resolveOrCreateTags(input.tags);
+        this.tagService.setItemTags(item.id, tagIds);
+      }
+
+      return { ...item, tags: this.tagService.findTagsForItem(item.id) };
     });
 
-    if (input.tags && input.tags.length > 0) {
-      const tagIds = this.tagService.resolveOrCreateTags(input.tags);
-      this.tagService.setItemTags(item.id, tagIds);
-    }
-
-    return {
-      success: true,
-      data: { ...item, tags: this.tagService.findTagsForItem(item.id) },
-    };
+    return { success: true, data: itemWithTags };
   }
 
   updateItem(itemId: string, input: UpdateItemInput): Result<ItemWithTags> {
@@ -80,20 +82,21 @@ export class ItemService {
       return createError("NOT_FOUND", "Item not found");
     }
 
-    const item = itemRepository.update(itemId, {
-      question: input.question,
-      answer: input.answer,
+    const itemWithTags = runTransaction(() => {
+      const item = itemRepository.update(itemId, {
+        question: input.question,
+        answer: input.answer,
+      });
+
+      if (input.tags !== undefined) {
+        const tagIds = this.tagService.resolveOrCreateTags(input.tags);
+        this.tagService.setItemTags(itemId, tagIds);
+      }
+
+      return { ...item!, tags: this.tagService.findTagsForItem(itemId) };
     });
 
-    if (input.tags !== undefined) {
-      const tagIds = this.tagService.resolveOrCreateTags(input.tags);
-      this.tagService.setItemTags(itemId, tagIds);
-    }
-
-    return {
-      success: true,
-      data: { ...item!, tags: this.tagService.findTagsForItem(itemId) },
-    };
+    return { success: true, data: itemWithTags };
   }
 
   deleteItem(itemId: string): Result<{ deleted: true }> {
