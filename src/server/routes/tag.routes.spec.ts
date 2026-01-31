@@ -9,6 +9,7 @@ type TagResult<T> = { success: true; data: T } | { success: false; error: TagErr
 const testUsers = new Map<string, { id: string; username: string }>();
 const testTags = new Map<string, Tag>();
 const tagItemCounts = new Map<string, number>();
+let currentSessionUserId: string | null = null;
 
 function createSuccessResult<T>(data: T): { success: true; data: T } {
   return { success: true, data };
@@ -44,7 +45,8 @@ const mockTagService = {
       .sort();
     return createSuccessResult(suggestions);
   }),
-  deleteTag: mock((tagId: string, userId: string): TagResult<{ deleted: true }> => {
+  deleteTag: mock((tagId: string): TagResult<{ deleted: true }> => {
+    const userId = currentSessionUserId!;
     const tag = testTags.get(tagId);
     if (!tag || tag.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Tag not found");
@@ -62,6 +64,7 @@ const mockAuthService = {
   register: mock(async (input: { username: string; email: string; password: string }) => {
     const userId = crypto.randomUUID();
     testUsers.set(input.username, { id: userId, username: input.username });
+    currentSessionUserId = userId;
     return {
       success: true,
       data: {
@@ -80,6 +83,7 @@ const mockAuthService = {
     const username = token.replace("mock-token-", "");
     const user = testUsers.get(username);
     if (user) {
+      currentSessionUserId = user.id;
       return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
     }
     return null;
@@ -88,6 +92,23 @@ const mockAuthService = {
 
 mock.module("../services/tag.service", () => ({
   tagService: mockTagService,
+}));
+
+mock.module("../services/session", () => ({
+  getSession: mock(() => ({
+    tagService: mockTagService,
+    itemService: {},
+    userId: currentSessionUserId,
+    username: "",
+  })),
+  initSession: mock((userId: string, username: string) => {
+    currentSessionUserId = userId;
+    return { userId, username, tagService: mockTagService, itemService: {} };
+  }),
+  hasSession: mock(() => currentSessionUserId !== null),
+  clearSession: mock(() => {
+    currentSessionUserId = null;
+  }),
 }));
 
 mock.module("../services/auth.service", () => ({
@@ -160,6 +181,7 @@ describe("Tag Routes", () => {
     testUsers.clear();
     testTags.clear();
     tagItemCounts.clear();
+    currentSessionUserId = null;
   });
 
   describe("GET /api/:username/tags - List Tags", () => {

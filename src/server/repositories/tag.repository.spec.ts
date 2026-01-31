@@ -318,4 +318,83 @@ describe("TagRepository Integration Tests", () => {
       expect(tags).toHaveLength(0);
     });
   });
+
+  describe("findAllByUserId", () => {
+    test("returns all tags for a user", () => {
+      tagRepo.create({ userId: testUserId, name: "bun" });
+      tagRepo.create({ userId: testUserId, name: "networking" });
+      tagRepo.create({ userId: testUserId, name: "api" });
+
+      const tags = tagRepo.findAllByUserId(testUserId);
+
+      expect(tags).toHaveLength(3);
+      expect(tags.map((t) => t.name)).toEqual(["api", "bun", "networking"]);
+    });
+
+    test("returns empty array for user with no tags", () => {
+      const tags = tagRepo.findAllByUserId(testUserId);
+
+      expect(tags).toHaveLength(0);
+    });
+
+    test("excludes other users tags", () => {
+      const alice = userRepo.create({
+        username: "alice",
+        email: "alice@example.com",
+        passwordHash: "hashedpassword123",
+      });
+      tagRepo.create({ userId: testUserId, name: "bun" });
+      tagRepo.create({ userId: alice.id, name: "python" });
+
+      const tags = tagRepo.findAllByUserId(testUserId);
+
+      expect(tags).toHaveLength(1);
+      expect(tags[0].name).toBe("bun");
+    });
+  });
+
+  describe("getItemTagsForUser", () => {
+    test("returns all item-tag associations for user", () => {
+      const tag1 = tagRepo.create({ userId: testUserId, name: "bun" });
+      const tag2 = tagRepo.create({ userId: testUserId, name: "networking" });
+      const item1 = itemRepo.create({ userId: testUserId, question: "Q1" });
+      const item2 = itemRepo.create({ userId: testUserId, question: "Q2" });
+      tagRepo.setItemTags(item1.id, [tag1.id, tag2.id]);
+      tagRepo.setItemTags(item2.id, [tag1.id]);
+
+      const associations = tagRepo.getItemTagsForUser(testUserId);
+
+      expect(associations).toHaveLength(3);
+      expect(associations).toContainEqual({ item_id: item1.id, tag_id: tag1.id });
+      expect(associations).toContainEqual({ item_id: item1.id, tag_id: tag2.id });
+      expect(associations).toContainEqual({ item_id: item2.id, tag_id: tag1.id });
+    });
+
+    test("returns empty array for user with no items", () => {
+      tagRepo.create({ userId: testUserId, name: "bun" });
+
+      const associations = tagRepo.getItemTagsForUser(testUserId);
+
+      expect(associations).toHaveLength(0);
+    });
+
+    test("excludes other users item-tag associations", () => {
+      const alice = userRepo.create({
+        username: "alice",
+        email: "alice@example.com",
+        passwordHash: "hashedpassword123",
+      });
+      const tag1 = tagRepo.create({ userId: testUserId, name: "bun" });
+      const tag2 = tagRepo.create({ userId: alice.id, name: "python" });
+      const item1 = itemRepo.create({ userId: testUserId, question: "Q1" });
+      const item2 = itemRepo.create({ userId: alice.id, question: "Q2" });
+      tagRepo.setItemTags(item1.id, [tag1.id]);
+      tagRepo.setItemTags(item2.id, [tag2.id]);
+
+      const associations = tagRepo.getItemTagsForUser(testUserId);
+
+      expect(associations).toHaveLength(1);
+      expect(associations[0]).toEqual({ item_id: item1.id, tag_id: tag1.id });
+    });
+  });
 });

@@ -11,6 +11,7 @@ type DeleteResult = { success: true; data: { deleted: true } } | { success: fals
 const testItems = new Map<string, ItemWithTags>();
 const testUsers = new Map<string, { id: string; username: string }>();
 let nextItemId = 1;
+let currentSessionUserId: string | null = null;
 
 function createSuccessResult<T>(data: T): { success: true; data: T } {
   return { success: true, data };
@@ -20,8 +21,9 @@ function createErrorResult(code: ItemError["code"], message: string): { success:
   return { success: false, error: { code, message } };
 }
 
-const mockItemService = {
-  createItem: mock((userId: string, input: { question: string; answer?: string; tags?: string[] }): ItemResult => {
+const mockSessionItemService = {
+  createItem: mock((input: { question: string; answer?: string; tags?: string[] }): ItemResult => {
+    const userId = currentSessionUserId!;
     if (!input.question || input.question.trim() === "") {
       return createErrorResult("VALIDATION_ERROR", "Question is required");
     }
@@ -43,7 +45,8 @@ const mockItemService = {
     testItems.set(item.id, item);
     return createSuccessResult(item);
   }),
-  updateItem: mock((itemId: string, userId: string, input: { question?: string; answer?: string; tags?: string[] }): ItemResult => {
+  updateItem: mock((itemId: string, input: { question?: string; answer?: string; tags?: string[] }): ItemResult => {
+    const userId = currentSessionUserId!;
     const item = testItems.get(itemId);
     if (!item || item.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Item not found");
@@ -69,7 +72,8 @@ const mockItemService = {
     testItems.set(itemId, updated);
     return createSuccessResult(updated);
   }),
-  deleteItem: mock((itemId: string, userId: string): DeleteResult => {
+  deleteItem: mock((itemId: string): DeleteResult => {
+    const userId = currentSessionUserId!;
     const item = testItems.get(itemId);
     if (!item || item.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Item not found");
@@ -102,10 +106,13 @@ const mockItemService = {
   }),
 };
 
+const mockItemService = mockSessionItemService;
+
 const mockAuthService = {
   register: mock(async (input: { username: string; email: string; password: string }) => {
     const userId = crypto.randomUUID();
     testUsers.set(input.username, { id: userId, username: input.username });
+    currentSessionUserId = userId;
     return {
       success: true,
       data: {
@@ -124,6 +131,7 @@ const mockAuthService = {
     const username = token.replace("mock-token-", "");
     const user = testUsers.get(username);
     if (user) {
+      currentSessionUserId = user.id;
       return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
     }
     return null;
@@ -132,6 +140,23 @@ const mockAuthService = {
 
 mock.module("../services/item.service", () => ({
   itemService: mockItemService,
+}));
+
+mock.module("../services/session", () => ({
+  getSession: mock(() => ({
+    itemService: mockSessionItemService,
+    tagService: {},
+    userId: currentSessionUserId,
+    username: "",
+  })),
+  initSession: mock((userId: string, username: string) => {
+    currentSessionUserId = userId;
+    return { userId, username, itemService: mockSessionItemService, tagService: {} };
+  }),
+  hasSession: mock(() => currentSessionUserId !== null),
+  clearSession: mock(() => {
+    currentSessionUserId = null;
+  }),
 }));
 
 mock.module("../services/auth.service", () => ({
@@ -189,6 +214,7 @@ describe("Item Routes", () => {
     testItems.clear();
     testUsers.clear();
     nextItemId = 1;
+    currentSessionUserId = null;
   });
 
   describe("POST /api/:username/items - Create Item", () => {

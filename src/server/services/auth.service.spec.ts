@@ -3,6 +3,24 @@ import type { User } from "../repositories/user.repository";
 
 const testUsers = new Map<string, User>();
 
+const mockTagRepositoryForAuth = {
+  findAllByUserId: mock(() => []),
+  getItemTagsForUser: mock(() => []),
+  create: mock(() => ({})),
+  findByNameAndUserId: mock(() => null),
+  findByIdAndUserId: mock(() => null),
+  findByUserId: mock(() => []),
+  findSuggestions: mock(() => []),
+  getItemCountForTag: mock(() => 0),
+  delete: mock(() => {}),
+  setItemTags: mock(() => {}),
+  getTagsForItem: mock(() => []),
+};
+
+mock.module("../repositories/tag.repository", () => ({
+  tagRepository: mockTagRepositoryForAuth,
+}));
+
 const mockUserRepository = {
   create: mock((data: { username: string; email: string; passwordHash: string }) => {
     const user: User = {

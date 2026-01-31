@@ -103,6 +103,24 @@ export class TagRepository extends BaseRepository<Tag> {
       )
       .all(itemId);
   }
+
+  findAllByUserId(userId: string): Tag[] {
+    return db
+      .query<Tag, [string]>(
+        `SELECT * FROM tags WHERE user_id = ? ORDER BY name COLLATE NOCASE ASC`
+      )
+      .all(userId);
+  }
+
+  getItemTagsForUser(userId: string): { item_id: string; tag_id: string }[] {
+    return db
+      .query<{ item_id: string; tag_id: string }, [string]>(
+        `SELECT it.item_id, it.tag_id FROM item_tags it
+         INNER JOIN items i ON i.id = it.item_id
+         WHERE i.user_id = ?`
+      )
+      .all(userId);
+  }
 }
 
 export const tagRepository = new TagRepository();

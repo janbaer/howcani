@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { StatusCodes } from "http-status-codes";
 import { authPlugin } from "../middleware";
 import { tagService } from "../services/tag.service";
+import { getSession } from "../services/session";
 
 export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
   .use(authPlugin)
@@ -58,7 +59,8 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
         return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
       }
 
-      const result = tagService.deleteTag(params.id, user.userId);
+      const { tagService: sessionTagService } = getSession();
+      const result = sessionTagService.deleteTag(params.id);
 
       if (!result.success) {
         if (result.error.code === "NOT_FOUND") {

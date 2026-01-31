@@ -380,14 +380,34 @@ src/server/routes/tag.routes.spec.ts
 
 ### TagService Public Methods (CRUD naming)
 
+TagService instances are created per-session with userId in constructor. Methods no longer require userId parameter for session-scoped operations.
+
 | Method | Description | Used By |
 |--------|-------------|---------|
-| `resolveOrCreateTags(userId, tagNames)` | Find or create tags by name | ItemService |
+| `constructor(userId)` | Create session-scoped TagService with cache | Session module |
+| `resolveOrCreateTags(tagNames)` | Find or create tags by name | ItemService |
 | `setItemTags(itemId, tagIds)` | Set tag associations for item | ItemService |
-| `findTagsForItem(itemId)` | Get tags for an item | ItemService |
-| `listTags(username)` | List all tags for user | Routes |
-| `getSuggestions(username, prefix)` | Get tag suggestions | Routes |
-| `deleteTag(tagId, userId)` | Delete unused tag | Routes |
+| `findTagsForItem(itemId)` | Get tags for an item (uses cache) | ItemService |
+| `listTags(username)` | List all tags for user (public access) | Routes |
+| `getSuggestions(username, prefix)` | Get tag suggestions (public access) | Routes |
+| `deleteTag(tagId)` | Delete unused tag (also removes from cache) | Routes |
+
+### Tag Caching
+
+To avoid N+1 queries when listing items with tags, TagService maintains an in-memory cache per user:
+
+```typescript
+interface UserTagCache {
+  tags: Map<string, Tag>;           // tagId → Tag
+  itemTags: Map<string, string[]>;  // itemId → tagId[]
+}
+```
+
+- Cache is initialized automatically in TagService constructor
+- Session-scoped TagService instances are created on login via `initSession()`
+- `findTagsForItem()` always uses cache (session-scoped)
+- Cache is updated when tags are created, deleted, or item-tag associations change
+- Session is cleared on logout/restart (suitable for single-user home lab)
 
 ### Color Palette (for random selection)
 

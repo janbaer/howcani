@@ -1,6 +1,6 @@
 import { itemRepository, type Item } from "../repositories";
 import type { Tag } from "../domain/tag";
-import { tagService } from "./tag.service";
+import type { TagService } from "./tag.service";
 import { userService } from "./user.service";
 import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
 
@@ -38,36 +38,44 @@ function createError(code: ItemError["code"], message: string): { success: false
 }
 
 export class ItemService {
-  createItem(userId: string, input: CreateItemInput): Result<ItemWithTags> {
+  private userId: string;
+  private tagService: TagService;
+
+  constructor(userId: string, tagService: TagService) {
+    this.userId = userId;
+    this.tagService = tagService;
+  }
+
+  createItem(input: CreateItemInput): Result<ItemWithTags> {
     const validation = validateCreateItemData(input);
     if (!validation.valid) {
       return createError("VALIDATION_ERROR", validation.errors[0]);
     }
 
     const item = itemRepository.create({
-      userId,
+      userId: this.userId,
       question: input.question,
       answer: input.answer ?? "",
     });
 
     if (input.tags && input.tags.length > 0) {
-      const tagIds = tagService.resolveOrCreateTags(userId, input.tags);
-      tagService.setItemTags(item.id, tagIds);
+      const tagIds = this.tagService.resolveOrCreateTags(input.tags);
+      this.tagService.setItemTags(item.id, tagIds);
     }
 
     return {
       success: true,
-      data: { ...item, tags: tagService.findTagsForItem(item.id) },
+      data: { ...item, tags: this.tagService.findTagsForItem(item.id) },
     };
   }
 
-  updateItem(itemId: string, userId: string, input: UpdateItemInput): Result<ItemWithTags> {
+  updateItem(itemId: string, input: UpdateItemInput): Result<ItemWithTags> {
     const validation = validateUpdateItemData(input);
     if (!validation.valid) {
       return createError("VALIDATION_ERROR", validation.errors[0]);
     }
 
-    const existingItem = itemRepository.findByIdAndUserId(itemId, userId);
+    const existingItem = itemRepository.findByIdAndUserId(itemId, this.userId);
     if (!existingItem) {
       return createError("NOT_FOUND", "Item not found");
     }
@@ -78,18 +86,18 @@ export class ItemService {
     });
 
     if (input.tags !== undefined) {
-      const tagIds = tagService.resolveOrCreateTags(userId, input.tags);
-      tagService.setItemTags(itemId, tagIds);
+      const tagIds = this.tagService.resolveOrCreateTags(input.tags);
+      this.tagService.setItemTags(itemId, tagIds);
     }
 
     return {
       success: true,
-      data: { ...item!, tags: tagService.findTagsForItem(itemId) },
+      data: { ...item!, tags: this.tagService.findTagsForItem(itemId) },
     };
   }
 
-  deleteItem(itemId: string, userId: string): Result<{ deleted: true }> {
-    const existingItem = itemRepository.findByIdAndUserId(itemId, userId);
+  deleteItem(itemId: string): Result<{ deleted: true }> {
+    const existingItem = itemRepository.findByIdAndUserId(itemId, this.userId);
     if (!existingItem) {
       return createError("NOT_FOUND", "Item not found");
     }
@@ -111,7 +119,7 @@ export class ItemService {
 
     return {
       success: true,
-      data: { ...item, tags: tagService.findTagsForItem(item.id) },
+      data: { ...item, tags: this.tagService.findTagsForItem(item.id) },
     };
   }
 
@@ -129,7 +137,7 @@ export class ItemService {
 
     const itemsWithTags = result.items.map((item) => ({
       ...item,
-      tags: tagService.findTagsForItem(item.id),
+      tags: this.tagService.findTagsForItem(item.id),
     }));
 
     return {
@@ -138,9 +146,11 @@ export class ItemService {
     };
   }
 
-  itemExists(itemId: string, userId: string): boolean {
-    return itemRepository.findByIdAndUserId(itemId, userId) !== null;
+  itemExists(itemId: string): boolean {
+    return itemRepository.findByIdAndUserId(itemId, this.userId) !== null;
   }
 }
 
-export const itemService = new ItemService();
+import { tagService } from "./tag.service";
+
+export const itemService = new ItemService("", tagService);

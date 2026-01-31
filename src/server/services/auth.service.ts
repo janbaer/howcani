@@ -6,6 +6,7 @@ import {
   verifyToken,
   type TokenPayload,
 } from "../auth";
+import { initSession } from "./session";
 
 export interface RegisterInput {
   username: string;
@@ -134,6 +135,8 @@ export class AuthService {
     if (!isValid) {
       return createError("UNAUTHORIZED", "Invalid credentials");
     }
+
+    initSession(user.id, user.username);
 
     return {
       success: true,

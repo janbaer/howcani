@@ -67,6 +67,30 @@ const mockTagRepository = {
   delete: mock((id: string) => {
     testTags.delete(id);
   }),
+  setItemTags: mock((itemId: string, tagIds: string[]) => {
+    itemTagMap.set(itemId, [...tagIds]);
+  }),
+  getTagsForItem: mock((itemId: string) => {
+    const tagIds = itemTagMap.get(itemId) ?? [];
+    return tagIds
+      .map((id) => testTags.get(id))
+      .filter((t): t is Tag => t !== undefined)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }),
+  findAllByUserId: mock((userId: string) => {
+    return Array.from(testTags.values())
+      .filter((t) => t.user_id === userId)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }),
+  getItemTagsForUser: mock(() => {
+    const associations: { item_id: string; tag_id: string }[] = [];
+    for (const [itemId, tagIds] of itemTagMap.entries()) {
+      for (const tagId of tagIds) {
+        associations.push({ item_id: itemId, tag_id: tagId });
+      }
+    }
+    return associations;
+  }),
 };
 
 mock.module("../repositories", () => ({
@@ -89,19 +113,18 @@ function createTestUser(username: string): TestUser {
 }
 
 describe("TagService", () => {
-  let tagService: TagService;
-
   beforeEach(() => {
     testUsers.clear();
     testTags.clear();
     itemTagMap.clear();
-    tagService = new TagService();
   });
 
   describe("resolveOrCreateTags", () => {
     test("creates new tags that don't exist", () => {
       const user = createTestUser("john");
-      const tagIds = tagService.resolveOrCreateTags(user.id, ["bun", "networking"]);
+      const tagService = new TagService(user.id);
+
+      const tagIds = tagService.resolveOrCreateTags(["bun", "networking"]);
 
       expect(tagIds).toHaveLength(2);
       expect(mockTagRepository.findByNameAndUserId("bun", user.id)).not.toBeNull();
@@ -111,8 +134,9 @@ describe("TagService", () => {
     test("reuses existing tags (case-insensitive)", () => {
       const user = createTestUser("john");
       const existing = mockTagRepository.create({ userId: user.id, name: "Bun" });
+      const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(user.id, ["bun"]);
+      const tagIds = tagService.resolveOrCreateTags(["bun"]);
 
       expect(tagIds).toHaveLength(1);
       expect(tagIds[0]).toBe(existing.id);
@@ -121,8 +145,9 @@ describe("TagService", () => {
     test("mixes existing and new tags", () => {
       const user = createTestUser("john");
       const existing = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(user.id, ["bun", "networking"]);
+      const tagIds = tagService.resolveOrCreateTags(["bun", "networking"]);
 
       expect(tagIds).toHaveLength(2);
       expect(tagIds[0]).toBe(existing.id);
@@ -131,7 +156,9 @@ describe("TagService", () => {
 
     test("skips empty and whitespace-only names", () => {
       const user = createTestUser("john");
-      const tagIds = tagService.resolveOrCreateTags(user.id, ["", "  ", "bun"]);
+      const tagService = new TagService(user.id);
+
+      const tagIds = tagService.resolveOrCreateTags(["", "  ", "bun"]);
 
       expect(tagIds).toHaveLength(1);
       expect(mockTagRepository.findByNameAndUserId("bun", user.id)).not.toBeNull();
@@ -139,7 +166,9 @@ describe("TagService", () => {
 
     test("trims whitespace from tag names", () => {
       const user = createTestUser("john");
-      const tagIds = tagService.resolveOrCreateTags(user.id, ["  bun  "]);
+      const tagService = new TagService(user.id);
+
+      const tagIds = tagService.resolveOrCreateTags(["  bun  "]);
 
       expect(tagIds).toHaveLength(1);
       const tag = mockTagRepository.findByNameAndUserId("bun", user.id);
@@ -149,14 +178,18 @@ describe("TagService", () => {
 
     test("returns empty array for empty input", () => {
       const user = createTestUser("john");
-      const tagIds = tagService.resolveOrCreateTags(user.id, []);
+      const tagService = new TagService(user.id);
+
+      const tagIds = tagService.resolveOrCreateTags([]);
 
       expect(tagIds).toEqual([]);
     });
 
     test("assigns colors to newly created tags", () => {
       const user = createTestUser("john");
-      tagService.resolveOrCreateTags(user.id, ["bun"]);
+      const tagService = new TagService(user.id);
+
+      tagService.resolveOrCreateTags(["bun"]);
 
       const tag = mockTagRepository.findByNameAndUserId("bun", user.id);
       expect(tag!.color).toMatch(/^[0-9a-f]{6}$/);
@@ -168,6 +201,7 @@ describe("TagService", () => {
       const user = createTestUser("john");
       mockTagRepository.create({ userId: user.id, name: "bun" });
       mockTagRepository.create({ userId: user.id, name: "networking" });
+      const tagService = new TagService(user.id);
 
       const result = tagService.listTags("john");
 
@@ -178,6 +212,9 @@ describe("TagService", () => {
     });
 
     test("returns error for non-existent user", () => {
+      const user = createTestUser("john");
+      const tagService = new TagService(user.id);
+
       const result = tagService.listTags("nonexistent");
 
       expect(result.success).toBe(false);
@@ -193,6 +230,7 @@ describe("TagService", () => {
       mockTagRepository.create({ userId: user.id, name: "networking" });
       mockTagRepository.create({ userId: user.id, name: "network-config" });
       mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
 
       const result = tagService.getSuggestions("john", "net");
 
@@ -203,6 +241,9 @@ describe("TagService", () => {
     });
 
     test("returns error for non-existent user", () => {
+      const user = createTestUser("john");
+      const tagService = new TagService(user.id);
+
       const result = tagService.getSuggestions("nonexistent", "net");
 
       expect(result.success).toBe(false);
@@ -216,8 +257,9 @@ describe("TagService", () => {
     test("deletes unused tag", () => {
       const user = createTestUser("john");
       const tag = mockTagRepository.create({ userId: user.id, name: "old-tag" });
+      const tagService = new TagService(user.id);
 
-      const result = tagService.deleteTag(tag.id, user.id);
+      const result = tagService.deleteTag(tag.id);
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -228,8 +270,9 @@ describe("TagService", () => {
 
     test("returns error for non-existent tag", () => {
       const user = createTestUser("john");
+      const tagService = new TagService(user.id);
 
-      const result = tagService.deleteTag("nonexistent", user.id);
+      const result = tagService.deleteTag("nonexistent");
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -241,13 +284,87 @@ describe("TagService", () => {
       const user = createTestUser("john");
       const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
       itemTagMap.set("item-1", [tag.id]);
+      const tagService = new TagService(user.id);
 
-      const result = tagService.deleteTag(tag.id, user.id);
+      const result = tagService.deleteTag(tag.id);
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
       expect(result.error.code).toBe("TAG_IN_USE");
+    });
+  });
+
+  describe("cache initialization", () => {
+    test("loads tags and item-tag associations", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      itemTagMap.set("item-1", [tag.id]);
+
+      const tagService = new TagService(user.id);
+
+      const tags = tagService.findTagsForItem("item-1");
+      expect(tags).toHaveLength(1);
+      expect(tags[0].name).toBe("bun");
+    });
+  });
+
+  describe("findTagsForItem with cache", () => {
+    test("uses cache when available", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      itemTagMap.set("item-1", [tag.id]);
+      const tagService = new TagService(user.id);
+
+      mockTagRepository.getTagsForItem.mockClear?.();
+      const tags = tagService.findTagsForItem("item-1");
+
+      expect(tags).toHaveLength(1);
+      expect(tags[0].name).toBe("bun");
+    });
+
+    test("returns empty array for untagged item", () => {
+      const user = createTestUser("john");
+      const tagService = new TagService(user.id);
+
+      const tags = tagService.findTagsForItem("item-1");
+
+      expect(tags).toHaveLength(0);
+    });
+  });
+
+  describe("cache maintenance", () => {
+    test("resolveOrCreateTags adds new tags to cache", () => {
+      const user = createTestUser("john");
+      const tagService = new TagService(user.id);
+
+      tagService.resolveOrCreateTags(["new-tag"]);
+
+      const tag = mockTagRepository.findByNameAndUserId("new-tag", user.id);
+      expect(tag).not.toBeNull();
+    });
+
+    test("setItemTags updates cache", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      tagService.setItemTags("item-1", [tag.id]);
+
+      const tags = tagService.findTagsForItem("item-1");
+      expect(tags).toHaveLength(1);
+      expect(tags[0].id).toBe(tag.id);
+    });
+
+    test("deleteTag removes tag from cache", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      tagService.deleteTag(tag.id);
+
+      const foundTag = mockTagRepository.findByIdAndUserId(tag.id, user.id);
+      expect(foundTag).toBeNull();
     });
   });
 });

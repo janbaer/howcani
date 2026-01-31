@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { StatusCodes } from "http-status-codes";
 import { authPlugin } from "../middleware";
 import { itemService } from "../services/item.service";
+import { getSession } from "../services/session";
 
 export const itemRoutes = new Elysia({ prefix: "/:username/items" })
   .use(authPlugin)
@@ -68,7 +69,8 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
       }
 
-      const result = itemService.createItem(user.userId, {
+      const { itemService: sessionItemService } = getSession();
+      const result = sessionItemService.createItem({
         question: body.question ?? "",
         answer: body.answer,
         tags: body.tags,
@@ -106,7 +108,8 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
       }
 
-      const result = itemService.updateItem(params.id, user.userId, {
+      const { itemService: sessionItemService } = getSession();
+      const result = sessionItemService.updateItem(params.id, {
         question: body.question,
         answer: body.answer,
         tags: body.tags,
@@ -148,7 +151,8 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
       }
 
-      const result = itemService.deleteItem(params.id, user.userId);
+      const { itemService: sessionItemService } = getSession();
+      const result = sessionItemService.deleteItem(params.id);
 
       if (!result.success) {
         set.status = StatusCodes.NOT_FOUND;

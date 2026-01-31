@@ -59,59 +59,65 @@ const mockItemRepository = {
   }),
 };
 
-const mockTagService = {
-  findTagsForItem: mock((itemId: string) => {
-    const tagIds = itemTagMap.get(itemId) ?? [];
-    return tagIds.map((id) => testTags.get(id)).filter(Boolean) as Tag[];
-  }),
-  setItemTags: mock((itemId: string, tagIds: string[]) => {
-    itemTagMap.set(itemId, tagIds);
-  }),
-  resolveOrCreateTags: mock((userId: string, tagNames: string[]) => {
-    const tagIds: string[] = [];
-    for (const name of tagNames) {
-      const trimmed = name.trim();
-      if (trimmed === "") continue;
-
-      let existingTag: Tag | undefined;
-      for (const tag of testTags.values()) {
-        if (tag.name.toLowerCase() === trimmed.toLowerCase() && tag.user_id === userId) {
-          existingTag = tag;
-          break;
-        }
-      }
-
-      if (existingTag) {
-        tagIds.push(existingTag.id);
-      } else {
-        const newTag: Tag = {
-          id: crypto.randomUUID(),
-          user_id: userId,
-          name: trimmed,
-          color: "0e8a16",
-          created_at: new Date().toISOString(),
-        };
-        testTags.set(newTag.id, newTag);
-        tagIds.push(newTag.id);
-      }
-    }
-    return tagIds;
-  }),
-};
-
 mock.module("../repositories", () => ({
   itemRepository: mockItemRepository,
-}));
-
-mock.module("./tag.service", () => ({
-  tagService: mockTagService,
 }));
 
 mock.module("./user.service", () => ({
   userService: mockUserService,
 }));
 
+mock.module("./tag.service", () => ({
+  TagService: class MockTagService {},
+  tagService: {},
+}));
+
 import { ItemService } from "./item.service";
+import type { TagService } from "./tag.service";
+
+type MockTagService = Pick<TagService, "findTagsForItem" | "setItemTags" | "resolveOrCreateTags">;
+
+function createMockTagService(userId: string): MockTagService {
+  return {
+    findTagsForItem: (itemId: string) => {
+      const tagIds = itemTagMap.get(itemId) ?? [];
+      return tagIds.map((id) => testTags.get(id)).filter(Boolean) as Tag[];
+    },
+    setItemTags: (itemId: string, tagIds: string[]) => {
+      itemTagMap.set(itemId, tagIds);
+    },
+    resolveOrCreateTags: (tagNames: string[]) => {
+      const tagIds: string[] = [];
+      for (const name of tagNames) {
+        const trimmed = name.trim();
+        if (trimmed === "") continue;
+
+        let existingTag: Tag | undefined;
+        for (const tag of testTags.values()) {
+          if (tag.name.toLowerCase() === trimmed.toLowerCase() && tag.user_id === userId) {
+            existingTag = tag;
+            break;
+          }
+        }
+
+        if (existingTag) {
+          tagIds.push(existingTag.id);
+        } else {
+          const newTag: Tag = {
+            id: crypto.randomUUID(),
+            user_id: userId,
+            name: trimmed,
+            color: "0e8a16",
+            created_at: new Date().toISOString(),
+          };
+          testTags.set(newTag.id, newTag);
+          tagIds.push(newTag.id);
+        }
+      }
+      return tagIds;
+    },
+  };
+}
 
 function createTestUser(username: string): TestUser {
   const user: TestUser = {
@@ -123,21 +129,20 @@ function createTestUser(username: string): TestUser {
 }
 
 describe("ItemService", () => {
-  let itemService: ItemService;
-
   beforeEach(() => {
     testUsers.clear();
     testItems.clear();
     testTags.clear();
     itemTagMap.clear();
-    itemService = new ItemService();
   });
 
   describe("createItem", () => {
     test("creates item with question and answer", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      const result = itemService.createItem(user.id, {
+      const result = itemService.createItem({
         question: "How to deploy?",
         answer: "Use bun build",
       });
@@ -153,8 +158,10 @@ describe("ItemService", () => {
 
     test("creates item with tags", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      const result = itemService.createItem(user.id, {
+      const result = itemService.createItem({
         question: "How to deploy?",
         tags: ["bun", "deployment"],
       });
@@ -169,8 +176,10 @@ describe("ItemService", () => {
 
     test("returns validation error when question is missing", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      const result = itemService.createItem(user.id, {
+      const result = itemService.createItem({
         question: "",
       });
 
@@ -185,10 +194,13 @@ describe("ItemService", () => {
   describe("updateItem", () => {
     test("updates item question and answer", () => {
       const user = createTestUser("john");
-      const createResult = itemService.createItem(user.id, { question: "Original" });
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const createResult = itemService.createItem({ question: "Original" });
       if (!createResult.success) throw new Error("Failed to create item");
 
-      const result = itemService.updateItem(createResult.data.id, user.id, {
+      const result = itemService.updateItem(createResult.data.id, {
         question: "Updated",
         answer: "New answer",
       });
@@ -202,13 +214,16 @@ describe("ItemService", () => {
 
     test("updates item tags", () => {
       const user = createTestUser("john");
-      const createResult = itemService.createItem(user.id, {
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const createResult = itemService.createItem({
         question: "Test",
         tags: ["old-tag"],
       });
       if (!createResult.success) throw new Error("Failed to create item");
 
-      const result = itemService.updateItem(createResult.data.id, user.id, {
+      const result = itemService.updateItem(createResult.data.id, {
         tags: ["new-tag"],
       });
 
@@ -221,8 +236,10 @@ describe("ItemService", () => {
 
     test("returns not found error for non-existent item", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      const result = itemService.updateItem("nonexistent-id", user.id, {
+      const result = itemService.updateItem("nonexistent-id", {
         question: "Updated",
       });
 
@@ -234,10 +251,13 @@ describe("ItemService", () => {
 
     test("returns validation error for empty question", () => {
       const user = createTestUser("john");
-      const createResult = itemService.createItem(user.id, { question: "Original" });
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const createResult = itemService.createItem({ question: "Original" });
       if (!createResult.success) throw new Error("Failed to create item");
 
-      const result = itemService.updateItem(createResult.data.id, user.id, {
+      const result = itemService.updateItem(createResult.data.id, {
         question: "",
       });
 
@@ -251,10 +271,13 @@ describe("ItemService", () => {
   describe("deleteItem", () => {
     test("deletes existing item", () => {
       const user = createTestUser("john");
-      const createResult = itemService.createItem(user.id, { question: "To delete" });
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const createResult = itemService.createItem({ question: "To delete" });
       if (!createResult.success) throw new Error("Failed to create item");
 
-      const result = itemService.deleteItem(createResult.data.id, user.id);
+      const result = itemService.deleteItem(createResult.data.id);
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -264,8 +287,10 @@ describe("ItemService", () => {
 
     test("returns not found error for non-existent item", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      const result = itemService.deleteItem("nonexistent-id", user.id);
+      const result = itemService.deleteItem("nonexistent-id");
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -277,7 +302,10 @@ describe("ItemService", () => {
   describe("getItem", () => {
     test("returns item with tags", () => {
       const user = createTestUser("john");
-      const createResult = itemService.createItem(user.id, {
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const createResult = itemService.createItem({
         question: "Test question",
         tags: ["bun"],
       });
@@ -293,6 +321,10 @@ describe("ItemService", () => {
     });
 
     test("returns user not found error for non-existent user", () => {
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
       const result = itemService.getItem("some-item-id", "nonexistent");
 
       expect(result.success).toBe(false);
@@ -302,7 +334,9 @@ describe("ItemService", () => {
     });
 
     test("returns not found error for non-existent item", () => {
-      createTestUser("john");
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
       const result = itemService.getItem("nonexistent-id", "john");
 
@@ -316,8 +350,11 @@ describe("ItemService", () => {
   describe("listItems", () => {
     test("returns paginated items with tags", () => {
       const user = createTestUser("john");
-      itemService.createItem(user.id, { question: "Q1", tags: ["bun"] });
-      itemService.createItem(user.id, { question: "Q2" });
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      itemService.createItem({ question: "Q1", tags: ["bun"] });
+      itemService.createItem({ question: "Q2" });
 
       const result = itemService.listItems("john");
 
@@ -329,6 +366,10 @@ describe("ItemService", () => {
     });
 
     test("returns user not found error for non-existent user", () => {
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
       const result = itemService.listItems("nonexistent");
 
       expect(result.success).toBe(false);
@@ -339,8 +380,11 @@ describe("ItemService", () => {
 
     test("respects pagination options", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
       for (let i = 1; i <= 5; i++) {
-        itemService.createItem(user.id, { question: `Q${i}` });
+        itemService.createItem({ question: `Q${i}` });
       }
 
       const result = itemService.listItems("john", { limit: 2, offset: 1 });
@@ -356,16 +400,21 @@ describe("ItemService", () => {
   describe("itemExists", () => {
     test("returns true when item exists", () => {
       const user = createTestUser("john");
-      const createResult = itemService.createItem(user.id, { question: "Test" });
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const createResult = itemService.createItem({ question: "Test" });
       if (!createResult.success) throw new Error("Failed to create item");
 
-      expect(itemService.itemExists(createResult.data.id, user.id)).toBe(true);
+      expect(itemService.itemExists(createResult.data.id)).toBe(true);
     });
 
     test("returns false when item does not exist", () => {
       const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      expect(itemService.itemExists("nonexistent-id", user.id)).toBe(false);
+      expect(itemService.itemExists("nonexistent-id")).toBe(false);
     });
   });
 });
