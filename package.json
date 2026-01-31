@@ -9,8 +9,8 @@
     "start": "NODE_ENV=production bun run src/server/index.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "lint": "eslint . --ext .ts,.js,.svelte",
-    "format": "prettier --write .",
+    "lint": "bunx @biomejs/biome check",
+    "lint:fix": "bunx @biomejs/biome check --fix",
     "db:migrate": "bun run src/server/db/migrate.ts"
   },
   "devDependencies": {
@@ -18,11 +18,7 @@
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "bun-plugin-svelte": "0.0.6",
-    "eslint": "^9.18.0",
-    "eslint-plugin-svelte": "^3.0.2",
     "globals": "^16.5.0",
-    "prettier": "^3.4.2",
-    "prettier-plugin-svelte": "^3.3.3",
     "svelte": "^5.45.6",
     "svelte-check": "^4.3.4",
     "typescript": "^5.9.3",
