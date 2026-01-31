@@ -1,5 +1,5 @@
-import { tagRepository } from "../repositories";
 import { randomColor, type Tag, type TagWithCount } from "../domain/tag";
+import { tagRepository } from "../repositories";
 import { userService } from "./user.service";
 
 export type TagError =
@@ -41,7 +41,7 @@ export class TagService {
 
     for (const { item_id, tag_id } of itemTags) {
       if (!itemTagMap.has(item_id)) itemTagMap.set(item_id, []);
-      itemTagMap.get(item_id)!.push(tag_id);
+      itemTagMap.get(item_id)?.push(tag_id);
     }
 
     this.cache = { tags: tagMap, itemTags: itemTagMap };
@@ -84,7 +84,7 @@ export class TagService {
     if (this.cache) {
       const tagIds = this.cache.itemTags.get(itemId) ?? [];
       return tagIds
-        .map((id) => this.cache!.tags.get(id))
+        .map((id) => this.cache?.tags.get(id))
         .filter((t): t is Tag => t !== undefined)
         .sort((a, b) => a.name.localeCompare(b.name));
     }

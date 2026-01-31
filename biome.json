@@ -7,12 +7,22 @@
   },
   "formatter": {
     "enabled": true,
-    "useEditorconfig": true
+    "useEditorconfig": true,
+    "lineWidth": 120
   },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on"
+        }
+      }
     }
   },
   "files": {

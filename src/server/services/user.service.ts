@@ -1,4 +1,4 @@
-import { userRepository, type User } from "../repositories";
+import { type User, userRepository } from "../repositories";
 
 export type SafeUser = Omit<User, "password_hash">;
 

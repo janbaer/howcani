@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
-import { existsSync, mkdirSync } from "fs";
-import { dirname } from "path";
+import { existsSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 const NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -10,7 +10,6 @@ function getDatabasePath(): string {
       return "./data/howcani.test.db";
     case "production":
       return process.env.DATABASE_URL || "./data/howcani.db";
-    case "development":
     default:
       return "./data/howcani.db";
   }

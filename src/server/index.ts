@@ -1,12 +1,7 @@
 import { Elysia } from "elysia";
-import { runMigrations } from "./db";
-import {
-  authRoutes,
-  userRoutes,
-  itemRoutes,
-  tagRoutes,
-} from "./routes";
 import index from "../index.html";
+import { runMigrations } from "./db";
+import { authRoutes, itemRoutes, tagRoutes, userRoutes } from "./routes";
 
 runMigrations();
 
@@ -19,7 +14,7 @@ const api = new Elysia().group("/api", (app) =>
     .get("/health", () => ({
       status: "ok",
       timestamp: new Date().toISOString(),
-    }))
+    })),
 );
 
 const isDev = process.env.NODE_ENV !== "production";

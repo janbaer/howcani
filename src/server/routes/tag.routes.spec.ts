@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { Elysia } from "elysia";
 import { StatusCodes } from "http-status-codes";
-import type { TagWithCount, Tag } from "../domain/tag";
+import type { Tag, TagWithCount } from "../domain/tag";
 import type { TagError } from "../services/tag.service";
 
 type TagResult<T> = { success: true; data: T } | { success: false; error: TagError };
@@ -46,7 +46,10 @@ const mockTagService = {
     return createSuccessResult(suggestions);
   }),
   deleteTag: mock((tagId: string): TagResult<{ deleted: true }> => {
-    const userId = currentSessionUserId!;
+    if (!currentSessionUserId) {
+      throw new Error("No session user ID set");
+    }
+    const userId = currentSessionUserId;
     const tag = testTags.get(tagId);
     if (!tag || tag.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Tag not found");
@@ -84,7 +87,11 @@ const mockAuthService = {
     const user = testUsers.get(username);
     if (user) {
       currentSessionUserId = user.id;
-      return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
+      return {
+        userId: user.id,
+        username: user.username,
+        email: `${user.username}@example.com`,
+      };
     }
     return null;
   }),
@@ -124,24 +131,23 @@ mock.module("../auth", () => ({
     const username = token.replace("mock-token-", "");
     const user = testUsers.get(username);
     if (user) {
-      return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
+      return {
+        userId: user.id,
+        username: user.username,
+        email: `${user.username}@example.com`,
+      };
     }
     return null;
   },
 }));
 
-import { tagRoutes } from "./tag.routes";
-import { authRoutes } from "./auth.routes";
 import { authPlugin } from "../middleware";
+import { authRoutes } from "./auth.routes";
+import { tagRoutes } from "./tag.routes";
 
-const app = new Elysia()
-  .use(authPlugin)
-  .group("/api", (app) => app.use(authRoutes).use(tagRoutes));
+const app = new Elysia().use(authPlugin).group("/api", (app) => app.use(authRoutes).use(tagRoutes));
 
-async function registerAndLogin(
-  username: string,
-  email: string
-): Promise<{ token: string; userId: string }> {
+async function registerAndLogin(username: string, email: string): Promise<{ token: string; userId: string }> {
   const registerRes = await app.handle(
     new Request("http://localhost/api/auth/register", {
       method: "POST",
@@ -151,7 +157,7 @@ async function registerAndLogin(
         email,
         password: "secure123",
       }),
-    })
+    }),
   );
   const registerData = await registerRes.json();
   return { token: registerData.token, userId: registerData.user.id };
@@ -189,9 +195,7 @@ describe("Tag Routes", () => {
       const { userId } = await registerAndLogin("john", "john@example.com");
       createTag(userId, "bun", 1);
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -204,9 +208,7 @@ describe("Tag Routes", () => {
       const { userId } = await registerAndLogin("john", "john@example.com");
       createTag(userId, "bun");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -214,9 +216,7 @@ describe("Tag Routes", () => {
     });
 
     test("returns 404 for non-existent user", async () => {
-      const res = await app.handle(
-        new Request("http://localhost/api/nobody/tags")
-      );
+      const res = await app.handle(new Request("http://localhost/api/nobody/tags"));
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
     });
@@ -227,9 +227,7 @@ describe("Tag Routes", () => {
       createTag(john.userId, "bun");
       createTag(alice.userId, "python");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags"));
 
       const data = await res.json();
       expect(data.tags).toHaveLength(1);
@@ -242,9 +240,7 @@ describe("Tag Routes", () => {
       createTag(userId, "bun");
       createTag(userId, "networking");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags"));
 
       const data = await res.json();
       expect(data.tags.map((t: { name: string }) => t.name)).toEqual(["bun", "networking", "zsh"]);
@@ -258,9 +254,7 @@ describe("Tag Routes", () => {
       createTag(userId, "network-config");
       createTag(userId, "bun");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags/suggestions?q=net")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags/suggestions?q=net"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -271,9 +265,7 @@ describe("Tag Routes", () => {
       const { userId } = await registerAndLogin("john", "john@example.com");
       createTag(userId, "bun");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags/suggestions?q=xyz")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags/suggestions?q=xyz"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -281,9 +273,7 @@ describe("Tag Routes", () => {
     });
 
     test("returns 404 for non-existent user", async () => {
-      const res = await app.handle(
-        new Request("http://localhost/api/nobody/tags/suggestions?q=test")
-      );
+      const res = await app.handle(new Request("http://localhost/api/nobody/tags/suggestions?q=test"));
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
     });
@@ -292,9 +282,7 @@ describe("Tag Routes", () => {
       const { userId } = await registerAndLogin("john", "john@example.com");
       createTag(userId, "bun");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/tags/suggestions?q=b")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/tags/suggestions?q=b"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -311,7 +299,7 @@ describe("Tag Routes", () => {
         new Request(`http://localhost/api/john/tags/${tag.id}`, {
           method: "DELETE",
           headers: authHeader(token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.OK);
@@ -326,7 +314,7 @@ describe("Tag Routes", () => {
       const res = await app.handle(
         new Request(`http://localhost/api/john/tags/${tag.id}`, {
           method: "DELETE",
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -341,7 +329,7 @@ describe("Tag Routes", () => {
         new Request(`http://localhost/api/john/tags/${tag.id}`, {
           method: "DELETE",
           headers: authHeader(alice.token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN);
@@ -355,7 +343,7 @@ describe("Tag Routes", () => {
         new Request(`http://localhost/api/john/tags/${tag.id}`, {
           method: "DELETE",
           headers: authHeader(token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.CONFLICT);
@@ -370,7 +358,7 @@ describe("Tag Routes", () => {
         new Request("http://localhost/api/john/tags/nonexistent", {
           method: "DELETE",
           headers: authHeader(token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);

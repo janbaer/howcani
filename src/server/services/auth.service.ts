@@ -1,11 +1,5 @@
-import { userRepository, type User } from "../repositories";
-import {
-  hashPassword,
-  verifyPassword,
-  createToken,
-  verifyToken,
-  type TokenPayload,
-} from "../auth";
+import { createToken, hashPassword, type TokenPayload, verifyPassword, verifyToken } from "../auth";
+import { type User, userRepository } from "../repositories";
 import { initSession } from "./session";
 
 export interface RegisterInput {
@@ -43,11 +37,17 @@ function createError(code: string, message: string): { success: false; error: Au
 
 function validateUsername(username: string): AuthError | null {
   if (!username || username.length < 3 || username.length > 30) {
-    return { code: "VALIDATION_ERROR", message: "Username must be 3-30 characters" };
+    return {
+      code: "VALIDATION_ERROR",
+      message: "Username must be 3-30 characters",
+    };
   }
 
   if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-    return { code: "VALIDATION_ERROR", message: "Username can only contain letters, numbers, hyphens, and underscores" };
+    return {
+      code: "VALIDATION_ERROR",
+      message: "Username can only contain letters, numbers, hyphens, and underscores",
+    };
   }
 
   return null;
@@ -55,7 +55,10 @@ function validateUsername(username: string): AuthError | null {
 
 function validatePassword(password: string): AuthError | null {
   if (!password || password.length < 8) {
-    return { code: "VALIDATION_ERROR", message: "Password must be at least 8 characters" };
+    return {
+      code: "VALIDATION_ERROR",
+      message: "Password must be at least 8 characters",
+    };
   }
   return null;
 }

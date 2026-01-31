@@ -1,2 +1,2 @@
-export { db, setDatabase, closeDatabase } from "./database";
-export { runMigrations, getCurrentVersion } from "./migrations";
+export { closeDatabase, db, setDatabase } from "./database";
+export { getCurrentVersion, runMigrations } from "./migrations";

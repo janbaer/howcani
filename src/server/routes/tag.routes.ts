@@ -1,8 +1,8 @@
 import { Elysia, t } from "elysia";
 import { StatusCodes } from "http-status-codes";
 import { authPlugin } from "../middleware";
-import { tagService } from "../services/tag.service";
 import { getSession } from "../services/session";
+import { tagService } from "../services/tag.service";
 
 export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
   .use(authPlugin)
@@ -22,7 +22,7 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
       params: t.Object({
         username: t.String(),
       }),
-    }
+    },
   )
   .get(
     "/suggestions",
@@ -44,19 +44,26 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
       query: t.Object({
         q: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .delete(
     "/:id",
     ({ params, user, set }) => {
       if (!user) {
         set.status = StatusCodes.UNAUTHORIZED;
-        return { error: { message: "Authentication required", code: "UNAUTHORIZED" } };
+        return {
+          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+        };
       }
 
       if (user.username !== params.username) {
         set.status = StatusCodes.FORBIDDEN;
-        return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
+        return {
+          error: {
+            message: "Not authorized to modify this user's content",
+            code: "FORBIDDEN",
+          },
+        };
       }
 
       const { tagService: sessionTagService } = getSession();
@@ -65,14 +72,18 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
       if (!result.success) {
         if (result.error.code === "NOT_FOUND") {
           set.status = StatusCodes.NOT_FOUND;
-          return { error: { message: result.error.message, code: "NOT_FOUND" } };
+          return {
+            error: { message: result.error.message, code: "NOT_FOUND" },
+          };
         }
         if (result.error.code === "TAG_IN_USE") {
           set.status = StatusCodes.CONFLICT;
           return { error: { message: result.error.message, code: "CONFLICT" } };
         }
         set.status = StatusCodes.INTERNAL_SERVER_ERROR;
-        return { error: { message: result.error.message, code: result.error.code } };
+        return {
+          error: { message: result.error.message, code: result.error.code },
+        };
       }
 
       return { success: true };
@@ -82,5 +93,5 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
         username: t.String(),
         id: t.String(),
       }),
-    }
+    },
   );

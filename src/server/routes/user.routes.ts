@@ -1,8 +1,8 @@
 import { Elysia, t } from "elysia";
 import { StatusCodes } from "http-status-codes";
-import { userRepository } from "../repositories";
+import { validateEmail, validateUsername } from "../domain/user";
 import { authPlugin } from "../middleware";
-import { validateUsername, validateEmail } from "../domain/user";
+import { userRepository } from "../repositories";
 
 export const userRoutes = new Elysia({ prefix: "/users" })
   .use(authPlugin)
@@ -12,25 +12,34 @@ export const userRoutes = new Elysia({ prefix: "/users" })
       const user = userRepository.findById(params.id);
 
       if (!user) {
-        return status(StatusCodes.NOT_FOUND, { error: "USER_NOT_FOUND", message: "User not found" });
+        return status(StatusCodes.NOT_FOUND, {
+          error: "USER_NOT_FOUND",
+          message: "User not found",
+        });
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash: _, ...safeUser } = user;
       return safeUser;
     },
-    { auth: true }
+    { auth: true },
   )
   .put(
     "/:id",
     ({ params, body, user, status }) => {
-      if (user!.userId !== params.id) {
-        return status(StatusCodes.FORBIDDEN, { error: "FORBIDDEN", message: "You can only update your own profile" });
+      if (user?.userId !== params.id) {
+        return status(StatusCodes.FORBIDDEN, {
+          error: "FORBIDDEN",
+          message: "You can only update your own profile",
+        });
       }
 
       const existingUser = userRepository.findById(params.id);
       if (!existingUser) {
-        return status(StatusCodes.NOT_FOUND, { error: "USER_NOT_FOUND", message: "User not found" });
+        return status(StatusCodes.NOT_FOUND, {
+          error: "USER_NOT_FOUND",
+          message: "User not found",
+        });
       }
 
       if (body.username) {
@@ -43,7 +52,10 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         }
 
         if (body.username !== existingUser.username && userRepository.usernameExists(body.username)) {
-          return status(StatusCodes.BAD_REQUEST, { error: "USERNAME_TAKEN", message: "Username is already taken" });
+          return status(StatusCodes.BAD_REQUEST, {
+            error: "USERNAME_TAKEN",
+            message: "Username is already taken",
+          });
         }
       }
 
@@ -57,13 +69,19 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         }
 
         if (body.email !== existingUser.email && userRepository.emailExists(body.email)) {
-          return status(StatusCodes.BAD_REQUEST, { error: "EMAIL_TAKEN", message: "Email is already registered" });
+          return status(StatusCodes.BAD_REQUEST, {
+            error: "EMAIL_TAKEN",
+            message: "Email is already registered",
+          });
         }
       }
 
       const updated = userRepository.update(params.id, body);
       if (!updated) {
-        return status(StatusCodes.INTERNAL_SERVER_ERROR, { error: "UPDATE_FAILED", message: "Failed to update user" });
+        return status(StatusCodes.INTERNAL_SERVER_ERROR, {
+          error: "UPDATE_FAILED",
+          message: "Failed to update user",
+        });
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -76,21 +94,27 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         username: t.Optional(t.String({ minLength: 3, maxLength: 30 })),
         email: t.Optional(t.String({ format: "email" })),
       }),
-    }
+    },
   )
   .delete(
     "/:id",
     ({ params, user, status }) => {
-      if (user!.userId !== params.id) {
-        return status(StatusCodes.FORBIDDEN, { error: "FORBIDDEN", message: "You can only delete your own account" });
+      if (user?.userId !== params.id) {
+        return status(StatusCodes.FORBIDDEN, {
+          error: "FORBIDDEN",
+          message: "You can only delete your own account",
+        });
       }
 
       const deleted = userRepository.delete(params.id);
       if (!deleted) {
-        return status(StatusCodes.NOT_FOUND, { error: "USER_NOT_FOUND", message: "User not found" });
+        return status(StatusCodes.NOT_FOUND, {
+          error: "USER_NOT_FOUND",
+          message: "User not found",
+        });
       }
 
       return { success: true };
     },
-    { auth: true }
+    { auth: true },
   );

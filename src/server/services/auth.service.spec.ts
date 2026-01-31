@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { User } from "../repositories/user.repository";
 
 const testUsers = new Map<string, User>();

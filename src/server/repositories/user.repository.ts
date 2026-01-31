@@ -33,10 +33,14 @@ export class UserRepository extends BaseRepository<User> {
     db.run(
       `INSERT INTO users (id, username, email, password_hash, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, data.username, data.email, data.passwordHash, now, now]
+      [id, data.username, data.email, data.passwordHash, now, now],
     );
 
-    return this.findById(id)!;
+    const created = this.findById(id);
+    if (!created) {
+      throw new Error("Failed to retrieve created user");
+    }
+    return created;
   }
 
   update(id: string, data: UpdateUserDTO): User | null {

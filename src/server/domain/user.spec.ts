@@ -1,10 +1,5 @@
-import { describe, test, expect } from "bun:test";
-import {
-  validateUsername,
-  validateEmail,
-  validatePassword,
-  validateCreateUserData,
-} from "./user";
+import { describe, expect, test } from "bun:test";
+import { validateCreateUserData, validateEmail, validatePassword, validateUsername } from "./user";
 
 describe("User Domain Validation", () => {
   describe("validateUsername", () => {
@@ -50,33 +45,25 @@ describe("User Domain Validation", () => {
       test("rejects username with @ symbol", () => {
         const result = validateUsername("john@doe");
         expect(result.valid).toBe(false);
-        expect(result.errors).toContain(
-          "Username can only contain letters, numbers, hyphens, and underscores"
-        );
+        expect(result.errors).toContain("Username can only contain letters, numbers, hyphens, and underscores");
       });
 
       test("rejects username with period", () => {
         const result = validateUsername("john.smith");
         expect(result.valid).toBe(false);
-        expect(result.errors).toContain(
-          "Username can only contain letters, numbers, hyphens, and underscores"
-        );
+        expect(result.errors).toContain("Username can only contain letters, numbers, hyphens, and underscores");
       });
 
       test("rejects username with space", () => {
         const result = validateUsername("john doe");
         expect(result.valid).toBe(false);
-        expect(result.errors).toContain(
-          "Username can only contain letters, numbers, hyphens, and underscores"
-        );
+        expect(result.errors).toContain("Username can only contain letters, numbers, hyphens, and underscores");
       });
 
       test("rejects username with slash", () => {
         const result = validateUsername("john/smith");
         expect(result.valid).toBe(false);
-        expect(result.errors).toContain(
-          "Username can only contain letters, numbers, hyphens, and underscores"
-        );
+        expect(result.errors).toContain("Username can only contain letters, numbers, hyphens, and underscores");
       });
     });
 

@@ -1,1 +1,5 @@
-export { authPlugin, assertAuthenticated, type AuthPlugin } from "./auth.middleware";
+export {
+  type AuthPlugin,
+  assertAuthenticated,
+  authPlugin,
+} from "./auth.middleware";

@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { setupTestDatabase } from "../db/test-helpers";
-import { ItemRepository, type CreateItemDTO } from "./item.repository";
+import { type CreateItemDTO, ItemRepository } from "./item.repository";
 import { UserRepository } from "./user.repository";
 
 describe("ItemRepository Integration Tests", () => {

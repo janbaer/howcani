@@ -1,7 +1,13 @@
 export { BaseRepository } from "./base.repository";
-export { UserRepository, userRepository } from "./user.repository";
-export type { User, CreateUserDTO, UpdateUserDTO } from "./user.repository";
-export { TagRepository, tagRepository } from "./tag.repository";
-export type { Tag, TagWithCount, CreateTagDTO } from "./tag.repository";
+export type {
+  CreateItemDTO,
+  Item,
+  PaginatedResult,
+  PaginationOptions,
+  UpdateItemDTO,
+} from "./item.repository";
 export { ItemRepository, itemRepository } from "./item.repository";
-export type { Item, CreateItemDTO, UpdateItemDTO, PaginationOptions, PaginatedResult } from "./item.repository";
+export type { CreateTagDTO, Tag, TagWithCount } from "./tag.repository";
+export { TagRepository, tagRepository } from "./tag.repository";
+export type { CreateUserDTO, UpdateUserDTO, User } from "./user.repository";
+export { UserRepository, userRepository } from "./user.repository";

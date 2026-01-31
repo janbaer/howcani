@@ -1,6 +1,6 @@
 import { db } from "../db/database";
-import { BaseRepository } from "./base.repository";
 import type { Item } from "../domain/item";
+import { BaseRepository } from "./base.repository";
 
 export type { Item };
 
@@ -37,24 +37,21 @@ export class ItemRepository extends BaseRepository<Item> {
     db.run(
       `INSERT INTO items (id, user_id, question, answer, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, data.userId, data.question, data.answer ?? "", now, now]
+      [id, data.userId, data.question, data.answer ?? "", now, now],
     );
 
-    return this.findById(id)!;
+    const created = this.findById(id);
+    if (!created) {
+      throw new Error("Failed to retrieve created item");
+    }
+    return created;
   }
 
   findByIdAndUserId(id: string, userId: string): Item | null {
-    return db
-      .query<Item, [string, string]>(
-        `SELECT * FROM items WHERE id = ? AND user_id = ?`
-      )
-      .get(id, userId);
+    return db.query<Item, [string, string]>(`SELECT * FROM items WHERE id = ? AND user_id = ?`).get(id, userId);
   }
 
-  findByUserId(
-    userId: string,
-    options: PaginationOptions = {}
-  ): PaginatedResult<Item> {
+  findByUserId(userId: string, options: PaginationOptions = {}): PaginatedResult<Item> {
     const { limit = 50, offset = 0 } = options;
 
     const total = this.countByUserId(userId);
@@ -64,7 +61,7 @@ export class ItemRepository extends BaseRepository<Item> {
         `SELECT * FROM items
          WHERE user_id = ?
          ORDER BY created_at DESC
-         LIMIT ? OFFSET ?`
+         LIMIT ? OFFSET ?`,
       )
       .all(userId, limit, offset);
 
@@ -100,9 +97,7 @@ export class ItemRepository extends BaseRepository<Item> {
 
   countByUserId(userId: string): number {
     const result = db
-      .query<{ count: number }, [string]>(
-        `SELECT COUNT(*) as count FROM items WHERE user_id = ?`
-      )
+      .query<{ count: number }, [string]>(`SELECT COUNT(*) as count FROM items WHERE user_id = ?`)
       .get(userId);
     return result?.count ?? 0;
   }

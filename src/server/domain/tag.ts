@@ -21,16 +21,7 @@ export interface CreateTagData {
 
 const COLOR_REGEX = /^[0-9a-fA-F]{6}$/;
 
-const DEFAULT_COLORS = [
-  "0e8a16",
-  "ff5722",
-  "2196f3",
-  "9c27b0",
-  "f44336",
-  "009688",
-  "ff9800",
-  "607d8b",
-];
+const DEFAULT_COLORS = ["0e8a16", "ff5722", "2196f3", "9c27b0", "f44336", "009688", "ff9800", "607d8b"];
 
 export function randomColor(): string {
   return DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)];

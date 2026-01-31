@@ -21,6 +21,9 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - No unnecessary comments (code should be self-explanatory)
 - Respect `.editorconfig` settings
 - Use `http-status-codes` library for HTTP status codes (never hardcoded numbers)
+- Imports and exports must be alphabetically sorted (enforced by Biome)
+- Use `node:` protocol for Node.js built-in modules (e.g., `node:fs`, `node:path`)
+- No non-null assertions (`!`) - use explicit null checks with proper error handling
 
 ### Architecture Patterns
 - **Clean Architecture**: Domain logic separate from framework code

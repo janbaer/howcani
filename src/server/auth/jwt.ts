@@ -1,5 +1,5 @@
-import { SignJWT, jwtVerify } from "jose";
 import type { JWTPayload } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "development-secret-change-in-production";
 const secret = new TextEncoder().encode(JWT_SECRET);
@@ -12,9 +12,7 @@ export interface TokenPayload extends JWTPayload {
   email: string;
 }
 
-export async function createToken(
-  payload: Omit<TokenPayload, "iat" | "exp">
-): Promise<string> {
+export async function createToken(payload: Omit<TokenPayload, "iat" | "exp">): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime(TOKEN_EXPIRATION)

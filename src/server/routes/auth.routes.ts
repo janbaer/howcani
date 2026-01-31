@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { StatusCodes } from "http-status-codes";
+import { assertAuthenticated, authPlugin } from "../middleware";
 import { authService } from "../services/auth.service";
-import { authPlugin, assertAuthenticated } from "../middleware";
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
   .use(authPlugin)
@@ -24,7 +24,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
         email: t.String(),
         password: t.String({ minLength: 8 }),
       }),
-    }
+    },
   )
   .post(
     "/login",
@@ -44,7 +44,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
         username: t.String(),
         password: t.String(),
       }),
-    }
+    },
   )
   .get(
     "/me",
@@ -57,5 +57,5 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
       }
       return userData;
     },
-    { auth: true }
+    { auth: true },
   );

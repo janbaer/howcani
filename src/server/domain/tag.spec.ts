@@ -1,11 +1,11 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  type Tag,
-  validateTagName,
-  validateTagColor,
-  validateCreateTagData,
-  randomColor,
   type CreateTagData,
+  randomColor,
+  type Tag,
+  validateCreateTagData,
+  validateTagColor,
+  validateTagName,
 } from "./tag";
 
 describe("Tag Domain", () => {
@@ -136,10 +136,7 @@ describe("Tag Domain", () => {
     });
 
     test("returns a color from the palette", () => {
-      const palette = [
-        "0e8a16", "ff5722", "2196f3", "9c27b0",
-        "f44336", "009688", "ff9800", "607d8b",
-      ];
+      const palette = ["0e8a16", "ff5722", "2196f3", "9c27b0", "f44336", "009688", "ff9800", "607d8b"];
       const color = randomColor();
       expect(palette).toContain(color);
     });

@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
+import { type CreateUserDTO, type User, UserRepository } from "../../repositories/user.repository";
 import { setupTestDatabase } from "../test-helpers";
-import { UserRepository, type User, type CreateUserDTO } from "../../repositories/user.repository";
 
 describe("UserRepository Integration Tests", () => {
   let userRepo: UserRepository;

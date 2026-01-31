@@ -1,9 +1,9 @@
-import { itemRepository, type Item } from "../repositories";
+import { runTransaction } from "../db/database";
+import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
 import type { Tag } from "../domain/tag";
+import { type Item, itemRepository } from "../repositories";
 import type { TagService } from "./tag.service";
 import { userService } from "./user.service";
-import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
-import { runTransaction } from "../db/database";
 
 export interface ItemWithTags extends Item {
   tags: Tag[];
@@ -88,12 +88,16 @@ export class ItemService {
         answer: input.answer,
       });
 
+      if (!item) {
+        throw new Error("Failed to update item");
+      }
+
       if (input.tags !== undefined) {
         const tagIds = this.tagService.resolveOrCreateTags(input.tags);
         this.tagService.setItemTags(itemId, tagIds);
       }
 
-      return { ...item!, tags: this.tagService.findTagsForItem(itemId) };
+      return { ...item, tags: this.tagService.findTagsForItem(itemId) };
     });
 
     return { success: true, data: itemWithTags };
@@ -126,10 +130,7 @@ export class ItemService {
     };
   }
 
-  listItems(
-    username: string,
-    pagination: { limit?: number; offset?: number } = {}
-  ): Result<PaginatedItemsResult> {
+  listItems(username: string, pagination: { limit?: number; offset?: number } = {}): Result<PaginatedItemsResult> {
     const user = userService.findByUsername(username);
     if (!user) {
       return createError("USER_NOT_FOUND", "User not found");

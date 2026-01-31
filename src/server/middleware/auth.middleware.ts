@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { StatusCodes } from "http-status-codes";
-import { extractBearerToken, verifyToken, type TokenPayload } from "../auth";
+import { extractBearerToken, type TokenPayload, verifyToken } from "../auth";
 
 export function assertAuthenticated(user: TokenPayload | null): asserts user is TokenPayload {
   if (!user) {

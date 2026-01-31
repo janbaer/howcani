@@ -1,13 +1,13 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  type Item,
-  validateQuestion,
-  validateCreateItemData,
-  validateUpdateItemData,
   type CreateItemData,
-  type UpdateItemData,
-  MAX_QUESTION_LENGTH,
+  type Item,
   MAX_ANSWER_LENGTH,
+  MAX_QUESTION_LENGTH,
+  type UpdateItemData,
+  validateCreateItemData,
+  validateQuestion,
+  validateUpdateItemData,
 } from "./item";
 
 describe("Item Domain", () => {
@@ -71,9 +71,7 @@ describe("Item Domain", () => {
       const result = validateQuestion("a".repeat(MAX_QUESTION_LENGTH + 1));
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain(
-        `Question must be at most ${MAX_QUESTION_LENGTH} characters`
-      );
+      expect(result.errors).toContain(`Question must be at most ${MAX_QUESTION_LENGTH} characters`);
     });
 
     test("accepts question at max length", () => {
@@ -158,9 +156,7 @@ describe("Item Domain", () => {
       const result = validateCreateItemData(data);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain(
-        `Answer must be at most ${MAX_ANSWER_LENGTH} characters`
-      );
+      expect(result.errors).toContain(`Answer must be at most ${MAX_ANSWER_LENGTH} characters`);
     });
   });
 
@@ -225,9 +221,7 @@ describe("Item Domain", () => {
       const result = validateUpdateItemData(data);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain(
-        `Question must be at most ${MAX_QUESTION_LENGTH} characters`
-      );
+      expect(result.errors).toContain(`Question must be at most ${MAX_QUESTION_LENGTH} characters`);
     });
 
     test("rejects answer exceeding max length", () => {
@@ -238,9 +232,7 @@ describe("Item Domain", () => {
       const result = validateUpdateItemData(data);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain(
-        `Answer must be at most ${MAX_ANSWER_LENGTH} characters`
-      );
+      expect(result.errors).toContain(`Answer must be at most ${MAX_ANSWER_LENGTH} characters`);
     });
   });
 });

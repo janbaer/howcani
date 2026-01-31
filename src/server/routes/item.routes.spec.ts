@@ -1,11 +1,13 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { Elysia } from "elysia";
 import { StatusCodes } from "http-status-codes";
-import type { ItemWithTags, ItemError } from "../services/item.service";
 import type { Tag } from "../domain/tag";
+import type { ItemError, ItemWithTags } from "../services/item.service";
 
 type ItemResult = { success: true; data: ItemWithTags } | { success: false; error: ItemError };
-type ListResult = { success: true; data: { items: ItemWithTags[]; total: number } } | { success: false; error: ItemError };
+type ListResult =
+  | { success: true; data: { items: ItemWithTags[]; total: number } }
+  | { success: false; error: ItemError };
 type DeleteResult = { success: true; data: { deleted: true } } | { success: false; error: ItemError };
 
 const testItems = new Map<string, ItemWithTags>();
@@ -23,7 +25,10 @@ function createErrorResult(code: ItemError["code"], message: string): { success:
 
 const mockSessionItemService = {
   createItem: mock((input: { question: string; answer?: string; tags?: string[] }): ItemResult => {
-    const userId = currentSessionUserId!;
+    if (!currentSessionUserId) {
+      throw new Error("No session user ID set");
+    }
+    const userId = currentSessionUserId;
     if (!input.question || input.question.trim() === "") {
       return createErrorResult("VALIDATION_ERROR", "Question is required");
     }
@@ -46,7 +51,10 @@ const mockSessionItemService = {
     return createSuccessResult(item);
   }),
   updateItem: mock((itemId: string, input: { question?: string; answer?: string; tags?: string[] }): ItemResult => {
-    const userId = currentSessionUserId!;
+    if (!currentSessionUserId) {
+      throw new Error("No session user ID set");
+    }
+    const userId = currentSessionUserId;
     const item = testItems.get(itemId);
     if (!item || item.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Item not found");
@@ -59,21 +67,25 @@ const mockSessionItemService = {
       question: input.question ?? item.question,
       answer: input.answer ?? item.answer,
       updated_at: new Date().toISOString(),
-      tags: input.tags !== undefined
-        ? input.tags.map((name, i) => ({
-            id: `tag-${i}`,
-            user_id: userId,
-            name,
-            color: "0e8a16",
-            created_at: new Date().toISOString(),
-          }))
-        : item.tags,
+      tags:
+        input.tags !== undefined
+          ? input.tags.map((name, i) => ({
+              id: `tag-${i}`,
+              user_id: userId,
+              name,
+              color: "0e8a16",
+              created_at: new Date().toISOString(),
+            }))
+          : item.tags,
     };
     testItems.set(itemId, updated);
     return createSuccessResult(updated);
   }),
   deleteItem: mock((itemId: string): DeleteResult => {
-    const userId = currentSessionUserId!;
+    if (!currentSessionUserId) {
+      throw new Error("No session user ID set");
+    }
+    const userId = currentSessionUserId;
     const item = testItems.get(itemId);
     if (!item || item.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Item not found");
@@ -132,7 +144,11 @@ const mockAuthService = {
     const user = testUsers.get(username);
     if (user) {
       currentSessionUserId = user.id;
-      return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
+      return {
+        userId: user.id,
+        username: user.username,
+        email: `${user.username}@example.com`,
+      };
     }
     return null;
   }),
@@ -151,7 +167,12 @@ mock.module("../services/session", () => ({
   })),
   initSession: mock((userId: string, username: string) => {
     currentSessionUserId = userId;
-    return { userId, username, itemService: mockSessionItemService, tagService: {} };
+    return {
+      userId,
+      username,
+      itemService: mockSessionItemService,
+      tagService: {},
+    };
   }),
   hasSession: mock(() => currentSessionUserId !== null),
   clearSession: mock(() => {
@@ -172,24 +193,23 @@ mock.module("../auth", () => ({
     const username = token.replace("mock-token-", "");
     const user = testUsers.get(username);
     if (user) {
-      return { userId: user.id, username: user.username, email: `${user.username}@example.com` };
+      return {
+        userId: user.id,
+        username: user.username,
+        email: `${user.username}@example.com`,
+      };
     }
     return null;
   },
 }));
 
-import { itemRoutes } from "./item.routes";
-import { authRoutes } from "./auth.routes";
 import { authPlugin } from "../middleware";
+import { authRoutes } from "./auth.routes";
+import { itemRoutes } from "./item.routes";
 
-const app = new Elysia()
-  .use(authPlugin)
-  .group("/api", (app) => app.use(authRoutes).use(itemRoutes));
+const app = new Elysia().use(authPlugin).group("/api", (app) => app.use(authRoutes).use(itemRoutes));
 
-async function registerAndLogin(
-  username: string,
-  email: string
-): Promise<{ token: string; userId: string }> {
+async function registerAndLogin(username: string, email: string): Promise<{ token: string; userId: string }> {
   const registerRes = await app.handle(
     new Request("http://localhost/api/auth/register", {
       method: "POST",
@@ -199,7 +219,7 @@ async function registerAndLogin(
         email,
         password: "secure123",
       }),
-    })
+    }),
   );
   const registerData = await registerRes.json();
   return { token: registerData.token, userId: registerData.user.id };
@@ -232,7 +252,7 @@ describe("Item Routes", () => {
             question: "How do I deploy with Bun?",
             answer: "Use `bun build` and run the output.",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.CREATED);
@@ -254,7 +274,7 @@ describe("Item Routes", () => {
           body: JSON.stringify({
             question: "How do I deploy?",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -274,7 +294,7 @@ describe("Item Routes", () => {
           body: JSON.stringify({
             question: "How do I deploy?",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN);
@@ -293,7 +313,7 @@ describe("Item Routes", () => {
           body: JSON.stringify({
             answer: "Some answer",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
@@ -313,7 +333,7 @@ describe("Item Routes", () => {
             question: "Draft question",
             answer: "",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.CREATED);
@@ -334,12 +354,10 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Question 1" }),
-        })
+        }),
       );
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items"));
 
       expect(res.status).toBe(StatusCodes.OK);
 
@@ -360,13 +378,11 @@ describe("Item Routes", () => {
               ...authHeader(token),
             },
             body: JSON.stringify({ question: `Question ${i}` }),
-          })
+          }),
         );
       }
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items?limit=5&offset=0")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items?limit=5&offset=0"));
 
       expect(res.status).toBe(StatusCodes.OK);
 
@@ -378,9 +394,7 @@ describe("Item Routes", () => {
     test("returns empty list for user with no items", async () => {
       await registerAndLogin("john", "john@example.com");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items"));
 
       expect(res.status).toBe(StatusCodes.OK);
 
@@ -400,12 +414,10 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Question 1" }),
-        })
+        }),
       );
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items?limit=-5&offset=-10")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items?limit=-5&offset=-10"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -415,9 +427,7 @@ describe("Item Routes", () => {
     test("handles non-numeric pagination params gracefully", async () => {
       await registerAndLogin("john", "john@example.com");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items?limit=abc&offset=xyz")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items?limit=abc&offset=xyz"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -436,13 +446,11 @@ describe("Item Routes", () => {
               ...authHeader(token),
             },
             body: JSON.stringify({ question: `Question ${i}` }),
-          })
+          }),
         );
       }
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items?limit=9999")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items?limit=9999"));
 
       expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
@@ -461,14 +469,15 @@ describe("Item Routes", () => {
             "Content-Type": "application/json",
             ...authHeader(token),
           },
-          body: JSON.stringify({ question: "Test question", answer: "Test answer" }),
-        })
+          body: JSON.stringify({
+            question: "Test question",
+            answer: "Test answer",
+          }),
+        }),
       );
       const createData = await createRes.json();
 
-      const res = await app.handle(
-        new Request(`http://localhost/api/john/items/${createData.item.id}`)
-      );
+      const res = await app.handle(new Request(`http://localhost/api/john/items/${createData.item.id}`));
 
       expect(res.status).toBe(StatusCodes.OK);
 
@@ -480,9 +489,7 @@ describe("Item Routes", () => {
     test("returns 404 for non-existent item", async () => {
       await registerAndLogin("john", "john@example.com");
 
-      const res = await app.handle(
-        new Request("http://localhost/api/john/items/nonexistent-id")
-      );
+      const res = await app.handle(new Request("http://localhost/api/john/items/nonexistent-id"));
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
     });
@@ -500,7 +507,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Original", answer: "Original" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -512,7 +519,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Updated", answer: "Updated" }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.OK);
@@ -533,7 +540,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Test" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -542,7 +549,7 @@ describe("Item Routes", () => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: "Updated" }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -560,7 +567,7 @@ describe("Item Routes", () => {
             ...authHeader(john.token),
           },
           body: JSON.stringify({ question: "John's item" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -572,7 +579,7 @@ describe("Item Routes", () => {
             ...authHeader(alice.token),
           },
           body: JSON.stringify({ question: "Updated" }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN);
@@ -589,7 +596,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Updated" }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
@@ -606,7 +613,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Original" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -618,7 +625,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "" }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
@@ -635,7 +642,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Original" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -647,7 +654,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "   " }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
@@ -664,7 +671,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Original" }),
-        })
+        }),
       );
       const createData = await createRes.json();
       const originalCreatedAt = createData.item.created_at;
@@ -677,7 +684,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Updated" }),
-        })
+        }),
       );
       const updateData = await updateRes.json();
 
@@ -697,7 +704,7 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "To be deleted" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -705,7 +712,7 @@ describe("Item Routes", () => {
         new Request(`http://localhost/api/john/items/${createData.item.id}`, {
           method: "DELETE",
           headers: authHeader(token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.OK);
@@ -713,9 +720,7 @@ describe("Item Routes", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
 
-      const getRes = await app.handle(
-        new Request(`http://localhost/api/john/items/${createData.item.id}`)
-      );
+      const getRes = await app.handle(new Request(`http://localhost/api/john/items/${createData.item.id}`));
       expect(getRes.status).toBe(StatusCodes.NOT_FOUND);
     });
 
@@ -730,14 +735,14 @@ describe("Item Routes", () => {
             ...authHeader(token),
           },
           body: JSON.stringify({ question: "Test" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
       const res = await app.handle(
         new Request(`http://localhost/api/john/items/${createData.item.id}`, {
           method: "DELETE",
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -755,7 +760,7 @@ describe("Item Routes", () => {
             ...authHeader(john.token),
           },
           body: JSON.stringify({ question: "John's item" }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -763,7 +768,7 @@ describe("Item Routes", () => {
         new Request(`http://localhost/api/john/items/${createData.item.id}`, {
           method: "DELETE",
           headers: authHeader(alice.token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.FORBIDDEN);
@@ -776,7 +781,7 @@ describe("Item Routes", () => {
         new Request("http://localhost/api/john/items/nonexistent-id", {
           method: "DELETE",
           headers: authHeader(token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
@@ -798,7 +803,7 @@ describe("Item Routes", () => {
             question: "How to deploy?",
             tags: ["bun", "deployment"],
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.CREATED);
@@ -820,7 +825,7 @@ describe("Item Routes", () => {
           body: JSON.stringify({
             question: "No tags question",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.CREATED);
@@ -842,7 +847,7 @@ describe("Item Routes", () => {
             question: "Question",
             tags: ["old-tag"],
           }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -856,7 +861,7 @@ describe("Item Routes", () => {
           body: JSON.stringify({
             tags: ["new-tag"],
           }),
-        })
+        }),
       );
 
       expect(updateRes.status).toBe(StatusCodes.OK);
@@ -879,7 +884,7 @@ describe("Item Routes", () => {
             question: "Question",
             tags: ["bun"],
           }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
@@ -893,7 +898,7 @@ describe("Item Routes", () => {
           body: JSON.stringify({
             tags: [],
           }),
-        })
+        }),
       );
 
       const updateData = await updateRes.json();
@@ -914,13 +919,11 @@ describe("Item Routes", () => {
             question: "Tagged question",
             tags: ["bun"],
           }),
-        })
+        }),
       );
       const createData = await createRes.json();
 
-      const getRes = await app.handle(
-        new Request(`http://localhost/api/john/items/${createData.item.id}`)
-      );
+      const getRes = await app.handle(new Request(`http://localhost/api/john/items/${createData.item.id}`));
 
       const getData = await getRes.json();
       expect(getData.item.tags).toHaveLength(1);
@@ -941,12 +944,10 @@ describe("Item Routes", () => {
             question: "Q1",
             tags: ["bun"],
           }),
-        })
+        }),
       );
 
-      const listRes = await app.handle(
-        new Request("http://localhost/api/john/items")
-      );
+      const listRes = await app.handle(new Request("http://localhost/api/john/items"));
 
       const listData = await listRes.json();
       expect(listData.items[0].tags).toHaveLength(1);

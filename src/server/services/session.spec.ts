@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 const mockTagRepositoryForSession = {
   findAllByUserId: mock(() => []),
@@ -35,7 +35,7 @@ mock.module("./user.service", () => ({
   userService: mockUserServiceForSession,
 }));
 
-import { initSession, getSession, hasSession, clearSession } from "./session";
+import { clearSession, getSession, hasSession, initSession } from "./session";
 
 describe("Session", () => {
   beforeEach(() => {

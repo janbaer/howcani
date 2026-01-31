@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { Tag, TagWithCount } from "../domain/tag";
 
 interface TestUser {
@@ -133,7 +133,10 @@ describe("TagService", () => {
 
     test("reuses existing tags (case-insensitive)", () => {
       const user = createTestUser("john");
-      const existing = mockTagRepository.create({ userId: user.id, name: "Bun" });
+      const existing = mockTagRepository.create({
+        userId: user.id,
+        name: "Bun",
+      });
       const tagService = new TagService(user.id);
 
       const tagIds = tagService.resolveOrCreateTags(["bun"]);
@@ -144,7 +147,10 @@ describe("TagService", () => {
 
     test("mixes existing and new tags", () => {
       const user = createTestUser("john");
-      const existing = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const existing = mockTagRepository.create({
+        userId: user.id,
+        name: "bun",
+      });
       const tagService = new TagService(user.id);
 
       const tagIds = tagService.resolveOrCreateTags(["bun", "networking"]);
@@ -173,7 +179,7 @@ describe("TagService", () => {
       expect(tagIds).toHaveLength(1);
       const tag = mockTagRepository.findByNameAndUserId("bun", user.id);
       expect(tag).not.toBeNull();
-      expect(tag!.name).toBe("bun");
+      expect(tag?.name).toBe("bun");
     });
 
     test("returns empty array for empty input", () => {
@@ -192,7 +198,7 @@ describe("TagService", () => {
       tagService.resolveOrCreateTags(["bun"]);
 
       const tag = mockTagRepository.findByNameAndUserId("bun", user.id);
-      expect(tag!.color).toMatch(/^[0-9a-f]{6}$/);
+      expect(tag?.color).toMatch(/^[0-9a-f]{6}$/);
     });
   });
 
@@ -256,7 +262,10 @@ describe("TagService", () => {
   describe("deleteTag", () => {
     test("deletes unused tag", () => {
       const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "old-tag" });
+      const tag = mockTagRepository.create({
+        userId: user.id,
+        name: "old-tag",
+      });
       const tagService = new TagService(user.id);
 
       const result = tagService.deleteTag(tag.id);

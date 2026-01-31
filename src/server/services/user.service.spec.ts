@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { User } from "../repositories/user.repository";
 
 const testUsers = new Map<string, User>();
@@ -54,8 +54,8 @@ describe("UserService", () => {
       const result = userService.findById(user.id);
 
       expect(result).not.toBeNull();
-      expect(result!.id).toBe(user.id);
-      expect(result!.username).toBe("john");
+      expect(result?.id).toBe(user.id);
+      expect(result?.username).toBe("john");
       expect(result).not.toHaveProperty("password_hash");
     });
 
@@ -74,7 +74,7 @@ describe("UserService", () => {
       const result = userService.findByUsername("john");
 
       expect(result).not.toBeNull();
-      expect(result!.username).toBe("john");
+      expect(result?.username).toBe("john");
       expect(result).not.toHaveProperty("password_hash");
     });
 

@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { setupTestDatabase } from "../db/test-helpers";
+import { ItemRepository } from "./item.repository";
 import { TagRepository } from "./tag.repository";
 import { UserRepository } from "./user.repository";
-import { ItemRepository } from "./item.repository";
 
 describe("TagRepository Integration Tests", () => {
   let tagRepo: TagRepository;
@@ -365,9 +365,18 @@ describe("TagRepository Integration Tests", () => {
       const associations = tagRepo.getItemTagsForUser(testUserId);
 
       expect(associations).toHaveLength(3);
-      expect(associations).toContainEqual({ item_id: item1.id, tag_id: tag1.id });
-      expect(associations).toContainEqual({ item_id: item1.id, tag_id: tag2.id });
-      expect(associations).toContainEqual({ item_id: item2.id, tag_id: tag1.id });
+      expect(associations).toContainEqual({
+        item_id: item1.id,
+        tag_id: tag1.id,
+      });
+      expect(associations).toContainEqual({
+        item_id: item1.id,
+        tag_id: tag2.id,
+      });
+      expect(associations).toContainEqual({
+        item_id: item2.id,
+        tag_id: tag1.id,
+      });
     });
 
     test("returns empty array for user with no items", () => {

@@ -19,10 +19,14 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
       if (!result.success) {
         if (result.error.code === "USER_NOT_FOUND") {
           set.status = StatusCodes.NOT_FOUND;
-          return { error: { message: result.error.message, code: "NOT_FOUND" } };
+          return {
+            error: { message: result.error.message, code: "NOT_FOUND" },
+          };
         }
         set.status = StatusCodes.INTERNAL_SERVER_ERROR;
-        return { error: { message: result.error.message, code: result.error.code } };
+        return {
+          error: { message: result.error.message, code: result.error.code },
+        };
       }
 
       return { items: result.data.items, total: result.data.total };
@@ -35,7 +39,7 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         limit: t.Optional(t.String()),
         offset: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .get(
     "/:id",
@@ -54,19 +58,26 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         username: t.String(),
         id: t.String(),
       }),
-    }
+    },
   )
   .post(
     "/",
     ({ params, body, user, set }) => {
       if (!user) {
         set.status = StatusCodes.UNAUTHORIZED;
-        return { error: { message: "Authentication required", code: "UNAUTHORIZED" } };
+        return {
+          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+        };
       }
 
       if (user.username !== params.username) {
         set.status = StatusCodes.FORBIDDEN;
-        return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
+        return {
+          error: {
+            message: "Not authorized to modify this user's content",
+            code: "FORBIDDEN",
+          },
+        };
       }
 
       const { itemService: sessionItemService } = getSession();
@@ -78,7 +89,9 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
 
       if (!result.success) {
         set.status = StatusCodes.BAD_REQUEST;
-        return { error: { message: result.error.message, code: result.error.code } };
+        return {
+          error: { message: result.error.message, code: result.error.code },
+        };
       }
 
       set.status = StatusCodes.CREATED;
@@ -93,19 +106,26 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         answer: t.Optional(t.String()),
         tags: t.Optional(t.Array(t.String())),
       }),
-    }
+    },
   )
   .put(
     "/:id",
     ({ params, body, user, set }) => {
       if (!user) {
         set.status = StatusCodes.UNAUTHORIZED;
-        return { error: { message: "Authentication required", code: "UNAUTHORIZED" } };
+        return {
+          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+        };
       }
 
       if (user.username !== params.username) {
         set.status = StatusCodes.FORBIDDEN;
-        return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
+        return {
+          error: {
+            message: "Not authorized to modify this user's content",
+            code: "FORBIDDEN",
+          },
+        };
       }
 
       const { itemService: sessionItemService } = getSession();
@@ -121,7 +141,9 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         } else {
           set.status = StatusCodes.BAD_REQUEST;
         }
-        return { error: { message: result.error.message, code: result.error.code } };
+        return {
+          error: { message: result.error.message, code: result.error.code },
+        };
       }
 
       return { item: result.data };
@@ -136,19 +158,26 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         answer: t.Optional(t.String()),
         tags: t.Optional(t.Array(t.String())),
       }),
-    }
+    },
   )
   .delete(
     "/:id",
     ({ params, user, set }) => {
       if (!user) {
         set.status = StatusCodes.UNAUTHORIZED;
-        return { error: { message: "Authentication required", code: "UNAUTHORIZED" } };
+        return {
+          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+        };
       }
 
       if (user.username !== params.username) {
         set.status = StatusCodes.FORBIDDEN;
-        return { error: { message: "Not authorized to modify this user's content", code: "FORBIDDEN" } };
+        return {
+          error: {
+            message: "Not authorized to modify this user's content",
+            code: "FORBIDDEN",
+          },
+        };
       }
 
       const { itemService: sessionItemService } = getSession();
@@ -166,5 +195,5 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         username: t.String(),
         id: t.String(),
       }),
-    }
+    },
   );

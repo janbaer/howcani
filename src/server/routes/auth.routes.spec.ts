@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { Elysia } from "elysia";
 import { StatusCodes } from "http-status-codes";
-import type { AuthResult, AuthError } from "../services/auth.service";
 import type { User } from "../repositories/user.repository";
+import type { AuthError, AuthResult } from "../services/auth.service";
 
 type Result<T> = { success: true; data: T } | { success: false; error: AuthError };
 
@@ -22,7 +22,10 @@ const mockAuthService = {
       return createErrorResult("VALIDATION_ERROR", "Username must be 3-30 characters");
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(input.username)) {
-      return createErrorResult("VALIDATION_ERROR", "Username can only contain letters, numbers, hyphens, and underscores");
+      return createErrorResult(
+        "VALIDATION_ERROR",
+        "Username can only contain letters, numbers, hyphens, and underscores",
+      );
     }
     if (input.password.length < 8) {
       return createErrorResult("VALIDATION_ERROR", "Password must be at least 8 characters");
@@ -36,7 +39,11 @@ const mockAuthService = {
     }
 
     const userId = crypto.randomUUID();
-    testUsers.set(input.username, { id: userId, username: input.username, email: input.email });
+    testUsers.set(input.username, {
+      id: userId,
+      username: input.username,
+      email: input.email,
+    });
 
     return createSuccessResult({
       user: {
@@ -112,12 +119,10 @@ mock.module("../auth", () => ({
   },
 }));
 
-import { authRoutes } from "./auth.routes";
 import { authPlugin } from "../middleware";
+import { authRoutes } from "./auth.routes";
 
-const app = new Elysia()
-  .use(authPlugin)
-  .group("/api", (app) => app.use(authRoutes));
+const app = new Elysia().use(authPlugin).group("/api", (app) => app.use(authRoutes));
 
 const validUser = {
   username: "john",
@@ -141,7 +146,7 @@ describe("Auth Routes", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validUser),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.CREATED);
@@ -158,7 +163,7 @@ describe("Auth Routes", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validUser),
-        })
+        }),
       );
 
       const res = await app.handle(
@@ -169,7 +174,7 @@ describe("Auth Routes", () => {
             ...validUser,
             email: "different@example.com",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
@@ -186,7 +191,7 @@ describe("Auth Routes", () => {
             ...validUser,
             email: "notanemail",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
@@ -202,7 +207,7 @@ describe("Auth Routes", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validUser),
-        })
+        }),
       );
 
       const res = await app.handle(
@@ -213,7 +218,7 @@ describe("Auth Routes", () => {
             username: validUser.username,
             password: validUser.password,
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.OK);
@@ -228,7 +233,7 @@ describe("Auth Routes", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validUser),
-        })
+        }),
       );
 
       const res = await app.handle(
@@ -239,7 +244,7 @@ describe("Auth Routes", () => {
             username: validUser.username,
             password: "wrongpassword",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -256,7 +261,7 @@ describe("Auth Routes", () => {
             username: "nonexistent",
             password: "anypassword",
           }),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
@@ -272,14 +277,14 @@ describe("Auth Routes", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(validUser),
-        })
+        }),
       );
       const registerData = await registerRes.json();
 
       const res = await app.handle(
         new Request("http://localhost/api/auth/me", {
           headers: authHeader(registerData.token),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.OK);
@@ -289,9 +294,7 @@ describe("Auth Routes", () => {
     });
 
     test("returns 401 when not authenticated", async () => {
-      const res = await app.handle(
-        new Request("http://localhost/api/auth/me")
-      );
+      const res = await app.handle(new Request("http://localhost/api/auth/me"));
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
     });
@@ -300,7 +303,7 @@ describe("Auth Routes", () => {
       const res = await app.handle(
         new Request("http://localhost/api/auth/me", {
           headers: authHeader("invalid-token"),
-        })
+        }),
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
