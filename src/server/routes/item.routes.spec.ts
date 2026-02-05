@@ -6,7 +6,14 @@ import type { ItemError, ItemWithTags } from "../services/item.service";
 
 type ItemResult = { success: true; data: ItemWithTags } | { success: false; error: ItemError };
 type ListResult =
-  | { success: true; data: { items: ItemWithTags[]; total: number } }
+  | {
+      success: true;
+      data: {
+        items: ItemWithTags[];
+        total: number;
+        filters: { search: string | null; tags: string[] | null };
+      };
+    }
   | { success: false; error: ItemError };
 type DeleteResult = { success: true; data: { deleted: true } } | { success: false; error: ItemError };
 
@@ -104,18 +111,28 @@ const mockSessionItemService = {
     }
     return createSuccessResult(item);
   }),
-  listItems: mock((username: string, pagination: { limit?: number; offset?: number } = {}): ListResult => {
-    const user = testUsers.get(username);
-    if (!user) {
-      return createErrorResult("USER_NOT_FOUND", "User not found");
-    }
-    const userItems = Array.from(testItems.values()).filter((i) => i.user_id === user.id);
-    const { limit = 50, offset = 0 } = pagination;
-    return createSuccessResult({
-      items: userItems.slice(offset, offset + limit),
-      total: userItems.length,
-    });
-  }),
+  listItems: mock(
+    (
+      username: string,
+      pagination: { limit?: number; offset?: number } = {},
+      filters: { search?: string; tags?: string[] } = {},
+    ): ListResult => {
+      const user = testUsers.get(username);
+      if (!user) {
+        return createErrorResult("USER_NOT_FOUND", "User not found");
+      }
+      const userItems = Array.from(testItems.values()).filter((i) => i.user_id === user.id);
+      const { limit = 50, offset = 0 } = pagination;
+      return createSuccessResult({
+        items: userItems.slice(offset, offset + limit),
+        total: userItems.length,
+        filters: {
+          search: filters.search?.trim() || null,
+          tags: filters.tags && filters.tags.length > 0 ? filters.tags : null,
+        },
+      });
+    },
+  ),
 };
 
 const mockItemService = mockSessionItemService;
@@ -952,6 +969,66 @@ describe("Item Routes", () => {
       const listData = await listRes.json();
       expect(listData.items[0].tags).toHaveLength(1);
       expect(listData.items[0].tags[0].name).toBe("bun");
+    });
+  });
+
+  describe("Search and Filter Query Params", () => {
+    test("passes search param and returns filters in response", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      await app.handle(
+        new Request("http://localhost/api/john/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(token),
+          },
+          body: JSON.stringify({ question: "Deploy with Bun" }),
+        }),
+      );
+
+      const res = await app.handle(new Request("http://localhost/api/john/items?search=deploy"));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.filters).toBeDefined();
+      expect(data.filters.search).toBe("deploy");
+      expect(data.filters.tags).toBeNull();
+    });
+
+    test("passes tags param and returns filters in response", async () => {
+      await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(new Request("http://localhost/api/john/items?tags=bun,typescript"));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.filters).toBeDefined();
+      expect(data.filters.search).toBeNull();
+      expect(data.filters.tags).toEqual(["bun", "typescript"]);
+    });
+
+    test("passes combined search and tags params", async () => {
+      await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(new Request("http://localhost/api/john/items?search=deploy&tags=bun"));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.filters.search).toBe("deploy");
+      expect(data.filters.tags).toEqual(["bun"]);
+    });
+
+    test("returns null filters when no search/tags params", async () => {
+      await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(new Request("http://localhost/api/john/items"));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.filters).toBeDefined();
+      expect(data.filters.search).toBeNull();
+      expect(data.filters.tags).toBeNull();
     });
   });
 });

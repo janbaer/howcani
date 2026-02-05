@@ -14,7 +14,15 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
       const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 50, 1), 100);
       const offset = Math.max(Number.isFinite(parsedOffset) ? parsedOffset : 0, 0);
 
-      const result = itemService.listItems(params.username, { limit, offset });
+      const search = query.search || undefined;
+      const tags = query.tags
+        ? query.tags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const result = itemService.listItems(params.username, { limit, offset }, { search, tags });
 
       if (!result.success) {
         if (result.error.code === "USER_NOT_FOUND") {
@@ -29,7 +37,7 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
         };
       }
 
-      return { items: result.data.items, total: result.data.total };
+      return { items: result.data.items, total: result.data.total, filters: result.data.filters };
     },
     {
       params: t.Object({
@@ -38,6 +46,8 @@ export const itemRoutes = new Elysia({ prefix: "/:username/items" })
       query: t.Object({
         limit: t.Optional(t.String()),
         offset: t.Optional(t.String()),
+        search: t.Optional(t.String()),
+        tags: t.Optional(t.String()),
       }),
     },
   )

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { setupTestDatabase } from "../db/test-helpers";
 import { type CreateItemDTO, ItemRepository } from "./item.repository";
+import { TagRepository } from "./tag.repository";
 import { UserRepository } from "./user.repository";
 
 describe("ItemRepository Integration Tests", () => {
@@ -330,6 +331,201 @@ describe("ItemRepository Integration Tests", () => {
     test("returns zero for user with no items", () => {
       const count = itemRepo.countByUserId(testUserId);
       expect(count).toBe(0);
+    });
+  });
+
+  describe("searchItems", () => {
+    describe("full-text search", () => {
+      test("finds items by question text", () => {
+        itemRepo.create({ userId: testUserId, question: "How do I deploy with Bun?", answer: "Use bun build" });
+        itemRepo.create({ userId: testUserId, question: "How do I configure TypeScript?", answer: "Edit tsconfig" });
+
+        const result = itemRepo.searchItems(testUserId, { search: "deploy" });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].question).toContain("deploy");
+        expect(result.total).toBe(1);
+      });
+
+      test("finds items by answer text", () => {
+        itemRepo.create({ userId: testUserId, question: "How do I build?", answer: "Use bun build for deployment" });
+
+        const result = itemRepo.searchItems(testUserId, { search: "deployment" });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].answer).toContain("deployment");
+      });
+
+      test("finds items by prefix match", () => {
+        itemRepo.create({ userId: testUserId, question: "Kubernetes configuration" });
+
+        const result = itemRepo.searchItems(testUserId, { search: "kube" });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].question).toContain("Kubernetes");
+      });
+
+      test("search is case-insensitive", () => {
+        itemRepo.create({ userId: testUserId, question: "How do I use Bun?" });
+
+        for (const term of ["bun", "BUN", "Bun"]) {
+          const result = itemRepo.searchItems(testUserId, { search: term });
+          expect(result.items).toHaveLength(1);
+        }
+      });
+
+      test("returns empty for no matches", () => {
+        itemRepo.create({ userId: testUserId, question: "How to use Bun?" });
+
+        const result = itemRepo.searchItems(testUserId, { search: "python" });
+
+        expect(result.items).toHaveLength(0);
+        expect(result.total).toBe(0);
+      });
+
+      test("empty search returns all items", () => {
+        itemRepo.create({ userId: testUserId, question: "Q1" });
+        itemRepo.create({ userId: testUserId, question: "Q2" });
+
+        const result = itemRepo.searchItems(testUserId, { search: "" });
+
+        expect(result.items).toHaveLength(2);
+        expect(result.total).toBe(2);
+      });
+
+      test("handles FTS5 special characters safely", () => {
+        itemRepo.create({ userId: testUserId, question: "Using AND in queries" });
+
+        const result = itemRepo.searchItems(testUserId, { search: 'AND "OR" NOT*' });
+
+        expect(result.total).toBeGreaterThanOrEqual(0);
+      });
+
+      test("scopes search to user", () => {
+        const otherUser = userRepo.create({
+          username: "alice",
+          email: "alice@example.com",
+          passwordHash: "hashedpassword123",
+        });
+
+        itemRepo.create({ userId: testUserId, question: "John deploys Bun" });
+        itemRepo.create({ userId: otherUser.id, question: "Alice deploys Bun" });
+
+        const result = itemRepo.searchItems(testUserId, { search: "deploys" });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].user_id).toBe(testUserId);
+      });
+    });
+
+    describe("tag filtering", () => {
+      let tagRepo: TagRepository;
+
+      beforeEach(() => {
+        tagRepo = new TagRepository();
+      });
+
+      test("filters by single tag", () => {
+        const bunTag = tagRepo.create({ userId: testUserId, name: "bun", color: "0e8a16" });
+        const tsTag = tagRepo.create({ userId: testUserId, name: "typescript", color: "ff5722" });
+
+        const itemA = itemRepo.create({ userId: testUserId, question: "Item A" });
+        const itemB = itemRepo.create({ userId: testUserId, question: "Item B" });
+
+        tagRepo.setItemTags(itemA.id, [bunTag.id]);
+        tagRepo.setItemTags(itemB.id, [tsTag.id]);
+
+        const result = itemRepo.searchItems(testUserId, { tags: ["bun"] });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].question).toBe("Item A");
+        expect(result.total).toBe(1);
+      });
+
+      test("filters by multiple tags with AND logic", () => {
+        const bunTag = tagRepo.create({ userId: testUserId, name: "bun", color: "0e8a16" });
+        const tsTag = tagRepo.create({ userId: testUserId, name: "typescript", color: "ff5722" });
+        const deployTag = tagRepo.create({ userId: testUserId, name: "deployment", color: "2196f3" });
+
+        const itemA = itemRepo.create({ userId: testUserId, question: "Item A" });
+        const itemB = itemRepo.create({ userId: testUserId, question: "Item B" });
+        const itemC = itemRepo.create({ userId: testUserId, question: "Item C" });
+
+        tagRepo.setItemTags(itemA.id, [bunTag.id, deployTag.id]);
+        tagRepo.setItemTags(itemB.id, [bunTag.id, tsTag.id]);
+        tagRepo.setItemTags(itemC.id, [tsTag.id, deployTag.id]);
+
+        const result = itemRepo.searchItems(testUserId, { tags: ["bun", "typescript"] });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].question).toBe("Item B");
+      });
+
+      test("returns empty for nonexistent tag", () => {
+        itemRepo.create({ userId: testUserId, question: "Item A" });
+
+        const result = itemRepo.searchItems(testUserId, { tags: ["nonexistent"] });
+
+        expect(result.items).toHaveLength(0);
+        expect(result.total).toBe(0);
+      });
+
+      test("tag matching is case-insensitive", () => {
+        const tagRepo = new TagRepository();
+        const tag = tagRepo.create({ userId: testUserId, name: "Bun", color: "0e8a16" });
+        const item = itemRepo.create({ userId: testUserId, question: "Item A" });
+        tagRepo.setItemTags(item.id, [tag.id]);
+
+        const result = itemRepo.searchItems(testUserId, { tags: ["bun"] });
+
+        expect(result.items).toHaveLength(1);
+      });
+    });
+
+    describe("combined search + tag filter", () => {
+      let tagRepo: TagRepository;
+
+      beforeEach(() => {
+        tagRepo = new TagRepository();
+      });
+
+      test("applies both search and tag filter", () => {
+        const bunTag = tagRepo.create({ userId: testUserId, name: "bun", color: "0e8a16" });
+        const tsTag = tagRepo.create({ userId: testUserId, name: "typescript", color: "ff5722" });
+
+        const itemA = itemRepo.create({ userId: testUserId, question: "Deploy Bun app" });
+        const itemB = itemRepo.create({ userId: testUserId, question: "Configure Bun" });
+        const itemC = itemRepo.create({ userId: testUserId, question: "Deploy TypeScript" });
+
+        tagRepo.setItemTags(itemA.id, [bunTag.id]);
+        tagRepo.setItemTags(itemB.id, [bunTag.id]);
+        tagRepo.setItemTags(itemC.id, [tsTag.id]);
+
+        const result = itemRepo.searchItems(testUserId, { search: "deploy", tags: ["bun"] });
+
+        expect(result.items).toHaveLength(1);
+        expect(result.items[0].question).toBe("Deploy Bun app");
+        expect(result.total).toBe(1);
+      });
+
+      test("combined filter with pagination", () => {
+        const bunTag = tagRepo.create({ userId: testUserId, name: "bun", color: "0e8a16" });
+
+        for (let i = 1; i <= 10; i++) {
+          const item = itemRepo.create({ userId: testUserId, question: `Deploy step ${i}` });
+          tagRepo.setItemTags(item.id, [bunTag.id]);
+        }
+
+        const result = itemRepo.searchItems(testUserId, {
+          search: "deploy",
+          tags: ["bun"],
+          limit: 3,
+          offset: 0,
+        });
+
+        expect(result.items).toHaveLength(3);
+        expect(result.total).toBe(10);
+      });
     });
   });
 });
