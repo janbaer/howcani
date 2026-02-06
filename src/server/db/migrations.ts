@@ -99,6 +99,38 @@ const MIGRATIONS: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_item_tags_tag_id ON item_tags(tag_id);
     `,
   },
+  {
+    version: 5,
+    name: "create_items_fts5_table",
+    up: `
+      CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
+        question,
+        answer,
+        content=items,
+        content_rowid=rowid
+      );
+
+      CREATE TRIGGER IF NOT EXISTS items_fts_insert AFTER INSERT ON items BEGIN
+        INSERT INTO items_fts(rowid, question, answer)
+        VALUES (new.rowid, new.question, new.answer);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS items_fts_update AFTER UPDATE ON items BEGIN
+        INSERT INTO items_fts(items_fts, rowid, question, answer)
+        VALUES ('delete', old.rowid, old.question, old.answer);
+        INSERT INTO items_fts(rowid, question, answer)
+        VALUES (new.rowid, new.question, new.answer);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS items_fts_delete AFTER DELETE ON items BEGIN
+        INSERT INTO items_fts(items_fts, rowid, question, answer)
+        VALUES ('delete', old.rowid, old.question, old.answer);
+      END;
+
+      INSERT INTO items_fts(rowid, question, answer)
+      SELECT rowid, question, answer FROM items;
+    `,
+  },
 ];
 
 export function runMigrations(): void {

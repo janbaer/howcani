@@ -57,6 +57,16 @@ const mockItemRepository = {
   delete: mock((id: string) => {
     testItems.delete(id);
   }),
+  searchItems: mock(
+    (userId: string, options: { limit?: number; offset?: number; search?: string; tags?: string[] } = {}) => {
+      const userItems = Array.from(testItems.values()).filter((i) => i.user_id === userId);
+      const { limit = 50, offset = 0 } = options;
+      return {
+        items: userItems.slice(offset, offset + limit),
+        total: userItems.length,
+      };
+    },
+  ),
 };
 
 mock.module("../repositories", () => ({
@@ -348,7 +358,7 @@ describe("ItemService", () => {
   });
 
   describe("listItems", () => {
-    test("returns paginated items with tags", () => {
+    test("returns paginated items with tags and filters", () => {
       const user = createTestUser("john");
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
@@ -363,6 +373,7 @@ describe("ItemService", () => {
 
       expect(result.data.items).toHaveLength(2);
       expect(result.data.total).toBe(2);
+      expect(result.data.filters).toEqual({ search: null, tags: null });
     });
 
     test("returns user not found error for non-existent user", () => {
@@ -394,6 +405,68 @@ describe("ItemService", () => {
 
       expect(result.data.items).toHaveLength(2);
       expect(result.data.total).toBe(5);
+    });
+
+    test("passes search filter and returns it in response", () => {
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      itemService.createItem({ question: "Q1" });
+
+      const result = itemService.listItems("john", {}, { search: "Q1" });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data.filters.search).toBe("Q1");
+      expect(result.data.filters.tags).toBeNull();
+    });
+
+    test("passes tags filter and returns it in response", () => {
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      itemService.createItem({ question: "Q1" });
+
+      const result = itemService.listItems("john", {}, { tags: ["bun", "typescript"] });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data.filters.search).toBeNull();
+      expect(result.data.filters.tags).toEqual(["bun", "typescript"]);
+    });
+
+    test("empty search string results in null filter", () => {
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      itemService.createItem({ question: "Q1" });
+
+      const result = itemService.listItems("john", {}, { search: "  " });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data.filters.search).toBeNull();
+    });
+
+    test("empty tags array results in null filter", () => {
+      const user = createTestUser("john");
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      itemService.createItem({ question: "Q1" });
+
+      const result = itemService.listItems("john", {}, { tags: [] });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.data.filters.tags).toBeNull();
     });
   });
 

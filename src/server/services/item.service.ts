@@ -9,9 +9,18 @@ export interface ItemWithTags extends Item {
   tags: Tag[];
 }
 
+export interface SearchFilters {
+  search?: string;
+  tags?: string[];
+}
+
 export interface PaginatedItemsResult {
   items: ItemWithTags[];
   total: number;
+  filters: {
+    search: string | null;
+    tags: string[] | null;
+  };
 }
 
 export interface CreateItemInput {
@@ -130,14 +139,22 @@ export class ItemService {
     };
   }
 
-  listItems(username: string, pagination: { limit?: number; offset?: number } = {}): Result<PaginatedItemsResult> {
+  listItems(
+    username: string,
+    pagination: { limit?: number; offset?: number } = {},
+    filters: SearchFilters = {},
+  ): Result<PaginatedItemsResult> {
     const user = userService.findByUsername(username);
     if (!user) {
       return createError("USER_NOT_FOUND", "User not found");
     }
 
     const { limit = 50, offset = 0 } = pagination;
-    const result = itemRepository.findByUserId(user.id, { limit, offset });
+    const hasFilters = (filters.search && filters.search.trim() !== "") || (filters.tags && filters.tags.length > 0);
+
+    const result = hasFilters
+      ? itemRepository.searchItems(user.id, { limit, offset, search: filters.search, tags: filters.tags })
+      : itemRepository.findByUserId(user.id, { limit, offset });
 
     const itemsWithTags = result.items.map((item) => ({
       ...item,
@@ -146,7 +163,14 @@ export class ItemService {
 
     return {
       success: true,
-      data: { items: itemsWithTags, total: result.total },
+      data: {
+        items: itemsWithTags,
+        total: result.total,
+        filters: {
+          search: filters.search?.trim() || null,
+          tags: filters.tags && filters.tags.length > 0 ? filters.tags : null,
+        },
+      },
     };
   }
 
