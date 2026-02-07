@@ -1,14 +1,20 @@
 <script lang="ts">
-  import { link } from "../lib/router.svelte";
+import { link } from "../lib/router.svelte";
+
+interface Props {
+  params?: Record<string, string>;
+}
+
+const { params }: Props = $props();
 </script>
 
-<div class="flex min-h-screen flex-col items-center justify-center p-8">
-  <h1 class="mb-4 text-6xl font-bold">404</h1>
-  <p class="mb-8 text-muted-foreground">Page not found</p>
+<div class="py-16 text-center">
+  <h1 class="font-mono text-5xl font-bold text-muted-foreground mb-2">404</h1>
+  <p class="text-muted-foreground mb-8">Page not found</p>
   <a
     href="/"
     use:link
-    class="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
+    class="font-mono text-sm rounded-md bg-primary px-6 py-2.5 text-primary-foreground hover:opacity-90 transition-opacity"
   >
     Go Home
   </a>

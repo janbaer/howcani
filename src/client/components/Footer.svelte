@@ -1,15 +1,15 @@
 <script lang="ts">
-  const currentYear = new Date().getFullYear();
+const currentYear = new Date().getFullYear();
 </script>
 
-<footer class="bg-primary text-primary-foreground">
-  <div class="mx-auto flex h-10 max-w-7xl items-center justify-center px-4 text-sm">
-    <span>HowCanI - Copyright {currentYear} by </span>
+<footer class="border-t border-border">
+  <div class="mx-auto flex h-10 max-w-5xl items-center justify-center px-4 text-xs text-muted-foreground">
+    <span>&copy; {currentYear}</span>
     <a
       href="https://janbaer.de"
       target="_blank"
       rel="noopener noreferrer"
-      class="ml-1 font-semibold hover:underline"
+      class="ml-1 hover:text-foreground transition-colors"
     >
       Jan Baer
     </a>

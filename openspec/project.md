@@ -24,6 +24,7 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - Imports and exports must be alphabetically sorted (enforced by Biome)
 - Use `node:` protocol for Node.js built-in modules (e.g., `node:fs`, `node:path`)
 - No non-null assertions (`!`) - use explicit null checks with proper error handling
+- Following modern Svelte 5 development best practices. Running always the command /svelte5-best-practises at least once per session to have the best knowledge.
 
 ### Architecture Patterns
 - **Clean Architecture**: Domain logic separate from framework code
@@ -78,6 +79,11 @@ This enables:
 - Username-based URL namespacing (`/jan/items/123`)
 - Full-text search across questions and answers
 - Tag suggestions to prevent duplicates
+
+**Frontend-Guidelines**
+- Also frontend code should be separater in layers
+- For all business login in frontend use a service layer.
+- Svelte pages and components should use this service layer for communicating over REST with the backend
 
 ## Important Constraints
 - Personal use (single primary user, designed for multi-user)

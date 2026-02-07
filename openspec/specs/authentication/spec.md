@@ -244,6 +244,14 @@ POST /api/auth/login
 JWT_SECRET=<strong-random-secret>
 ```
 
+### Client-Side Token Management
+
+- JWT token is persisted to `localStorage` under key `howcani_token`
+- Token is loaded on app initialization (`api.ts` module load) to maintain sessions across page reloads
+- Token is cleared from `localStorage` on logout via `setAccessToken(null)`
+- Token is sent as `Bearer` token in the `Authorization` header on every API request
+- Token management is centralized in `api.ts`; auth state (user, isAuthenticated) lives in `auth.svelte.ts`
+
 ### Testing Requirements
 
 - Test-first: Write tests before implementing auth logic

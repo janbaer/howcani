@@ -1,54 +1,44 @@
 <script lang="ts">
-  import { getAuthState, logout } from "../lib/auth.svelte";
-  import { navigate } from "../lib/router.svelte";
+import { getAuthState } from "../lib/auth.svelte";
+import { link, navigate } from "../lib/router.svelte";
 
-  const authState = getAuthState();
+interface Props {
+  params?: Record<string, string>;
+}
 
-  function goToLogin() {
-    navigate("/login");
+const { params }: Props = $props();
+const authState = getAuthState();
+
+// If authenticated, redirect to their items page
+$effect(() => {
+  if (authState.isAuthenticated && authState.user) {
+    navigate(`/${authState.user.username}/items`);
   }
-
-  function goToRegister() {
-    navigate("/register");
-  }
+});
 </script>
 
-{#if authState.isAuthenticated}
-  <div class="max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
-    <h2 class="mb-4 text-2xl font-light text-card-foreground">
-      Welcome, {authState.user?.display_name || authState.user?.username}!
-    </h2>
-    <p class="mb-6 text-muted-foreground">
-      You are now logged in to your personal knowledge base.
+{#if !authState.isAuthenticated}
+  <div class="mx-auto max-w-lg py-16 text-center">
+    <h1 class="font-mono text-3xl font-bold text-foreground mb-3">HowCanI</h1>
+    <p class="text-lg text-muted-foreground mb-8 leading-relaxed">
+      Your personal knowledge base. Collect questions, write answers, organize with tags.
     </p>
 
-    <button
-      onclick={logout}
-      class="rounded-md bg-secondary px-6 py-2 text-sm font-medium uppercase tracking-wide text-secondary-foreground hover:bg-secondary/90"
-    >
-      Logout
-    </button>
-  </div>
-{:else}
-  <div class="max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
-    <h2 class="mb-4 text-2xl font-light text-card-foreground">Get Started</h2>
-    <p class="mb-6 text-muted-foreground">
-      To access your personal knowledge base, please login with your account or create a new one.
-    </p>
-
-    <div class="flex gap-3">
-      <button
-        onclick={goToLogin}
-        class="flex-1 rounded-md bg-primary px-6 py-2 text-sm font-medium uppercase tracking-wide text-primary-foreground hover:bg-primary/90"
+    <div class="flex gap-3 justify-center">
+      <a
+        href="/login"
+        use:link
+        class="font-mono text-sm rounded-md bg-primary px-6 py-2.5 text-primary-foreground hover:opacity-90 transition-opacity"
       >
         Login
-      </button>
-      <button
-        onclick={goToRegister}
-        class="flex-1 rounded-md border border-primary bg-transparent px-6 py-2 text-sm font-medium uppercase tracking-wide text-primary hover:bg-primary/10"
+      </a>
+      <a
+        href="/register"
+        use:link
+        class="font-mono text-sm rounded-md border border-border px-6 py-2.5 text-foreground hover:bg-muted transition-colors"
       >
         Create Account
-      </button>
+      </a>
     </div>
   </div>
 {/if}

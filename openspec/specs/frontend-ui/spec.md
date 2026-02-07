@@ -487,21 +487,33 @@ src/client/components/
     - Clickable for filtering
 ```
 
+## Frontend Architecture
+
+Pages and components access data through a service layer, not the API client directly:
+
+```
+Pages/Components  →  Service Layer (lib/*.svelte.ts)  →  API Client (lib/api.ts)
+```
+
+- **API Client** (`lib/api.ts`): Low-level HTTP requests, token management, type definitions
+- **Auth Service** (`lib/auth.svelte.ts`): App-wide reactive auth state (`$state`), login/register/logout flows
+- **Item Service** (`lib/items.svelte.ts`): Item data fetching, response unwrapping, business logic (truncation, formatting)
+
+Service modules unwrap `ApiResponse<T>` so pages receive clean data or thrown errors.
+
 ## State Management
 
 ```typescript
-// Root component state
-let currentUser = $state<User | null>(null);
-let jwt = $state<string | null>(localStorage.getItem('jwt'));
+// Auth state lives in auth.svelte.ts (reactive via $state)
+const authState = getAuthState(); // { user, isAuthenticated, isLoading, error }
 
-// Item list state
+// Token management lives in api.ts (localStorage persistence)
+setAccessToken(token); // persists to localStorage key "howcani_token"
+getAccessToken();      // reads current in-memory token
+
+// Page-level state uses Svelte 5 runes
 let items = $state<Item[]>([]);
 let loading = $state(false);
-let filters = $state({ search: '', tags: [] });
-
-// Modal state
-let showItemModal = $state(false);
-let editingItem = $state<Item | null>(null);
 ```
 
 ## Testing Requirements

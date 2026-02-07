@@ -26,6 +26,8 @@ export default {
     "/": index,
     "/login": index,
     "/register": index,
+    "/:username/items": index,
+    "/:username/items/:id": index,
   },
 
   async fetch(req: Request) {
@@ -44,9 +46,10 @@ export default {
       }
     }
 
-    // SPA fallback for other routes - serve the index HTML
-    // Bun will handle bundling the script automatically
-    return new Response(index as unknown as BodyInit);
+    // SPA fallback - return the index HTML for any unmatched route
+    return new Response(Bun.file("src/index.html").stream(), {
+      headers: { "Content-Type": "text/html" },
+    });
   },
 
   development: isDev,

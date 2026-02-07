@@ -8,7 +8,7 @@ interface AuthState {
   error: string | null;
 }
 
-let state: AuthState = $state({
+const state: AuthState = $state({
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -36,7 +36,7 @@ export async function login(username: string, password: string): Promise<boolean
     state.user = result.data.user;
     state.isAuthenticated = true;
     state.isLoading = false;
-    navigate("/");
+    navigate(`/${result.data.user.username}/items`);
     return true;
   }
 
@@ -44,11 +44,7 @@ export async function login(username: string, password: string): Promise<boolean
   return false;
 }
 
-export async function register(
-  username: string,
-  email: string,
-  password: string
-): Promise<boolean> {
+export async function register(username: string, email: string, password: string): Promise<boolean> {
   state.isLoading = true;
   state.error = null;
 
@@ -65,7 +61,7 @@ export async function register(
     state.user = result.data.user;
     state.isAuthenticated = true;
     state.isLoading = false;
-    navigate("/");
+    navigate(`/${result.data.user.username}/items`);
     return true;
   }
 
