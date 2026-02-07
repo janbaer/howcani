@@ -39,7 +39,7 @@
 
 - [x] 5.1 Run all tests and ensure they pass (129 pass, 0 fail)
 - [x] 5.2 Run linter and fix any issues (clean)
-- [ ] 5.3 Manual verification of API endpoints
+- [x] 5.3 Manual verification of API endpoints
 
 ## Dependencies
 

@@ -3,9 +3,7 @@
 ## Purpose
 
 Item management provides CRUD operations for FAQ entries. Items are the core content of the knowledge base, consisting of a question, markdown-formatted answer, and associated tags. Items are publicly readable but only editable by their owner.
-
 ## Requirements
-
 ### Requirement: Item Domain Model
 
 The system MUST define an Item entity representing FAQ entries.
@@ -43,6 +41,7 @@ The system MUST define an Item entity representing FAQ entries.
 
 **When** providing answer with markdown:
 ```markdown
+
 ## Steps
 1. First step
 2. Second step
