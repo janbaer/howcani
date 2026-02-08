@@ -24,16 +24,17 @@ async function handleSubmit(e: Event) {
 }
 </script>
 
-<div class="max-w-sm w-full mx-auto py-8">
-  <h2 class="mb-6 font-mono text-xl font-bold text-foreground">Login</h2>
+<div class="max-w-md w-full mx-auto py-8">
+  <div class="rounded-xl border border-border bg-card p-6 md:p-8">
+    <h2 class="mb-6 font-mono text-xl font-bold text-card-foreground">Login</h2>
 
-  {#if authState.error}
-    <div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-      {authState.error}
-    </div>
-  {/if}
+    {#if authState.error}
+      <div class="mb-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
+        {authState.error}
+      </div>
+    {/if}
 
-  <form onsubmit={handleSubmit} class="space-y-4">
+    <form onsubmit={handleSubmit} class="space-y-4">
     <div>
       <label for="username" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
         Username
@@ -71,10 +72,11 @@ async function handleSubmit(e: Event) {
     </button>
   </form>
 
-  <div class="mt-6 text-center text-sm text-muted-foreground">
-    Don't have an account?
-    <a href="/register" use:link onclick={() => clearError()} class="ml-1 text-primary hover:underline font-medium">
-      Create one
-    </a>
+    <div class="mt-6 text-center text-sm text-muted-foreground">
+      Don't have an account?
+      <a href="/register" use:link onclick={() => clearError()} class="ml-1 text-primary hover:underline font-medium">
+        Create one
+      </a>
+    </div>
   </div>
 </div>
