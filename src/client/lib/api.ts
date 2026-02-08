@@ -152,8 +152,30 @@ export interface TagListResponse {
   tags: TagWithCount[];
 }
 
+export interface TagUpdateData {
+  name?: string;
+  color?: string;
+}
+
+export interface TagUpdateResponse {
+  tag: Tag;
+}
+
 export const tags = {
   async list(username: string): Promise<ApiResponse<TagListResponse>> {
     return request<TagListResponse>(`/${username}/tags`);
+  },
+
+  async update(username: string, id: string, data: TagUpdateData): Promise<ApiResponse<TagUpdateResponse>> {
+    return request<TagUpdateResponse>(`/${username}/tags/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async delete(username: string, id: string): Promise<ApiResponse<{ success: boolean }>> {
+    return request<{ success: boolean }>(`/${username}/tags/${id}`, {
+      method: "DELETE",
+    });
   },
 };

@@ -44,6 +44,30 @@ export class TagRepository extends BaseRepository<Tag> {
     return db.query<Tag, [string, string]>(`SELECT * FROM tags WHERE id = ? AND user_id = ?`).get(id, userId);
   }
 
+  update(id: string, data: { name?: string; color?: string }): Tag | null {
+    const updates: string[] = [];
+    const values: string[] = [];
+
+    if (data.name !== undefined) {
+      updates.push("name = ?");
+      values.push(data.name);
+    }
+
+    if (data.color !== undefined) {
+      updates.push("color = ?");
+      values.push(data.color);
+    }
+
+    if (updates.length === 0) {
+      return this.findById(id);
+    }
+
+    values.push(id);
+    db.run(`UPDATE tags SET ${updates.join(", ")} WHERE id = ?`, values);
+
+    return this.findById(id);
+  }
+
   findByUserId(userId: string): TagWithCount[] {
     return db
       .query<TagWithCount, [string]>(

@@ -46,6 +46,62 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
       }),
     },
   )
+  .put(
+    "/:id",
+    ({ params, body, user, set }) => {
+      if (!user) {
+        set.status = StatusCodes.UNAUTHORIZED;
+        return {
+          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+        };
+      }
+
+      if (user.username !== params.username) {
+        set.status = StatusCodes.FORBIDDEN;
+        return {
+          error: {
+            message: "Not authorized to modify this user's content",
+            code: "FORBIDDEN",
+          },
+        };
+      }
+
+      const { tagService: sessionTagService } = getSession();
+      const result = sessionTagService.updateTag(params.id, {
+        name: body.name,
+        color: body.color,
+      });
+
+      if (!result.success) {
+        if (result.error.code === "NOT_FOUND") {
+          set.status = StatusCodes.NOT_FOUND;
+          return { error: { message: result.error.message, code: "NOT_FOUND" } };
+        }
+        if (result.error.code === "DUPLICATE_TAG") {
+          set.status = StatusCodes.BAD_REQUEST;
+          return { error: { message: result.error.message, code: "VALIDATION_ERROR" } };
+        }
+        if (result.error.code === "VALIDATION_ERROR") {
+          set.status = StatusCodes.BAD_REQUEST;
+          return { error: { message: result.error.message, code: "VALIDATION_ERROR" } };
+        }
+        set.status = StatusCodes.INTERNAL_SERVER_ERROR;
+        return { error: { message: result.error.message, code: result.error.code } };
+      }
+
+      return { tag: result.data };
+    },
+    {
+      params: t.Object({
+        username: t.String(),
+        id: t.String(),
+      }),
+      body: t.Object({
+        name: t.Optional(t.String()),
+        color: t.Optional(t.String()),
+      }),
+    },
+  )
   .delete(
     "/:id",
     ({ params, user, set }) => {

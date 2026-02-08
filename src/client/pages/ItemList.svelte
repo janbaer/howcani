@@ -81,6 +81,15 @@ function loadMore() {
   loadItems(true);
 }
 
+async function handleTagsChanged() {
+  await Promise.all([
+    fetchTags(username).then((data) => {
+      tagList = data;
+    }),
+    loadItems(false),
+  ]);
+}
+
 $effect(() => {
   const currentUsername = username;
   const currentSearch = searchQuery;
@@ -122,7 +131,7 @@ $effect(() => {
   <!-- Desktop tag sidebar -->
   {#if tagList.length > 0}
     <div class="hidden lg:block">
-      <TagSidebar tags={tagList} {selectedTags} onToggleTag={toggleTag} {isOwner} />
+      <TagSidebar tags={tagList} {selectedTags} onToggleTag={toggleTag} onTagsChanged={handleTagsChanged} {isOwner} />
     </div>
   {/if}
 

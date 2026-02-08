@@ -67,3 +67,19 @@ export function formatDate(dateStr: string): string {
     day: "numeric",
   });
 }
+
+export async function updateTag(username: string, id: string, data: { name?: string; color?: string }) {
+  const result = await tags.update(username, id, data);
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Failed to update tag");
+  }
+  return result.data.tag;
+}
+
+export async function deleteTag(username: string, id: string) {
+  const result = await tags.delete(username, id);
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Failed to delete tag");
+  }
+  return result.data;
+}
