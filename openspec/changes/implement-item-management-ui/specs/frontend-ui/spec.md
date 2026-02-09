@@ -2,98 +2,84 @@
 
 ### Requirement: Markdown Editor Integration
 
-The application SHALL provide a Carta-based markdown editor for item creation and editing.
+The application SHALL provide a CodeMirror-based markdown editor for item creation and editing.
 
-#### Scenario: Configure Carta with existing rendering pipeline
+#### Scenario: CodeMirror configuration
 
 **WHEN** the application initializes the markdown editor
 
 **THEN** the system SHALL:
-- Use Carta (`carta-md`) as the Svelte-native markdown editor component
-- Include `@cartamd/plugin-code` for syntax highlighting in code blocks
-- Configure Carta to use the existing Marked parser for markdown-to-HTML conversion
-- Configure Carta to use the existing DOMPurify sanitizer for XSS protection
-- Ensure preview pane renders markdown identically to the read-only item view
-- Apply existing `.prose` CSS class styling to the preview pane
+- Use CodeMirror 5 as the markdown editor component
+- Configure GitHub Flavored Markdown (GFM) mode for syntax highlighting
+- Enable line numbers and line wrapping
+- Support read-only mode for disabled state
+- Preserve cursor position when external value updates occur
+- Clean up editor instance on component unmount
 
-#### Scenario: Carta configuration code
+#### Scenario: CodeMirror Svelte wrapper
 
-**WHEN** setting up the Carta editor instance
+**WHEN** integrating CodeMirror with Svelte 5
+
+**THEN** the implementation SHALL:
+- Use `onMount` to dynamically import CodeMirror and initialize the editor
+- Use `$effect` to sync external value prop changes to editor
+- Use `$effect` to sync disabled prop to readonly option
+- Use `onDestroy` to call `toTextArea()` and clean up the instance
+- Bind to a hidden textarea element for CodeMirror initialization
+- Trigger `onChange` callback on editor change events
+
+#### Scenario: CodeMirror configuration code
+
+**WHEN** setting up the CodeMirror editor instance
 
 **THEN** the configuration SHALL match this pattern:
 
 ```typescript
-import { Carta } from 'carta-md';
-import { code } from '@cartamd/plugin-code';
-import DOMPurify from 'dompurify';
-import { marked } from 'marked';
-
-const carta = new Carta({
-  extensions: [code()],
-  renderers: [{
-    type: 'html',
-    render: (md: string) => {
-      const html = marked.parse(md) as string;
-      return DOMPurify.sanitize(html);
-    }
-  }]
+editor = CodeMirror.fromTextArea(editorElement, {
+  lineNumbers: true,
+  lineWrapping: true,
+  mode: {
+    name: "gfm",
+    highlightFormatting: true,
+  },
+  readOnly: disabled,
+  placeholder: placeholder || "Enter markdown here...",
 });
 ```
 
-#### Scenario: Carta editor features
-
-**WHEN** user interacts with the markdown editor
-
-**THEN** the editor SHALL provide:
-- Live side-by-side preview of markdown rendering
-- Syntax highlighting for markdown syntax in the editor
-- Toolbar with formatting shortcuts (bold, italic, heading, code, link)
-- Keyboard shortcuts (Ctrl+B for bold, Ctrl+I for italic, etc.)
-- Auto-completion of markdown pairs (`**`, `` ` ``, etc.)
-- Tab key handling for code block indentation
-
 #### Scenario: Dependencies added to package.json
 
-**WHEN** installing Carta dependencies
+**WHEN** installing CodeMirror dependencies
 
 **THEN** the system SHALL include:
-- `carta-md` version `^4.0.0` or compatible (~35KB gzipped)
-- `@cartamd/plugin-code` version `^4.0.0` or compatible (~15KB gzipped)
-- Keep existing `marked` version `^17.0.1` for rendering
-- Keep existing `dompurify` version `^3.3.1` for sanitization
+- `codemirror` version `^5.65.18`
+- Import `codemirror/lib/codemirror.css` for base styling
+- Import `codemirror/mode/gfm/gfm` for GitHub Flavored Markdown mode
 
-#### Scenario: Carta theme integration
+#### Scenario: CodeMirror theme integration
 
-**WHEN** styling the Carta editor
+**WHEN** styling the CodeMirror editor
 
 **THEN** the system SHALL:
-- Override Carta's default styles to match the application theme
+- Override CodeMirror's default styles to match the application theme
 - Use existing HSL CSS variables for colors (--background, --foreground, --border, etc.)
 - Apply monospace font (JetBrains Mono) to the editor
 - Support dark mode by inheriting CSS variable values
-- Apply existing `.prose` styles to the preview pane without modification
+- Style `.CodeMirror`, `.CodeMirror-gutters`, `.CodeMirror-linenumber`, `.CodeMirror-cursor`, and `.CodeMirror-selected` classes
 
 ## Implementation Notes
 
-### Carta CSS Bundling Workaround
+### CodeMirror Integration
 
-**Issue**: Carta's package exports include `export * from './default.css?inline'`, which uses Vite-specific `?inline` syntax that Bun cannot handle during bundling.
+**Decision**: CodeMirror 5 was chosen over Carta for better Svelte 5 compatibility and simpler integration.
 
-**Solution Implemented**:
-1. **Postinstall Script**: Added to `package.json` to automatically patch Carta after installation:
-   - Removes the problematic CSS export line from `node_modules/carta-md/dist/index.js`
-   - Removes the problematic CSS export line from `node_modules/@cartamd/plugin-code/dist/index.js`
-   - Copies CSS files to `public/` directory for direct serving
+**Implementation**:
+1. **Custom Svelte Wrapper**: Created `src/client/components/MarkdownEditor.svelte` to wrap CodeMirror
+2. **Dynamic Import**: CodeMirror is imported dynamically in `onMount` to avoid SSR issues
+3. **Reactive Sync**: `$effect` blocks keep editor state in sync with Svelte props
+4. **CSS Import**: CodeMirror CSS imported directly in component using static imports
 
-2. **Manual CSS Loading**: Added `<link>` tags in `src/index.html`:
-   ```html
-   <link rel="stylesheet" href="/carta.css" />
-   <link rel="stylesheet" href="/carta-code.css" />
-   ```
-
-3. **Theme Overrides**: Added Carta-specific CSS in `src/index.html` to match application theme using existing HSL CSS variables
-
-**Runtime**: The postinstall script runs automatically after `bun install`, ensuring the patch is always applied. No manual intervention required.
+**Theme Integration**: Added global CSS overrides in `src/index.html` using `:global(.CodeMirror)` selectors to match application theme colors and typography.
 
 ### Service Layer Architecture
 
