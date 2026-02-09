@@ -443,7 +443,7 @@ $effect(() => {
 {#if isOwner && itemList.length > 0}
 	<button
 		onclick={openCreateModal}
-		class="fixed bottom-6 right-6 rounded-full bg-primary p-4 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity z-10"
+		class="fixed bottom-6 right-6 rounded-full bg-primary p-4 text-primary-foreground shadow-lg hover:opacity-90 transition-opacity z-50"
 		aria-label="Add question"
 		title="Add question"
 	>
