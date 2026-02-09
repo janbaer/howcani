@@ -72,3 +72,48 @@ const carta = new Carta({
 - Apply monospace font (JetBrains Mono) to the editor
 - Support dark mode by inheriting CSS variable values
 - Apply existing `.prose` styles to the preview pane without modification
+
+## Implementation Notes
+
+### Carta CSS Bundling Workaround
+
+**Issue**: Carta's package exports include `export * from './default.css?inline'`, which uses Vite-specific `?inline` syntax that Bun cannot handle during bundling.
+
+**Solution Implemented**:
+1. **Postinstall Script**: Added to `package.json` to automatically patch Carta after installation:
+   - Removes the problematic CSS export line from `node_modules/carta-md/dist/index.js`
+   - Removes the problematic CSS export line from `node_modules/@cartamd/plugin-code/dist/index.js`
+   - Copies CSS files to `public/` directory for direct serving
+
+2. **Manual CSS Loading**: Added `<link>` tags in `src/index.html`:
+   ```html
+   <link rel="stylesheet" href="/carta.css" />
+   <link rel="stylesheet" href="/carta-code.css" />
+   ```
+
+3. **Theme Overrides**: Added Carta-specific CSS in `src/index.html` to match application theme using existing HSL CSS variables
+
+**Runtime**: The postinstall script runs automatically after `bun install`, ensuring the patch is always applied. No manual intervention required.
+
+### Service Layer Architecture
+
+The implementation follows the project's service layer pattern:
+- **Pages/Components** → `lib/items.svelte.ts` (service) → `lib/api.ts` (client)
+- Service layer unwraps `ApiResponse` types and throws errors for clean error handling
+- Components receive typed data or catch thrown errors
+
+### Optimistic Updates
+
+Both ItemList and ItemDetail implement optimistic updates:
+- UI updates immediately on user action
+- API call happens in background
+- On success: UI already reflects changes
+- On error: UI rolls back to previous state, error shown to user
+
+### Modal Pattern
+
+Used native `<dialog>` element with Svelte 5 reactivity:
+- `item: Item | null` prop controls open/close (null = closed, object = open)
+- `$effect(() => { if (item) dialog.showModal() })` pattern
+- ESC key handled by browser (dialog default behavior)
+- Focus management with `setTimeout(() => input?.focus(), 100)`

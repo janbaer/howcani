@@ -1,6 +1,15 @@
-import { type Item, type ItemListParams, type ItemListResponse, items, type TagWithCount, tags } from "./api";
+import {
+  type Item,
+  type ItemCreateData,
+  type ItemListParams,
+  type ItemListResponse,
+  type ItemUpdateData,
+  items,
+  type TagWithCount,
+  tags,
+} from "./api";
 
-export type { Item, TagWithCount };
+export type { Item, ItemCreateData, ItemUpdateData, TagWithCount };
 
 export async function fetchItems(username: string, params: ItemListParams = {}): Promise<ItemListResponse> {
   const result = await items.list(username, params);
@@ -16,6 +25,29 @@ export async function fetchItem(username: string, id: string): Promise<Item> {
     throw new Error(result.error?.message ?? "Question not found");
   }
   return result.data.item;
+}
+
+export async function createItem(username: string, data: ItemCreateData): Promise<Item> {
+  const result = await items.create(username, data);
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Failed to create question");
+  }
+  return result.data.item;
+}
+
+export async function updateItem(username: string, id: string, data: ItemUpdateData): Promise<Item> {
+  const result = await items.update(username, id, data);
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Failed to update question");
+  }
+  return result.data.item;
+}
+
+export async function deleteItem(username: string, id: string): Promise<void> {
+  const result = await items.delete(username, id);
+  if (result.error || !result.data) {
+    throw new Error(result.error?.message ?? "Failed to delete question");
+  }
 }
 
 export function truncateAnswer(answer: string, maxLen = 200): string {

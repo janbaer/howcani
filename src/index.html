@@ -162,13 +162,14 @@
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.75rem;
         line-height: 1.5;
-        background: hsl(200 15% 10%);
-        color: hsl(150 15% 72%);
+        background: hsl(var(--muted));
+        color: hsl(var(--foreground));
         padding: 0.75rem;
         border-radius: 6px;
         overflow: hidden;
         white-space: pre;
         max-height: 5rem;
+        border: 1px solid hsl(var(--border));
       }
 
       /* Scrollbar styling for tag sidebar */

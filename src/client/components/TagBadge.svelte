@@ -1,11 +1,11 @@
 <script lang="ts">
 interface Props {
   name: string;
-  color: string;
+  color?: string;
   onclick?: () => void;
 }
 
-const { name, color, onclick }: Props = $props();
+const { name, color = "#6366f1", onclick }: Props = $props();
 
 function hexToRgb(hex: string): string {
   const h = hex.replace("#", "");

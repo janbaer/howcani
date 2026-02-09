@@ -39,10 +39,18 @@ export default {
     }
 
     // Static files from public
-    if (url.pathname === "/favicon.png" || url.pathname === "/robots.txt") {
+    if (url.pathname === "/favicon.png" || url.pathname === "/robots.txt" || url.pathname.endsWith(".css")) {
       const file = Bun.file(`./public${url.pathname}`);
       if (await file.exists()) {
-        return new Response(file);
+        return new Response(file, {
+          headers: {
+            "Content-Type": url.pathname.endsWith(".css")
+              ? "text/css"
+              : url.pathname.endsWith(".png")
+                ? "image/png"
+                : "text/plain",
+          },
+        });
       }
     }
 

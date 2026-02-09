@@ -1,5 +1,6 @@
 <script lang="ts">
 import { getAuthState, logout } from "../lib/auth.svelte";
+import { openCreateModal } from "../lib/create-modal.svelte";
 import { getCurrentPath, getCurrentQuery, link, navigate } from "../lib/router.svelte";
 import { isDark, toggleTheme } from "../lib/theme.svelte";
 
@@ -123,9 +124,9 @@ function clearSearch() {
 
       {#if authState.isAuthenticated && authState.user}
         <button
-          disabled
-          class="ml-1 flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 font-mono text-xs font-medium text-primary-foreground opacity-50 cursor-not-allowed"
-          title="Coming soon"
+          onclick={openCreateModal}
+          class="ml-1 flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 font-mono text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+          title="Create a new question"
         >
           <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

@@ -125,6 +125,26 @@ export interface ItemListParams {
   tags?: string[];
 }
 
+export interface ItemCreateData {
+  question: string;
+  answer?: string;
+  tags?: string[];
+}
+
+export interface ItemUpdateData {
+  question?: string;
+  answer?: string;
+  tags?: string[];
+}
+
+export interface ItemCreateResponse {
+  item: Item;
+}
+
+export interface ItemUpdateResponse {
+  item: Item;
+}
+
 export const items = {
   async list(username: string, params: ItemListParams = {}): Promise<ApiResponse<ItemListResponse>> {
     const query = new URLSearchParams();
@@ -139,6 +159,26 @@ export const items = {
 
   async getById(username: string, id: string): Promise<ApiResponse<{ item: Item }>> {
     return request<{ item: Item }>(`/${username}/items/${id}`);
+  },
+
+  async create(username: string, data: ItemCreateData): Promise<ApiResponse<ItemCreateResponse>> {
+    return request<ItemCreateResponse>(`/${username}/items`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async update(username: string, id: string, data: ItemUpdateData): Promise<ApiResponse<ItemUpdateResponse>> {
+    return request<ItemUpdateResponse>(`/${username}/items/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async delete(username: string, id: string): Promise<ApiResponse<{ success: boolean }>> {
+    return request<{ success: boolean }>(`/${username}/items/${id}`, {
+      method: "DELETE",
+    });
   },
 };
 
