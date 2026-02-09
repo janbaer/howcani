@@ -26,46 +26,55 @@ Recent work on tag management UI established patterns for modal-based editing us
 - Integrate tag autocomplete for efficient tagging
 
 **Non-Goals:**
-- WYSIWYG markdown editor (Carta provides syntax highlighting, not visual formatting)
+- WYSIWYG markdown editor (CodeMirror provides syntax highlighting, not visual formatting)
 - Offline editing or draft persistence (items are created/updated immediately)
 - Collaborative editing or conflict resolution
 - Markdown templates or snippets (can be added later if requested)
-- Mobile-optimized editor (Carta works on mobile but isn't specifically optimized)
+- Advanced editor features (autocomplete, linting can be added later if needed)
 
 ## Decisions
 
-### 1. Markdown Editor: Carta
+### 1. Markdown Editor: CodeMirror
 
-**Decision:** Use Carta (`carta-md` + `@cartamd/plugin-code`) for the markdown editor.
+**Decision:** Use CodeMirror 5 with GitHub Flavored Markdown mode via a custom Svelte wrapper.
 
 **Rationale:**
-- **Svelte-native:** Built as a Svelte component, integrates naturally with runes and reactivity
-- **Developer UX:** Syntax highlighting and live preview help developers see structure while writing
-- **Pipeline integration:** Can configure Carta to use existing Marked + DOMPurify rendering, maintaining security and consistency
-- **Bundle size:** ~50KB for core + code highlighting is reasonable for the editing experience gained
+- **Proven compatibility:** CodeMirror 5 has excellent Svelte 5 compatibility through custom wrappers
+- **Developer UX:** Syntax highlighting for markdown with line numbers provides clear visual structure
+- **Lightweight:** ~40KB for core + GFM mode, smaller than initially estimated
+- **Mature ecosystem:** Battle-tested editor with extensive documentation and community support
+- **Clean integration:** Custom Svelte wrapper gives full control over initialization and reactivity
+- **Why not Carta:** Initial choice, but encountered Svelte 5 compatibility issues during implementation. CodeMirror proved more reliable with better integration patterns.
 - **Alternatives considered:**
-  - Plain textarea + preview toggle (~0KB): Too minimal, no visual feedback while typing
-  - CodeMirror 6 (~100KB): Too heavy, overkill for FAQ answers
-  - EasyMDE (~50KB): Not Svelte-native, aging codebase
+  - Plain textarea (~0KB): Too minimal, no syntax feedback
+  - CodeMirror 6 (~100KB): Modern but heavier, unnecessary for our use case
+  - Carta (~50KB): Svelte-native but compatibility issues with Svelte 5 + native `<dialog>`
 
-**Configuration:**
+**Implementation:**
 ```typescript
-import { Carta } from 'carta-md';
-import { code } from '@cartamd/plugin-code';
+// Custom Svelte wrapper component
+editor = CodeMirror.fromTextArea(editorElement, {
+  lineNumbers: true,
+  lineWrapping: true,
+  mode: {
+    name: "gfm",
+    highlightFormatting: true,
+  },
+  readOnly: disabled,
+  placeholder: placeholder || "Enter markdown here...",
+});
 
-const carta = new Carta({
-  extensions: [code()],
-  renderers: [{
-    type: 'html',
-    render: (md: string) => {
-      const html = marked.parse(md) as string;
-      return DOMPurify.sanitize(html);
-    }
-  }]
+// Sync with Svelte state using $effect
+$effect(() => {
+  if (editor && editor.getValue() !== value) {
+    const cursor = editor.getCursor();
+    editor.setValue(value || "");
+    editor.setCursor(cursor);
+  }
 });
 ```
 
-This configuration uses our existing rendering pipeline in the preview pane, ensuring markdown renders identically in the editor preview and the final item view.
+The custom wrapper handles initialization in `onMount`, cleanup in `onDestroy`, and bidirectional sync with Svelte state using `$effect` runes. Markdown renders using the existing Marked + DOMPurify pipeline in read-only views.
 
 ### 2. Single Modal for Create/Edit
 
@@ -175,19 +184,19 @@ try {
 
 ## Risks / Trade-offs
 
-### Risk: Bundle Size Impact (~50KB)
+### Risk: Bundle Size Impact (~40KB)
 
 **Mitigation:**
-- Carta + code plugin is ~50KB gzipped, acceptable for personal tool
+- CodeMirror 5 + GFM mode is ~40KB gzipped, acceptable for personal tool
 - No other heavy dependencies added
-- Can lazy-load Carta if needed (only load when modal opens)
+- Can lazy-load CodeMirror if needed (only load when modal opens)
 
-### Risk: Carta Theming Complexity
+### Risk: CodeMirror Theming Complexity
 
 **Mitigation:**
-- Carta provides CSS classes that can be overridden
-- Preview pane uses existing `.prose` styles automatically
-- Test dark mode carefully during implementation
+- CodeMirror provides CSS classes that can be overridden with global styles
+- Uses existing HSL CSS variables for dark mode compatibility
+- Successfully tested in both light and dark modes
 
 ### Risk: Tag Autocomplete UX on Mobile
 
@@ -206,24 +215,25 @@ try {
 ### Risk: Markdown Editor Accessibility
 
 **Mitigation:**
-- Carta supports keyboard navigation
+- CodeMirror supports full keyboard navigation
 - Test with screen readers if needed
-- Toolbar buttons have ARIA labels
+- Editor is a standard textarea element (good accessibility baseline)
 
 ## Migration Plan
 
 No migration needed - this is additive functionality. Existing read-only browsing continues to work during implementation.
 
 **Deployment:**
-1. Add Carta dependencies to package.json
-2. Implement API client and service layer methods
-3. Create modal components
-4. Wire up UI triggers (buttons)
-5. Test create/edit/delete flows
-6. Deploy (no breaking changes)
+1. Add CodeMirror to package.json
+2. Create custom MarkdownEditor Svelte wrapper component
+3. Implement API client and service layer methods
+4. Create modal components (ItemFormModal, ItemDeleteConfirmModal)
+5. Wire up UI triggers (buttons, floating add button)
+6. Test create/edit/delete flows on desktop and mobile
+7. Deploy (no breaking changes)
 
 **Rollback:**
-- If Carta has issues, can quickly revert to disabled "Add Item" button
+- If issues arise, can quickly revert to disabled "Add Item" button
 - Backend endpoints unaffected, read-only browsing still works
 - No database migrations or data changes
 
