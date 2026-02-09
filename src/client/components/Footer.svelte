@@ -2,7 +2,7 @@
 const currentYear = new Date().getFullYear();
 </script>
 
-<footer class="border-t border-border bg-card">
+<footer class="sticky bottom-0 z-40 border-t border-border bg-card">
   <div class="mx-auto flex h-10 max-w-7xl items-center justify-center px-4 text-xs text-muted-foreground">
     <span class="font-mono">HowCanI - Copyright {currentYear} by</span>
     <a

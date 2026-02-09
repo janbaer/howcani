@@ -50,7 +50,7 @@ function clearSearch() {
 </script>
 
 <!-- Desktop header -->
-<header class="hidden md:block border-b border-border bg-card">
+<header class="sticky top-0 z-50 hidden md:block border-b border-border bg-card">
   <div class="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
     <!-- Logo -->
     <a href="/" use:link class="flex items-center gap-2 shrink-0">
@@ -153,7 +153,7 @@ function clearSearch() {
 </header>
 
 <!-- Mobile header -->
-<header class="md:hidden bg-primary">
+<header class="sticky top-0 z-50 md:hidden bg-primary">
   <div class="flex h-14 items-center justify-between px-4">
     <a href="/" use:link class="font-mono text-xl font-bold text-primary-foreground">
       HowCanI
