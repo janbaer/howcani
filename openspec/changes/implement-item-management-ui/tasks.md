@@ -74,15 +74,15 @@
 
 ## 7. ItemDetail Page Integration
 
-- [ ] 7.1 Add edit/delete buttons to detail page header (always visible, not hover)
-- [ ] 7.2 Add state for edit modal: `let editingItem = $state<Item | null>(null)`
-- [ ] 7.3 Add state for delete modal: `let deletingItem = $state<Item | null>(null)`
-- [ ] 7.4 Wire edit button click to open ItemFormModal with current item
-- [ ] 7.5 Wire delete button click to open ItemDeleteConfirmModal
-- [ ] 7.6 Show edit/delete buttons only if isOwner (check authState)
-- [ ] 7.7 On successful edit, update item display optimistically
-- [ ] 7.8 On successful delete, navigate back to item list (`/{username}/items`)
-- [ ] 7.9 Add rollback logic on error (restore original item, show error)
+- [x] 7.1 Add edit/delete buttons to detail page metadata section (always visible, not hover)
+- [x] 7.2 Add state for edit modal: `let editingItem = $state<Item | null>(null)`
+- [x] 7.3 Add state for delete modal: `let deletingItem = $state<Item | null>(null)`
+- [x] 7.4 Wire edit button click to open ItemFormModal with current item
+- [x] 7.5 Wire delete button click to open ItemDeleteConfirmModal
+- [x] 7.6 Show edit/delete buttons only if isOwner (check authState)
+- [x] 7.7 On successful edit, update item display optimistically
+- [x] 7.8 On successful delete, navigate back to item list (`/{username}/items`)
+- [x] 7.9 Add rollback logic on error (restore original item, show error)
 
 ## 8. CodeMirror Theme Styling
 
