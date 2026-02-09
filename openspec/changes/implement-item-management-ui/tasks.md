@@ -96,12 +96,12 @@
 
 ## 9. Mobile Responsiveness
 
-- [ ] 9.1 Test ItemFormModal on mobile viewport (375px width)
-- [ ] 9.2 Ensure Carta editor is usable on touch devices (toolbar, preview toggle)
-- [ ] 9.3 Test tag autocomplete dropdown on mobile (tap targets, scrolling)
-- [ ] 9.4 Verify "Add Item" button placement on mobile (accessible, not obscured)
-- [ ] 9.5 Test edit/delete buttons on item cards on mobile (touch-friendly)
-- [ ] 9.6 Ensure modal scrolls properly if content exceeds viewport height
+- [x] 9.1 Test ItemFormModal on mobile viewport (375px width)
+- [x] 9.2 Test CodeMirror editor on touch devices (visible, line numbers, touch-friendly)
+- [x] 9.3 Test tag autocomplete dropdown on mobile (tap targets, accessible)
+- [x] 9.4 Verify "Add Item" button placement on mobile (floating button accessible)
+- [x] 9.5 Test edit/delete buttons on item cards on mobile (visible and accessible)
+- [x] 9.6 Ensure modal scrolls properly if content exceeds viewport height
 
 ## 10. Testing & Verification
 
@@ -118,7 +118,7 @@
 - [x] 10.11 Manual test: Error display in modal
 - [x] 10.12 Manual test: isOwner controls visibility of edit/delete buttons on cards
 - [ ] 10.13 Manual test: Non-owners cannot see management controls (needs multi-user test)
-- [ ] 10.14 Test on mobile: Create, edit, delete flows work on touch
+- [x] 10.14 Test on mobile: Create, edit, delete flows work on touch
 - [x] 10.15 Run linter: `bun run lint` (passing)
 - [x] 10.16 Verify no console errors (browser console clean)
 - [x] 10.17 Test dark mode: All components render correctly in dark mode
