@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, test } from "bun:test";
-import { setupTestDatabase } from "../db/test-helpers";
+import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
+import { clearTestDatabase, setupTestDatabase } from "../db/test-helpers";
 import { ItemRepository } from "./item.repository";
 import { TagRepository } from "./tag.repository";
 import { UserRepository } from "./user.repository";
@@ -10,8 +10,12 @@ describe("TagRepository Integration Tests", () => {
   let itemRepo: ItemRepository;
   let testUserId: string;
 
-  beforeEach(() => {
+  beforeAll(() => {
     setupTestDatabase();
+  });
+
+  beforeEach(() => {
+    clearTestDatabase();
 
     tagRepo = new TagRepository();
     userRepo = new UserRepository();
@@ -189,6 +193,53 @@ describe("TagRepository Integration Tests", () => {
       const suggestions = tagRepo.findSuggestions(testUserId, "xyz");
 
       expect(suggestions).toEqual([]);
+    });
+  });
+
+  describe("update", () => {
+    test("updates tag name", () => {
+      const tag = tagRepo.create({ userId: testUserId, name: "old-name" });
+
+      const updated = tagRepo.update(tag.id, { name: "new-name" });
+
+      expect(updated).not.toBeNull();
+      expect(updated?.name).toBe("new-name");
+      expect(updated?.color).toBe(tag.color);
+    });
+
+    test("updates tag color", () => {
+      const tag = tagRepo.create({ userId: testUserId, name: "bun" });
+
+      const updated = tagRepo.update(tag.id, { color: "ff0000" });
+
+      expect(updated).not.toBeNull();
+      expect(updated?.color).toBe("ff0000");
+      expect(updated?.name).toBe("bun");
+    });
+
+    test("updates both name and color", () => {
+      const tag = tagRepo.create({ userId: testUserId, name: "old", color: "000000" });
+
+      const updated = tagRepo.update(tag.id, { name: "new", color: "ffffff" });
+
+      expect(updated).not.toBeNull();
+      expect(updated?.name).toBe("new");
+      expect(updated?.color).toBe("ffffff");
+    });
+
+    test("returns existing tag when no fields provided", () => {
+      const tag = tagRepo.create({ userId: testUserId, name: "bun" });
+
+      const updated = tagRepo.update(tag.id, {});
+
+      expect(updated).not.toBeNull();
+      expect(updated?.name).toBe("bun");
+    });
+
+    test("returns null for non-existent tag", () => {
+      const updated = tagRepo.update("nonexistent", { name: "new" });
+
+      expect(updated).toBeNull();
     });
   });
 

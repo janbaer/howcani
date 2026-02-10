@@ -45,6 +45,50 @@ const mockTagService = {
       .sort();
     return createSuccessResult(suggestions);
   }),
+  updateTag: mock((tagId: string, data: { name?: string; color?: string }): TagResult<Tag> => {
+    if (!currentSessionUserId) {
+      throw new Error("No session user ID set");
+    }
+    const userId = currentSessionUserId;
+    const tag = testTags.get(tagId);
+    if (!tag || tag.user_id !== userId) {
+      return createErrorResult("NOT_FOUND", "Tag not found");
+    }
+
+    // Validate name if provided
+    if (data.name !== undefined) {
+      const trimmedName = data.name.trim();
+      if (!trimmedName) {
+        return createErrorResult("VALIDATION_ERROR", "Tag name cannot be empty");
+      }
+      // Check for duplicate (case-insensitive), but allow keeping the same name
+      if (trimmedName.toLowerCase() !== tag.name.toLowerCase()) {
+        const duplicate = Array.from(testTags.values()).find(
+          (t) => t.user_id === userId && t.name.toLowerCase() === trimmedName.toLowerCase(),
+        );
+        if (duplicate) {
+          return createErrorResult("DUPLICATE_TAG", `Tag '${trimmedName}' already exists`);
+        }
+      }
+    }
+
+    // Validate color format if provided
+    if (data.color !== undefined) {
+      const hexRegex = /^[0-9a-fA-F]{6}$/;
+      if (!hexRegex.test(data.color)) {
+        return createErrorResult("VALIDATION_ERROR", "Invalid color format");
+      }
+    }
+
+    // Update tag
+    const updated: Tag = {
+      ...tag,
+      name: data.name?.trim() ?? tag.name,
+      color: data.color ?? tag.color,
+    };
+    testTags.set(tagId, updated);
+    return createSuccessResult(updated);
+  }),
   deleteTag: mock((tagId: string): TagResult<{ deleted: true }> => {
     if (!currentSessionUserId) {
       throw new Error("No session user ID set");
@@ -54,11 +98,9 @@ const mockTagService = {
     if (!tag || tag.user_id !== userId) {
       return createErrorResult("NOT_FOUND", "Tag not found");
     }
-    const itemCount = tagItemCounts.get(tagId) ?? 0;
-    if (itemCount > 0) {
-      return createErrorResult("TAG_IN_USE", "Cannot delete tag in use");
-    }
+    // Allow deletion even if tag is in use (cascade delete)
     testTags.delete(tagId);
+    tagItemCounts.delete(tagId);
     return createSuccessResult({ deleted: true });
   }),
 };
@@ -335,7 +377,7 @@ describe("Tag Routes", () => {
       expect(res.status).toBe(StatusCodes.FORBIDDEN);
     });
 
-    test("returns 409 when tag is in use", async () => {
+    test("allows deletion of tag in use (cascade delete)", async () => {
       const { token, userId } = await registerAndLogin("john", "john@example.com");
       const tag = createTag(userId, "bun", 1);
 
@@ -346,9 +388,10 @@ describe("Tag Routes", () => {
         }),
       );
 
-      expect(res.status).toBe(StatusCodes.CONFLICT);
+      expect(res.status).toBe(StatusCodes.OK);
       const data = await res.json();
-      expect(data.error.message).toBe("Cannot delete tag in use");
+      expect(data.success).toBe(true);
+      expect(testTags.has(tag.id)).toBe(false);
     });
 
     test("returns 404 for non-existent tag", async () => {
@@ -362,6 +405,176 @@ describe("Tag Routes", () => {
       );
 
       expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    });
+  });
+
+  describe("PUT /api/:username/tags/:id - Update Tag", () => {
+    test("updates tag name when authenticated", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "bun-runtime" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.tag.name).toBe("bun-runtime");
+      expect(data.tag.color).toBe("0e8a16"); // unchanged
+    });
+
+    test("updates tag color when authenticated", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ color: "ff5722" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.tag.name).toBe("bun"); // unchanged
+      expect(data.tag.color).toBe("ff5722");
+    });
+
+    test("updates both name and color", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "TypeScript", color: "2196f3" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.tag.name).toBe("TypeScript");
+      expect(data.tag.color).toBe("2196f3");
+    });
+
+    test("returns 401 when not authenticated", async () => {
+      const { userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "test");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "updated" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+
+    test("returns 403 when username mismatch", async () => {
+      const john = await registerAndLogin("john", "john@example.com");
+      const alice = await registerAndLogin("alice", "alice@example.com");
+      const tag = createTag(john.userId, "test");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(alice.token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "updated" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.FORBIDDEN);
+    });
+
+    test("returns 404 for non-existent tag", async () => {
+      const { token } = await registerAndLogin("john", "john@example.com");
+
+      const res = await app.handle(
+        new Request("http://localhost/api/john/tags/nonexistent", {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "updated" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    });
+
+    test("returns 400 for duplicate tag name (case-insensitive)", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      createTag(userId, "typescript");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "TypeScript" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      const data = await res.json();
+      expect(data.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("allows keeping the same name with different case", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "BUN" }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.tag.name).toBe("BUN");
+    });
+
+    test("returns 400 for invalid color format", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ color: "#ff5722" }), // # prefix not allowed
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      const data = await res.json();
+      expect(data.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("returns 400 for empty tag name", async () => {
+      const { token, userId } = await registerAndLogin("john", "john@example.com");
+      const tag = createTag(userId, "bun");
+
+      const res = await app.handle(
+        new Request(`http://localhost/api/john/tags/${tag.id}`, {
+          method: "PUT",
+          headers: { ...authHeader(token), "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "  " }),
+        }),
+      );
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+      const data = await res.json();
+      expect(data.error.code).toBe("VALIDATION_ERROR");
     });
   });
 });

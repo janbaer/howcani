@@ -1,12 +1,16 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
 import { type CreateUserDTO, type User, UserRepository } from "../../repositories/user.repository";
-import { setupTestDatabase } from "../test-helpers";
+import { clearTestDatabase, setupTestDatabase } from "../test-helpers";
 
 describe("UserRepository Integration Tests", () => {
   let userRepo: UserRepository;
 
-  beforeEach(() => {
+  beforeAll(() => {
     setupTestDatabase();
+  });
+
+  beforeEach(() => {
+    clearTestDatabase();
     userRepo = new UserRepository();
   });
 

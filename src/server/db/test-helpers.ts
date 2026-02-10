@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { setDatabase } from "./database";
+import { db, setDatabase } from "./database";
 import { runMigrations } from "./migrations";
 
 export function setupTestDatabase(): void {
@@ -10,6 +10,11 @@ export function setupTestDatabase(): void {
   runMigrations();
 }
 
-export function teardownTestDatabase(): void {
-  // no-op: next setupTestDatabase() auto-closes the previous DB via setDatabase()
+export function clearTestDatabase(): void {
+  db.run("PRAGMA foreign_keys = OFF");
+  db.run("DELETE FROM item_tags");
+  db.run("DELETE FROM items");
+  db.run("DELETE FROM tags");
+  db.run("DELETE FROM users");
+  db.run("PRAGMA foreign_keys = ON");
 }

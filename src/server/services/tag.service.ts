@@ -1,11 +1,12 @@
-import { randomColor, type Tag, type TagWithCount } from "../domain/tag";
+import { randomColor, type Tag, type TagWithCount, validateTagColor, validateTagName } from "../domain/tag";
 import { tagRepository } from "../repositories";
 import { userService } from "./user.service";
 
 export type TagError =
   | { code: "USER_NOT_FOUND"; message: string }
   | { code: "NOT_FOUND"; message: string }
-  | { code: "TAG_IN_USE"; message: string };
+  | { code: "VALIDATION_ERROR"; message: string }
+  | { code: "DUPLICATE_TAG"; message: string };
 
 type Result<T> = { success: true; data: T } | { success: false; error: TagError };
 
@@ -91,21 +92,70 @@ export class TagService {
     return tagRepository.getTagsForItem(itemId);
   }
 
+  updateTag(tagId: string, data: { name?: string; color?: string }): Result<Tag> {
+    const tag = tagRepository.findByIdAndUserId(tagId, this.userId);
+    if (!tag) {
+      return createError("NOT_FOUND", "Tag not found");
+    }
+
+    // Validate name if provided
+    if (data.name !== undefined) {
+      const nameValidation = validateTagName(data.name);
+      if (!nameValidation.valid) {
+        return createError("VALIDATION_ERROR", nameValidation.errors[0]);
+      }
+
+      // Check for duplicate name (case-insensitive)
+      const trimmedName = data.name.trim();
+      if (trimmedName.toLowerCase() !== tag.name.toLowerCase()) {
+        const existing = tagRepository.findByNameAndUserId(trimmedName, this.userId);
+        if (existing) {
+          return createError("DUPLICATE_TAG", `Tag '${trimmedName}' already exists`);
+        }
+      }
+    }
+
+    // Validate color if provided
+    if (data.color !== undefined) {
+      const colorValidation = validateTagColor(data.color);
+      if (!colorValidation.valid) {
+        return createError("VALIDATION_ERROR", colorValidation.errors[0]);
+      }
+    }
+
+    // Update tag
+    const updated = tagRepository.update(tagId, data);
+    if (!updated) {
+      return createError("NOT_FOUND", "Tag not found");
+    }
+
+    // Update cache
+    if (this.cache) {
+      this.cache.tags.set(tagId, updated);
+    }
+
+    return { success: true, data: updated };
+  }
+
   deleteTag(tagId: string): Result<{ deleted: true }> {
     const tag = tagRepository.findByIdAndUserId(tagId, this.userId);
     if (!tag) {
       return createError("NOT_FOUND", "Tag not found");
     }
 
-    const itemCount = tagRepository.getItemCountForTag(tagId);
-    if (itemCount > 0) {
-      return createError("TAG_IN_USE", "Cannot delete tag in use");
-    }
-
+    // Delete the tag (cascade deletes item_tags associations via DB constraint)
     tagRepository.delete(tagId);
 
+    // Update cache
     if (this.cache) {
       this.cache.tags.delete(tagId);
+      // Remove tag from all items in cache
+      for (const [itemId, tagIds] of this.cache.itemTags.entries()) {
+        const filtered = tagIds.filter((id) => id !== tagId);
+        if (filtered.length !== tagIds.length) {
+          this.cache.itemTags.set(itemId, filtered);
+        }
+      }
     }
 
     return { success: true, data: { deleted: true } };

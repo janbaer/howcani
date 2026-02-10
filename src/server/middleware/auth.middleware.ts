@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { StatusCodes } from "http-status-codes";
 import { extractBearerToken, type TokenPayload, verifyToken } from "../auth";
+import { initSession } from "../services/session";
 
 export function assertAuthenticated(user: TokenPayload | null): asserts user is TokenPayload {
   if (!user) {
@@ -17,6 +18,12 @@ export const authPlugin = new Elysia({ name: "auth" })
     }
 
     const payload = await verifyToken(token);
+
+    // Initialize session for authenticated requests
+    if (payload) {
+      initSession(payload.userId, payload.username);
+    }
+
     return { user: payload };
   })
   .macro({
