@@ -1,10 +1,4 @@
-# Tag Management Specification
-
-## Purpose
-
-Tag management provides organization and categorization of FAQ items through colored labels. Tags are created automatically when used, with suggestions to prevent duplicates. Each user has their own tag namespace.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Tag Domain Model
 
@@ -130,18 +124,6 @@ The system MUST suggest existing tags to prevent duplicates.
 - Return status `StatusCodes.OK`
 - Return empty array: []
 
-#### Scenario: Suggestions help prevent typos
-
-**Given** user "john" has tag "kubernetes"
-
-**When** creating item and typing "kubern" in tag field
-
-**Then** the UI should:
-- Query `/api/john/tags/suggestions?q=kubern`
-- Show suggestion "kubernetes"
-- Allow user to select existing tag
-- Prevent creating "kubernets" or similar typos
-
 ### Requirement: List Tags
 
 The system MUST provide tag listing with item counts.
@@ -157,17 +139,7 @@ The system MUST provide tag listing with item counts.
 
 **Then** the system should:
 - Return status `StatusCodes.OK`
-- Return all tags with:
-```json
-{
-  "tags": [
-    { "id": 1, "name": "bun", "color": "0e8a16", "item_count": 5 },
-    { "id": 2, "name": "deployment", "color": "ff5722", "item_count": 3 },
-    { "id": 3, "name": "networking", "color": "2196f3", "item_count": 0 }
-  ]
-}
-```
-- Include item_count for each tag
+- Return all tags with item_count
 - Order by name alphabetically
 - No authentication required
 
@@ -181,8 +153,7 @@ The system MUST provide tag listing with item counts.
 
 **Then** the system should:
 - Return only john's tags: ["bun", "networking"]
-- Not include alice's "python" tag
-- Even though both have "bun", return john's instance
+- Not include alice's tags
 
 ### Requirement: Tag Cleanup
 
@@ -192,11 +163,10 @@ Unused tags SHALL be cleanable but not auto-deleted.
 
 **Given** user "john" has tag "old-tag" with 0 associated items
 
-**When** considering deletion
+**When** owner deletes the tag
 
 **Then** the system should:
 - Allow deletion (no items will be affected)
-- Clean up unused tags is manual operation
 - Tags not auto-deleted when last item removed (keep for reuse)
 
 #### Scenario: Cannot delete tag in use
@@ -208,7 +178,6 @@ Unused tags SHALL be cleanable but not auto-deleted.
 **Then** the system should:
 - Reject deletion attempt
 - Return error: "Cannot delete tag in use"
-- Suggest removing tag from items first
 - Protect data integrity
 
 ### Requirement: Item-Tag Association
@@ -224,34 +193,6 @@ The system MUST manage many-to-many relationships between items and tags.
 **Then** the system should:
 - Create entries in item_tags junction table
 - One row per item-tag pair
-- Allow querying items by tag
-- Allow querying tags for item
-
-### Requirement: Cross-Service Tag Operations
-
-TagService MUST expose methods for other services to manage item-tag associations.
-
-#### Scenario: Set tags for an item
-
-**Given** ItemService needs to associate tags with an item
-
-**When** calling `tagService.setItemTags(itemId, tagIds)`
-
-**Then** TagService should:
-- Replace all existing tag associations for the item
-- Create new associations for provided tagIds
-- Handle atomic update (all or nothing)
-
-#### Scenario: Get tags for an item
-
-**Given** ItemService needs to retrieve tags for an item
-
-**When** calling `tagService.findTagsForItem(itemId)`
-
-**Then** TagService should:
-- Return array of Tag objects associated with the item
-- Return empty array if no tags
-- Not require userId (itemId is sufficient)
 
 #### Scenario: Update item tags removes old associations
 
@@ -275,164 +216,3 @@ TagService MUST expose methods for other services to manage item-tag association
 - Remove all tag associations for item 123
 - Keep tags themselves (for use with other items)
 - Item has no tags but is still valid
-
-## Database Schema
-
-### Tags Table
-
-```sql
-CREATE TABLE tags (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL COLLATE NOCASE,
-    color TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE(user_id, name COLLATE NOCASE)
-);
-
-CREATE INDEX idx_tags_user_id ON tags(user_id);
-CREATE INDEX idx_tags_name ON tags(name COLLATE NOCASE);
-```
-
-### Item-Tag Junction Table
-
-```sql
-CREATE TABLE item_tags (
-    item_id INTEGER NOT NULL,
-    tag_id INTEGER NOT NULL,
-    PRIMARY KEY (item_id, tag_id),
-    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_item_tags_tag_id ON item_tags(tag_id);
-```
-
-## API Endpoints
-
-```
-GET /api/:username/tags
-  Response: { tags: [{ id, name, color, item_count }] }
-  Auth: None
-
-GET /api/:username/tags/suggestions?q=prefix
-  Response: { suggestions: ["tag1", "tag2"] }
-  Auth: None
-```
-
-Note: Tag creation happens implicitly through item operations, not via explicit POST endpoint.
-
-## Testing Requirements
-
-- Test-first for domain model, service, and repository
-- Test case-insensitive uniqueness
-- Test color validation (valid/invalid hex)
-- Test auto-creation on item operations
-- Test tag suggestions with various queries
-- Test tag cleanup scenarios
-- Test item-tag association updates
-- Layered test isolation:
-  - Route tests: Mock services using `mock.module()`
-  - Service tests: Mock repositories using `mock.module()`
-  - Repository tests: Use in-memory SQLite for integration tests
-
-## Implementation Notes
-
-### Domain Layer Structure
-
-```
-src/server/domain/tag.ts
-  - Tag interface/class
-  - Validation logic (color hex, name)
-  - Business rules
-
-src/server/domain/tag.spec.ts
-  - Unit tests for Tag domain
-
-src/server/repositories/tag.repository.ts
-  - TagRepository class
-  - CRUD operations
-  - Suggestion queries
-  - Item count queries
-
-src/server/repositories/tag.repository.spec.ts
-  - Integration tests with in-memory SQLite
-
-src/server/services/tag.service.ts
-  - TagService class
-  - Business logic orchestration
-  - Tag resolution and creation
-  - Delete validation (check tag in use)
-
-src/server/services/tag.service.spec.ts
-  - Unit tests with mocked repository
-
-src/server/routes/tag.routes.ts
-  - Elysia route handlers
-  - List tags
-  - Suggestions
-  - Delete tag
-
-src/server/routes/tag.routes.spec.ts
-  - Route tests with mocked service
-```
-
-### TagService Public Methods (CRUD naming)
-
-TagService instances are created per-session with userId in constructor. Methods no longer require userId parameter for session-scoped operations.
-
-| Method | Description | Used By |
-|--------|-------------|---------|
-| `constructor(userId)` | Create session-scoped TagService with cache | Session module |
-| `resolveOrCreateTags(tagNames)` | Find or create tags by name | ItemService |
-| `setItemTags(itemId, tagIds)` | Set tag associations for item | ItemService |
-| `findTagsForItem(itemId)` | Get tags for an item (uses cache) | ItemService |
-| `listTags(username)` | List all tags for user (public access) | Routes |
-| `getSuggestions(username, prefix)` | Get tag suggestions (public access) | Routes |
-| `deleteTag(tagId)` | Delete unused tag (also removes from cache) | Routes |
-
-### Tag Caching
-
-To avoid N+1 queries when listing items with tags, TagService maintains an in-memory cache per user:
-
-```typescript
-interface UserTagCache {
-  tags: Map<string, Tag>;           // tagId → Tag
-  itemTags: Map<string, string[]>;  // itemId → tagId[]
-}
-```
-
-- Cache is initialized automatically in TagService constructor
-- Session-scoped TagService instances are created on login via `initSession()`
-- `findTagsForItem()` always uses cache (session-scoped)
-- Cache is updated when tags are created, deleted, or item-tag associations change
-- Session is cleared on logout/restart (suitable for single-user home lab)
-
-### Color Palette (for random selection)
-
-```typescript
-const DEFAULT_COLORS = [
-  '0e8a16', // green
-  'ff5722', // orange
-  '2196f3', // blue
-  '9c27b0', // purple
-  'f44336', // red
-  '009688', // teal
-  'ff9800', // amber
-  '607d8b', // blue-gray
-];
-```
-
-### Validation
-
-```typescript
-// Hex color validation (without # prefix)
-const COLOR_REGEX = /^[0-9a-fA-F]{6}$/;
-```
-
-### Cross-Reference
-
-- **Related**: [item-management/spec.md] for item-tag association
-- **Related**: [user-management/spec.md] for user namespace isolation
-- **Related**: [search-filtering/spec.md] for filtering by tags

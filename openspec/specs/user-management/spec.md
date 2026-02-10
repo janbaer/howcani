@@ -1,10 +1,4 @@
-# User Management Specification
-
-## Purpose
-
-The user management system handles the lifecycle and data model of user accounts. Users are the owners of knowledge bases, with each user having their own namespace for items and tags.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: User Domain Model
 
@@ -17,11 +11,12 @@ The system MUST define a User entity with proper validation and business rules.
 **When** examining its properties
 
 **Then** the user should have:
-- `id`: Unique identifier (auto-generated)
-- `username`: String (3-30 chars, URL-safe)
-- `email`: String (valid email format)
+- `id`: Unique identifier (TEXT/UUID, auto-generated)
+- `username`: String (3-30 chars, URL-safe, case-insensitive unique)
+- `email`: String (valid email format, unique)
 - `password_hash`: String (bcrypt hashed)
 - `created_at`: Timestamp (auto-set on creation)
+- `updated_at`: Timestamp (auto-set on creation and updates)
 
 #### Scenario: Username MUST be URL-safe
 
@@ -63,6 +58,17 @@ The system MUST define a User entity with proper validation and business rules.
 - Store username in original case provided
 - Compare usernames case-insensitively for uniqueness
 
+#### Scenario: Email MUST be unique
+
+**Given** a user with email "john@example.com" exists
+
+**When** attempting to create another user with email "john@example.com"
+
+**Then** the system should:
+- Reject with validation error
+- Indicate email already exists
+- Prevent duplicate email addresses across all users
+
 ### Requirement: User Repository
 
 The system MUST provide data access for user operations.
@@ -79,7 +85,7 @@ The system MUST provide data access for user operations.
 **Then** the system should:
 - Insert user into database
 - Return User entity with generated id
-- Set created_at timestamp automatically
+- Set created_at and updated_at timestamps automatically
 
 #### Scenario: Find user by username
 
@@ -89,17 +95,29 @@ The system MUST provide data access for user operations.
 
 **Then** the system should:
 - Return User entity for "john"
+- Handle case-insensitively (finds "John", "JOHN", "john")
 - Include all user fields
 - Return null if username not found
 
-#### Scenario: Find user by id
+#### Scenario: Find user by email
 
-**Given** a user with id 42 exists
+**Given** a user with email "john@example.com" exists
 
-**When** UserRepository.findById(42) is called
+**When** UserRepository.findByEmail("john@example.com") is called
 
 **Then** the system should:
-- Return User entity with id 42
+- Return User entity for that email
+- Include all user fields
+- Return null if email not found
+
+#### Scenario: Find user by id
+
+**Given** a user with id exists
+
+**When** UserRepository.findById(id) is called
+
+**Then** the system should:
+- Return User entity with that id
 - Include all user fields
 - Return null if id not found
 
@@ -107,153 +125,44 @@ The system MUST provide data access for user operations.
 
 **Given** a user "john" exists in database
 
-**When** UserRepository.exists("john") is called
+**When** UserRepository.usernameExists("john") is called
 
 **Then** the system should:
 - Return true for existing username
 - Return false for non-existing username
 - Compare case-insensitively
 
-### Requirement: User Validation
+#### Scenario: Check email existence
 
-The system MUST validate user data before persistence.
+**Given** a user with email "john@example.com" exists
 
-#### Scenario: Validate email format
-
-**Given** attempting to create user with email
-
-**When** providing:
-- Valid: "user@example.com", "user+tag@domain.co.uk"
-- Invalid: "notanemail", "@example.com", "user@", "user @example.com"
+**When** UserRepository.emailExists("john@example.com") is called
 
 **Then** the system should:
-- Accept valid email formats
-- Reject invalid formats with validation error
-- Use standard email validation regex
+- Return true for existing email
+- Return false for non-existing email
 
-#### Scenario: Validate required fields
-
-**Given** attempting to create user
-
-**When** any required field is missing or empty:
-- Username: empty or null
-- Email: empty or null
-- Password: empty or null
-
-**Then** the system should:
-- Reject with validation error
-- Indicate which field is missing
-- Not persist to database
-
-### Requirement: User Namespace Isolation
-
-Each user's data MUST be isolated in their own namespace.
-
-#### Scenario: Users have separate item namespaces
-
-**Given** two users exist:
-- User "john" with items
-- User "alice" with items
-
-**When** accessing `/john/items` and `/alice/items`
-
-**Then** the system should:
-- Show only John's items at `/john/items`
-- Show only Alice's items at `/alice/items`
-- Never mix items between users
-
-#### Scenario: Users have separate tag namespaces
-
-**Given** two users exist:
-- User "john" with tag "work"
-- User "alice" with tag "work"
-
-**When** both users use tag "work"
-
-**Then** the system should:
-- Maintain separate "work" tags (different IDs)
-- Associate each tag only with its owner's items
-- Allow same tag name across different users
-
-## Database Schema
+## MODIFIED Database Schema
 
 ### Users Table
 
 ```sql
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    email TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_users_username ON users(username COLLATE NOCASE);
+CREATE INDEX idx_users_email ON users(email);
 ```
 
-## Domain Layer Structure
-
-```
-src/server/domain/user.ts
-  - User class/interface
-  - Validation logic (pure functions)
-  - Business rules
-  - No database or framework dependencies
-
-src/server/domain/user.spec.ts
-  - Unit tests for User domain
-  - Validation tests
-  - Business rule tests
-
-src/server/repositories/user.repository.ts
-  - UserRepository class
-  - CRUD operations
-  - Database queries
-  - Depends on User domain model
-
-src/server/repositories/user.repository.spec.ts
-  - Integration tests with in-memory SQLite
-  - Test all repository operations
-
-src/server/services/user.service.ts
-  - UserService class
-  - Business logic orchestration
-  - User lookup operations (without exposing password_hash)
-
-src/server/services/user.service.spec.ts
-  - Unit tests with mocked repository
-```
-
-## Testing Requirements
-
-- Test-first for domain model, service, and repository
-- Layered test isolation:
-  - Service tests: Mock repositories using `mock.module()`
-  - Repository tests: Use in-memory SQLite for integration tests
-- Test all validation scenarios
-- Test case-insensitive username uniqueness
-- Test namespace isolation at data layer
-
-## Implementation Notes
-
-### Validation Rules
-
-```typescript
-// Username validation
-const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,30}$/;
-
-// Email validation
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Password requirements
-const MIN_PASSWORD_LENGTH = 8;
-```
-
-### Error Messages
-
-- Username too short: "Username MUST be at least 3 characters"
-- Username too long: "Username cannot exceed 30 characters"
-- Username invalid chars: "Username can only contain letters, numbers, hyphens, and underscores"
-- Username taken: "Username already exists"
-- Email invalid: "Invalid email format"
-- Field required: "Field {fieldName} is required"
+**Changes from previous schema:**
+- ID type: TEXT (UUID) instead of INTEGER
+- Email: Added UNIQUE constraint
+- Removed: display_name field
+- Added: updated_at field
+- Username: Added COLLATE NOCASE for case-insensitive uniqueness
