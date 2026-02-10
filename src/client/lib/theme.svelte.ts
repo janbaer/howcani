@@ -1,4 +1,4 @@
-const THEME_KEY = "howcani_theme";
+import { THEME_KEY } from "./config";
 
 type Theme = "light" | "dark";
 

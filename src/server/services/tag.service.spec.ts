@@ -64,6 +64,13 @@ const mockTagRepository = {
     }
     return count;
   }),
+  update: mock((id: string, data: { name?: string; color?: string }) => {
+    const tag = testTags.get(id);
+    if (!tag) return null;
+    const updated = { ...tag, ...data };
+    testTags.set(id, updated);
+    return updated;
+  }),
   delete: mock((id: string) => {
     testTags.delete(id);
   }),
@@ -256,6 +263,90 @@ describe("TagService", () => {
       if (result.success) return;
 
       expect(result.error.code).toBe("USER_NOT_FOUND");
+    });
+  });
+
+  describe("updateTag", () => {
+    test("updates tag name", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "old-name" });
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag(tag.id, { name: "new-name" });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.name).toBe("new-name");
+    });
+
+    test("updates tag color", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag(tag.id, { color: "ff5722" });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.color).toBe("ff5722");
+    });
+
+    test("returns error for non-existent tag", () => {
+      const user = createTestUser("john");
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag("nonexistent", { name: "new" });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe("NOT_FOUND");
+    });
+
+    test("returns error for invalid name", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag(tag.id, { name: "" });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("returns error for invalid color", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag(tag.id, { color: "not-hex" });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    test("returns error for duplicate name", () => {
+      const user = createTestUser("john");
+      mockTagRepository.create({ userId: user.id, name: "existing" });
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag(tag.id, { name: "existing" });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe("DUPLICATE_TAG");
+    });
+
+    test("allows renaming to same name with different case", () => {
+      const user = createTestUser("john");
+      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+      const tagService = new TagService(user.id);
+
+      const result = tagService.updateTag(tag.id, { name: "BUN" });
+
+      expect(result.success).toBe(true);
     });
   });
 

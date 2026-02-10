@@ -30,6 +30,7 @@ let notFound = $state(false);
 let editingItem = $state<Item | null | undefined>(undefined);
 let deletingItem = $state<Item | null | undefined>(undefined);
 let tagList = $state<TagWithCount[]>([]);
+let tagError = $state<string | null>(null);
 
 const username = $derived(params.username);
 const itemId = $derived(params.id);
@@ -49,9 +50,10 @@ async function loadItem() {
 async function loadTags() {
   try {
     tagList = await fetchTags(username);
-  } catch {
-    // Silently fail tag loading
+    tagError = null;
+  } catch (e) {
     tagList = [];
+    tagError = e instanceof Error ? e.message : "Failed to load tags";
   }
 }
 

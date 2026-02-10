@@ -4,6 +4,7 @@ import ItemFormModal from "../components/ItemFormModal.svelte";
 import TagBadge from "../components/TagBadge.svelte";
 import TagSidebar from "../components/TagSidebar.svelte";
 import { getAuthState } from "../lib/auth.svelte";
+import { PAGE_SIZE } from "../lib/config";
 import { closeCreateModal, getCreateModalState, openCreateModal } from "../lib/create-modal.svelte";
 import {
   createItem,
@@ -27,8 +28,6 @@ interface Props {
 const { params }: Props = $props();
 const authState = getAuthState();
 
-const PAGE_SIZE = 50;
-
 let itemList = $state<Item[]>([]);
 let tagList = $state<TagWithCount[]>([]);
 let total = $state(0);
@@ -36,6 +35,7 @@ let loading = $state(true);
 let error = $state<string | null>(null);
 let offset = $state(0);
 let selectedTags = $state<string[]>([]);
+let tagError = $state<string | null>(null);
 
 // Modal state
 const createModalState = getCreateModalState();
@@ -83,8 +83,10 @@ async function loadItems(append = false) {
 async function loadTags() {
   try {
     tagList = await fetchTags(username);
-  } catch {
+    tagError = null;
+  } catch (e) {
     tagList = [];
+    tagError = e instanceof Error ? e.message : "Failed to load tags";
   }
 }
 
@@ -238,15 +240,20 @@ $effect(() => {
     .then((data) => {
       tagList = data;
     })
-    .catch(() => {
+    .catch((e) => {
       tagList = [];
+      tagError = e instanceof Error ? e.message : "Failed to load tags";
     });
 });
 </script>
 
 <div class="flex gap-6">
 	<!-- Desktop tag sidebar -->
-	{#if tagList.length > 0}
+	{#if tagError}
+		<div class="hidden lg:block">
+			<p class="text-sm text-red-500 dark:text-red-400">{tagError}</p>
+		</div>
+	{:else if tagList.length > 0}
 		<div class="hidden lg:block">
 			<TagSidebar tags={tagList} {selectedTags} onToggleTag={toggleTag} onTagsChanged={handleTagsChanged} {isOwner} />
 		</div>

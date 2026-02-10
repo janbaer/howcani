@@ -10,7 +10,7 @@ interface ApiResponse<T> {
   error?: ApiError;
 }
 
-const TOKEN_KEY = "howcani_token";
+import { TOKEN_KEY } from "./config";
 
 let accessToken: string | null = localStorage.getItem(TOKEN_KEY);
 
