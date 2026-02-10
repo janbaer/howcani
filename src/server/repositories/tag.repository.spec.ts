@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, test } from "bun:test";
-import { setupTestDatabase } from "../db/test-helpers";
+import { beforeAll, beforeEach, describe, expect, test } from "bun:test";
+import { clearTestDatabase, setupTestDatabase } from "../db/test-helpers";
 import { ItemRepository } from "./item.repository";
 import { TagRepository } from "./tag.repository";
 import { UserRepository } from "./user.repository";
@@ -10,8 +10,12 @@ describe("TagRepository Integration Tests", () => {
   let itemRepo: ItemRepository;
   let testUserId: string;
 
-  beforeEach(() => {
+  beforeAll(() => {
     setupTestDatabase();
+  });
+
+  beforeEach(() => {
+    clearTestDatabase();
 
     tagRepo = new TagRepository();
     userRepo = new UserRepository();

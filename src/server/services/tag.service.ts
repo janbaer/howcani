@@ -144,7 +144,11 @@ export class TagService {
       return createError("NOT_FOUND", "Tag not found");
     }
 
-    // Delete the tag (will cascade delete item_tags associations via foreign key)
+    const itemCount = tagRepository.getItemCountForTag(tagId);
+    if (itemCount > 0) {
+      return createError("TAG_IN_USE", `Tag '${tag.name}' is used by ${itemCount} item(s)`);
+    }
+
     tagRepository.delete(tagId);
 
     if (this.cache) {
