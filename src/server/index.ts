@@ -1,5 +1,5 @@
-import { Elysia } from "elysia";
 import { resolve } from "node:path";
+import { Elysia } from "elysia";
 import index from "../index.html";
 import { runMigrations } from "./db";
 import { authRoutes, itemRoutes, tagRoutes, userRoutes } from "./routes";
