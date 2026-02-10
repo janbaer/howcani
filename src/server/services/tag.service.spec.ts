@@ -73,6 +73,13 @@ const mockTagRepository = {
   }),
   delete: mock((id: string) => {
     testTags.delete(id);
+    // Simulate CASCADE DELETE on item_tags
+    for (const [itemId, tagIds] of itemTagMap.entries()) {
+      const filtered = tagIds.filter((tagId) => tagId !== id);
+      if (filtered.length !== tagIds.length) {
+        itemTagMap.set(itemId, filtered);
+      }
+    }
   }),
   setItemTags: mock((itemId: string, tagIds: string[]) => {
     itemTagMap.set(itemId, [...tagIds]);
@@ -380,7 +387,7 @@ describe("TagService", () => {
       expect(result.error.code).toBe("NOT_FOUND");
     });
 
-    test("returns error when tag is in use", () => {
+    test("deletes tag even when in use (cascade delete)", () => {
       const user = createTestUser("john");
       const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
       itemTagMap.set("item-1", [tag.id]);
@@ -388,10 +395,11 @@ describe("TagService", () => {
 
       const result = tagService.deleteTag(tag.id);
 
-      expect(result.success).toBe(false);
-      if (result.success) return;
-
-      expect(result.error.code).toBe("TAG_IN_USE");
+      expect(result.success).toBe(true);
+      expect(testTags.has(tag.id)).toBe(false);
+      // Tag should be removed from item associations
+      const itemTags = tagService.findTagsForItem("item-1");
+      expect(itemTags).toHaveLength(0);
     });
   });
 

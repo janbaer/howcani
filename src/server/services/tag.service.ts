@@ -5,7 +5,6 @@ import { userService } from "./user.service";
 export type TagError =
   | { code: "USER_NOT_FOUND"; message: string }
   | { code: "NOT_FOUND"; message: string }
-  | { code: "TAG_IN_USE"; message: string }
   | { code: "VALIDATION_ERROR"; message: string }
   | { code: "DUPLICATE_TAG"; message: string };
 
@@ -144,15 +143,19 @@ export class TagService {
       return createError("NOT_FOUND", "Tag not found");
     }
 
-    const itemCount = tagRepository.getItemCountForTag(tagId);
-    if (itemCount > 0) {
-      return createError("TAG_IN_USE", `Tag '${tag.name}' is used by ${itemCount} item(s)`);
-    }
-
+    // Delete the tag (cascade deletes item_tags associations via DB constraint)
     tagRepository.delete(tagId);
 
+    // Update cache
     if (this.cache) {
       this.cache.tags.delete(tagId);
+      // Remove tag from all items in cache
+      for (const [itemId, tagIds] of this.cache.itemTags.entries()) {
+        const filtered = tagIds.filter((id) => id !== tagId);
+        if (filtered.length !== tagIds.length) {
+          this.cache.itemTags.set(itemId, filtered);
+        }
+      }
     }
 
     return { success: true, data: { deleted: true } };

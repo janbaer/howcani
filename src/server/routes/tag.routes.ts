@@ -132,10 +132,6 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
             error: { message: result.error.message, code: "NOT_FOUND" },
           };
         }
-        if (result.error.code === "TAG_IN_USE") {
-          set.status = StatusCodes.CONFLICT;
-          return { error: { message: result.error.message, code: "CONFLICT" } };
-        }
         set.status = StatusCodes.INTERNAL_SERVER_ERROR;
         return {
           error: { message: result.error.message, code: result.error.code },

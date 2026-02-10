@@ -37,16 +37,7 @@ async function handleDelete() {
     await onDelete(tag.id);
     onClose();
   } catch (e) {
-    // Check if it's a TAG_IN_USE error
-    if (e instanceof Error) {
-      if (e.message.includes("in use") || e.message.includes("TAG_IN_USE")) {
-        error = `Cannot delete tag: still in use by ${tag.item_count} question${tag.item_count !== 1 ? "s" : ""}`;
-      } else {
-        error = e.message;
-      }
-    } else {
-      error = "Failed to delete tag";
-    }
+    error = e instanceof Error ? e.message : "Failed to delete tag";
     loading = false;
   }
 }

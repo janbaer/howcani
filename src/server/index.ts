@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { resolve } from "node:path";
 import index from "../index.html";
 import { runMigrations } from "./db";
 import { authRoutes, itemRoutes, tagRoutes, userRoutes } from "./routes";
@@ -40,7 +41,16 @@ export default {
 
     // Static files from public
     if (url.pathname === "/favicon.png" || url.pathname === "/robots.txt" || url.pathname.endsWith(".css")) {
-      const file = Bun.file(`./public${url.pathname}`);
+      // Resolve paths and validate they stay within public directory
+      const publicDir = resolve("./public");
+      const requestedPath = resolve(publicDir, url.pathname.slice(1)); // Remove leading slash
+
+      // Prevent directory traversal attacks
+      if (!requestedPath.startsWith(publicDir)) {
+        return new Response("Forbidden", { status: 403 });
+      }
+
+      const file = Bun.file(requestedPath);
       if (await file.exists()) {
         return new Response(file, {
           headers: {
