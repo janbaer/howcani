@@ -69,15 +69,42 @@ export async function fetchTags(username: string): Promise<TagWithCount[]> {
 
 export function extractCodePreview(answer: string): string | null {
   if (!answer) return null;
+  // Only match fenced code blocks (triple backticks), not inline code
   const match = answer.match(/```[\w]*\n([\s\S]*?)```/);
   if (match?.[1]) {
     const code = match[1].trim();
     const lines = code.split("\n").slice(0, 4);
     return lines.join("\n");
   }
-  const inlineMatch = answer.match(/`([^`]{10,})`/);
-  if (inlineMatch?.[1]) return inlineMatch[1];
   return null;
+}
+
+export function extractTextBeforeCode(answer: string): string | null {
+  if (!answer) return null;
+  const codeBlockMatch = answer.match(/```/);
+  if (!codeBlockMatch) return null;
+  let textBefore = answer.substring(0, codeBlockMatch.index).trim();
+  if (!textBefore) return null;
+
+  // Remove markdown formatting for cleaner preview
+  textBefore = textBefore.replace(/[*_`]/g, '');
+
+  // Truncate if too long, but break at sentence or word boundary
+  if (textBefore.length > 120) {
+    const truncated = textBefore.substring(0, 120);
+    // Try to break at sentence end
+    const lastPeriod = truncated.lastIndexOf('.');
+    if (lastPeriod > 60) {
+      return truncated.substring(0, lastPeriod + 1);
+    }
+    // Otherwise break at word boundary
+    const lastSpace = truncated.lastIndexOf(' ');
+    if (lastSpace > 60) {
+      return truncated.substring(0, lastSpace) + "...";
+    }
+    return truncated + "...";
+  }
+  return textBefore;
 }
 
 export function formatTimestamp(dateStr: string): string {
