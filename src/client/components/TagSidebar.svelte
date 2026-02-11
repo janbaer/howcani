@@ -64,7 +64,7 @@ function handleKeyDown(tag: TagWithCount, e: KeyboardEvent) {
 }
 </script>
 
-<aside class="w-52 shrink-0">
+<aside class="lg:sticky lg:top-4 w-52 shrink-0">
   <nav class="sidebar-scroll overflow-y-auto max-h-[calc(100vh-8rem)]">
     <ul class="space-y-0.5">
       {#each tags as tag}
