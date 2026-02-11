@@ -353,10 +353,10 @@ $effect(() => {
 
 		<!-- Item card grid -->
 		{:else}
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div class="items-masonry">
 				{#each itemList as item, i}
 					<article
-						class="group rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md fade-in relative"
+						class="item-card group rounded-xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md fade-in relative"
 						style="animation-delay: {Math.min(i * 40, 200)}ms"
 						tabindex={isOwner ? 0 : -1}
 						onkeydown={(e) => handleCardKeyDown(item, e)}
@@ -367,7 +367,7 @@ $effect(() => {
 								<button
 									type="button"
 									onclick={(e) => handleEdit(item, e)}
-									class="rounded p-1 hover:bg-muted transition-colors"
+									class="rounded p-2 hover:bg-muted transition-colors"
 									aria-label="Edit question"
 									title="Edit"
 								>
@@ -378,7 +378,7 @@ $effect(() => {
 								<button
 									type="button"
 									onclick={(e) => handleDeleteClick(item, e)}
-									class="rounded p-1 hover:bg-muted transition-colors"
+									class="rounded p-2 hover:bg-muted transition-colors"
 									aria-label="Delete question"
 									title="Delete"
 								>
@@ -405,8 +405,8 @@ $effect(() => {
 						{#if extractCodePreview(item.answer)}
 							<div class="code-preview mb-3">{extractCodePreview(item.answer)}</div>
 						{:else if item.answer}
-							<p class="mb-3 text-xs text-muted-foreground leading-relaxed line-clamp-2">
-								{truncateAnswer(item.answer, 120)}
+							<p class="mb-3 text-xs text-muted-foreground leading-relaxed">
+								{item.answer}
 							</p>
 						{/if}
 
@@ -473,3 +473,27 @@ $effect(() => {
 	onDelete={handleDeleteItem}
 	onClose={closeModals}
 />
+
+<style>
+	/* CSS Multi-column masonry layout */
+	.items-masonry {
+		columns: 25rem; /* 400px column width */
+		column-gap: 1rem;
+	}
+
+	.item-card {
+		break-inside: avoid; /* Prevent cards from breaking across columns */
+		margin-bottom: 1rem;
+	}
+
+	/* Enhanced code preview styling */
+	.code-preview {
+		background-color: hsl(var(--muted));
+		border-radius: 0.375rem;
+		padding: 0.75rem;
+		font-family: ui-monospace, monospace;
+		font-size: 0.75rem;
+		line-height: 1.25rem;
+		overflow-x: auto;
+	}
+</style>
