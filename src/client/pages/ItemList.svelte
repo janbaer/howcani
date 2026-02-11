@@ -4,7 +4,6 @@ import ItemFormModal from "../components/ItemFormModal.svelte";
 import TagBadge from "../components/TagBadge.svelte";
 import TagSidebar from "../components/TagSidebar.svelte";
 import { getAuthState } from "../lib/auth.svelte";
-import { PAGE_SIZE } from "../lib/config";
 import { closeCreateModal, getCreateModalState, openCreateModal } from "../lib/create-modal.svelte";
 import {
   createItem,
@@ -36,6 +35,7 @@ let error = $state<string | null>(null);
 let offset = $state(0);
 let selectedTags = $state<string[]>([]);
 let tagError = $state<string | null>(null);
+let sentinelElement = $state<HTMLDivElement | null>(null);
 
 // Modal state
 const createModalState = getCreateModalState();
@@ -46,6 +46,11 @@ const username = $derived(params.username);
 const query = $derived(getCurrentQuery());
 const searchQuery = $derived(query.search || "");
 const isOwner = $derived(authState.isAuthenticated && authState.user?.username === username);
+
+// Responsive page size: load 2-3 viewports worth of content
+// Assumes ~200px average card height in masonry layout
+const PAGE_SIZE = $derived(Math.max(10, Math.floor(window.innerHeight / 200) * 6));
+
 const hasMore = $derived(offset + PAGE_SIZE < total);
 
 function toggleTag(tagName: string) {
@@ -245,6 +250,34 @@ $effect(() => {
       tagError = e instanceof Error ? e.message : "Failed to load tags";
     });
 });
+
+// Set up IntersectionObserver for infinite scroll
+// Observes sentinel element and triggers loading when it becomes visible
+$effect(() => {
+  // Don't create observer if no sentinel element or no more items to load
+  if (!sentinelElement || !hasMore) return;
+
+  // Observer configuration: start loading 100px before sentinel enters viewport
+  const observerOptions = {
+    rootMargin: "100px",
+    threshold: 0.1,
+  };
+
+  // Callback: load more items when sentinel is visible and not already loading
+  const observerCallback = (entries: IntersectionObserverEntry[]) => {
+    if (entries[0].isIntersecting && !loading && hasMore) {
+      loadMore();
+    }
+  };
+
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
+  observer.observe(sentinelElement);
+
+  // Cleanup: disconnect observer when component unmounts or dependencies change
+  return () => {
+    observer.disconnect();
+  };
+});
 </script>
 
 <div class="flex gap-6">
@@ -430,16 +463,23 @@ $effect(() => {
 				{/each}
 			</div>
 
-			<!-- Load more -->
+			<!-- Infinite scroll sentinel element -->
 			{#if hasMore}
-				<div class="py-8 text-center">
-					<button
-						onclick={loadMore}
-						disabled={loading}
-						class="font-mono text-sm text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
-					>
-						{loading ? "Loading..." : "Load more"}
-					</button>
+				<div
+					bind:this={sentinelElement}
+					class="py-8 text-center"
+					role="status"
+					aria-live="polite"
+				>
+					{#if loading}
+						<div class="flex items-center justify-center gap-2">
+							<svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+							<span class="font-mono text-sm text-muted-foreground">Loading more items...</span>
+						</div>
+					{/if}
 				</div>
 			{/if}
 		{/if}
