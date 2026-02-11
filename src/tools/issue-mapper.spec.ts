@@ -6,6 +6,7 @@ import {
   mapLabelsToTags,
   mapTitleToQuestion,
   validateAndNormalizeColor,
+  validateTimestamp,
 } from "./issue-mapper";
 
 describe("issue-mapper", () => {
@@ -33,6 +34,7 @@ describe("issue-mapper", () => {
           { name: "bun", color: "0e8a16" },
           { name: "deployment", color: "ff5722" },
         ],
+        created_at: "2024-01-15T10:30:00Z",
       });
     });
 
@@ -79,6 +81,36 @@ describe("issue-mapper", () => {
       const item = mapIssueToItem(issue);
 
       expect(item.id).toBe(123);
+    });
+
+    test("throws error for invalid timestamp format", () => {
+      const issue: Issue = {
+        number: 42,
+        title: "Test",
+        body: "Body",
+        labels: [],
+        created_at: "not-a-date",
+        state: "open",
+      };
+
+      expect(() => mapIssueToItem(issue)).toThrow(
+        'Invalid created_at timestamp format for issue #42: "not-a-date". Expected format: YYYY-MM-DDTHH:MM:SSZ',
+      );
+    });
+
+    test("throws error for missing created_at field", () => {
+      const issue: Issue = {
+        number: 42,
+        title: "Test",
+        body: "Body",
+        labels: [],
+        created_at: "",
+        state: "open",
+      };
+
+      expect(() => mapIssueToItem(issue)).toThrow(
+        "Invalid created_at timestamp for issue #42: timestamp is empty or missing",
+      );
     });
   });
 

@@ -56,16 +56,37 @@ bun run import:json --user john --file ./data/issues.json
 # Force update existing items (instead of skipping duplicates)
 bun run import:json --user john --file ./data/issues.json --force
 
+# Force re-import (delete ALL existing items and replace with JSON data)
+bun run import:json --user john --file ./data/issues.json --force-reimport
+
+# Force re-import non-interactive (auto-confirm deletion)
+bun run import:json --user john --file ./data/issues.json --force-reimport --yes
+
 # Import to different database (e.g., production)
 DATABASE_URL=./data/prod.db bun run import:json --user john --file ./data/issues.json
 ```
 
 ### Import Features
 
+**Timestamp Preservation:**
+- Preserves original GitHub issue creation dates
+- Items show historical `created_at` timestamps (not import date)
+- Enables correct chronological sorting
+- `updated_at` reflects import/update time
+
 **Idempotent (Safe to Re-run):**
 - Detects duplicates by normalized title (case-insensitive, trimmed)
 - Skips duplicates by default
 - Use `--force` to update existing items
+- Use `--force-reimport` to delete all and replace with JSON data
+
+**Force Re-Import:**
+- `--force-reimport` flag completely replaces existing data
+- Prompts for confirmation before deletion (shows item count)
+- Use `--yes` flag for non-interactive mode (auto-confirm)
+- Fixes incorrect timestamps from previous imports
+- Cleans up orphaned tags automatically
+- Atomic transaction: rollback on failure
 
 **ID Preservation:**
 - Attempts to preserve GitHub issue numbers as item IDs
@@ -141,3 +162,8 @@ ID Mappings (due to conflicts):
 - Use `--dry-run` first to validate the JSON
 - Check error messages for specific issues
 - Transaction ensures database is unchanged on failure
+
+**Items show wrong creation dates:**
+- Use `--force-reimport` to fix timestamps on existing items
+- Original imports may have used current date instead of GitHub date
+- Re-importing preserves the original GitHub creation timestamps

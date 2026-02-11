@@ -10,6 +10,7 @@ export interface ItemData {
   question: string;
   answer: string;
   tags: TagData[];
+  created_at: string; // ISO 8601 timestamp from GitHub
 }
 
 export interface TagData {
@@ -20,14 +21,37 @@ export interface TagData {
 const DEFAULT_TAG_COLOR = "6b7280"; // Gray color for invalid colors
 
 /**
+ * Validates ISO 8601 timestamp format
+ * @throws Error if timestamp is invalid
+ */
+export function validateTimestamp(timestamp: string, issueNumber?: number): void {
+  if (!timestamp || typeof timestamp !== "string" || timestamp.trim() === "") {
+    const issueInfo = issueNumber ? ` for issue #${issueNumber}` : "";
+    throw new Error(`Invalid created_at timestamp${issueInfo}: timestamp is empty or missing`);
+  }
+
+  // Basic ISO 8601 format validation (YYYY-MM-DDTHH:MM:SSZ or with timezone offset)
+  const iso8601Pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+  if (!iso8601Pattern.test(timestamp)) {
+    const issueInfo = issueNumber ? ` for issue #${issueNumber}` : "";
+    throw new Error(
+      `Invalid created_at timestamp format${issueInfo}: "${timestamp}". Expected format: YYYY-MM-DDTHH:MM:SSZ`,
+    );
+  }
+}
+
+/**
  * Maps a GitHub issue to an item structure
  */
 export function mapIssueToItem(issue: Issue): ItemData {
+  validateTimestamp(issue.created_at, issue.number);
+
   return {
     id: issue.number,
     question: mapTitleToQuestion(issue.title),
     answer: mapBodyToAnswer(issue.body),
     tags: mapLabelsToTags(issue.labels),
+    created_at: issue.created_at,
   };
 }
 

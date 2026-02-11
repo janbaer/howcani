@@ -5,8 +5,9 @@
  * Loads JSON file into database with repeatable and idempotent behavior
  */
 
+import { db } from "../server/db/database";
 import { userRepository } from "../server/repositories";
-import { runImport } from "./import-runner";
+import { runImport, hasExistingData } from "./import-runner";
 import { mapIssueToItem } from "./issue-mapper";
 import { validateExportData } from "./json-format";
 
@@ -15,6 +16,8 @@ interface CliArgs {
   file?: string;
   dryRun?: boolean;
   force?: boolean;
+  forceReimport?: boolean;
+  yes?: boolean;
   verbose?: boolean;
 }
 
@@ -42,6 +45,13 @@ function parseArgs(args: string[]): CliArgs {
         break;
       case "--force":
         result.force = true;
+        break;
+      case "--force-reimport":
+        result.forceReimport = true;
+        break;
+      case "--yes":
+      case "-y":
+        result.yes = true;
         break;
       case "--verbose":
       case "-v":
@@ -76,13 +86,36 @@ Options:
   --file, -f <path>      Path to JSON export file (required)
   --dry-run, -d          Validate and show what would be imported without writing to database
   --force                Update existing items instead of skipping duplicates
+  --force-reimport       Delete ALL existing items and re-import from JSON (fixes timestamps)
+  --yes, -y              Auto-confirm deletion (use with --force-reimport for non-interactive mode)
   --verbose, -v          Show detailed progress
   --help, -h             Show this help message
 
+Flag Differences:
+  --force                Updates duplicates but keeps existing items not in JSON
+                         Does NOT fix timestamps on existing items
+
+  --force-reimport       Deletes ALL items and replaces with JSON data
+                         Fixes incorrect created_at timestamps
+                         Prompts for confirmation unless --yes is provided
+
 Examples:
+  # Normal import (preserves timestamps automatically)
   bun run import:json --user john --file ./data/issues.json
+
+  # Dry run (see what would be imported)
   bun run import:json --user john --file ./data/issues.json --dry-run
+
+  # Update existing items (doesn't fix timestamps)
   bun run import:json --user john --file ./data/issues.json --force
+
+  # Re-import to fix timestamps (prompts for confirmation)
+  bun run import:json --user john --file ./data/issues.json --force-reimport
+
+  # Re-import non-interactive (auto-confirm)
+  bun run import:json --user john --file ./data/issues.json --force-reimport --yes
+
+  # Import to specific database
   DATABASE_URL=./prod.db bun run import:json --user john --file ./data/issues.json
 `);
 }
@@ -121,6 +154,34 @@ function formatDuration(ms: number): string {
     return `${ms}ms`;
   }
   return `${seconds.toFixed(2)}s`;
+}
+
+/**
+ * Get count of existing items for a user
+ * @param userId - The user ID
+ * @returns number of items
+ */
+function getItemCount(userId: string): number {
+  const result = db.query<{ count: number }, [string]>(
+    "SELECT COUNT(*) as count FROM items WHERE user_id = ?",
+  ).get(userId);
+  return result?.count ?? 0;
+}
+
+/**
+ * Prompt user for confirmation before deleting existing data
+ * @param itemCount - Number of existing items that will be deleted
+ * @returns Promise<boolean> - true if user confirmed with "yes", false otherwise
+ */
+async function promptForDeletion(itemCount: number): Promise<boolean> {
+  console.log(`\n⚠️  Found ${itemCount} existing items in database.`);
+  console.log("Re-importing will DELETE all existing data and replace with JSON data.");
+  console.log("This is necessary to fix incorrect created_at timestamps.\n");
+
+  const answer = prompt("Delete existing data and re-import? (yes/no): ");
+
+  // Accept only exact "yes" (case-insensitive)
+  return answer !== null && answer.toLowerCase() === "yes";
 }
 
 /**
@@ -186,7 +247,25 @@ async function main(): Promise<void> {
   if (args.force) {
     console.log("  Mode: FORCE UPDATE (update existing items)");
   }
+  if (args.forceReimport) {
+    console.log("  Mode: FORCE REIMPORT (delete all and replace with JSON)");
+  }
   console.log();
+
+  // Check for existing data if force-reimport is enabled
+  if (args.forceReimport && !args.dryRun) {
+    if (hasExistingData(user.id)) {
+      // Prompt for confirmation unless --yes flag is provided
+      if (!args.yes) {
+        const itemCount = getItemCount(user.id);
+        const confirmed = await promptForDeletion(itemCount);
+        if (!confirmed) {
+          console.log("\n✓ Import cancelled. No data was modified.");
+          process.exit(0);
+        }
+      }
+    }
+  }
 
   // Transform issues to items
   const items = exportData.issues.map((issue) => mapIssueToItem(issue));
@@ -197,6 +276,7 @@ async function main(): Promise<void> {
       userId: user.id,
       issues: items,
       force: args.force,
+      forceReimport: args.forceReimport,
       dryRun: args.dryRun,
     });
 

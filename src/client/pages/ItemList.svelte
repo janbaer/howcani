@@ -456,7 +456,7 @@ $effect(() => {
 								<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
 								</svg>
-								<span class="font-mono">{formatTimestamp(item.updated_at)}</span>
+								<span class="font-mono">{formatTimestamp(item.created_at)}</span>
 							</div>
 						</div>
 					</article>

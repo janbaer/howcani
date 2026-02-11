@@ -11,6 +11,7 @@ export interface ImportOptions {
   userId: string;
   issues: ItemData[];
   force?: boolean;
+  forceReimport?: boolean;
   dryRun?: boolean;
 }
 
@@ -26,10 +27,22 @@ export interface ImportSummary {
 }
 
 /**
+ * Check if user has existing imported data
+ * @param userId - The user ID to check
+ * @returns true if user has any items, false otherwise
+ */
+export function hasExistingData(userId: string): boolean {
+  const result = db.query<{ count: number }, [string]>(
+    "SELECT COUNT(*) as count FROM items WHERE user_id = ?",
+  ).get(userId);
+  return result !== null && result.count > 0;
+}
+
+/**
  * Run the import process with transaction safety
  */
 export async function runImport(options: ImportOptions): Promise<ImportSummary> {
-  const { userId, issues, force = false, dryRun = false } = options;
+  const { userId, issues, force = false, forceReimport = false, dryRun = false } = options;
 
   // Verify user exists
   const user = userRepository.findById(userId);
@@ -75,6 +88,26 @@ export async function runImport(options: ImportOptions): Promise<ImportSummary> 
   // Real import: use transaction
   try {
     runTransaction(() => {
+      // If force-reimport, delete all existing data first
+      if (forceReimport) {
+        // Delete all items for this user (cascades to item_tags via FOREIGN KEY)
+        db.run("DELETE FROM items WHERE user_id = ?", [userId]);
+
+        // Clean up orphaned tags (tags that are no longer referenced by any items for this user)
+        db.run(
+          `DELETE FROM tags
+           WHERE user_id = ?
+           AND id NOT IN (
+             SELECT DISTINCT tag_id
+             FROM item_tags
+             WHERE tag_id IN (
+               SELECT id FROM tags WHERE user_id = ?
+             )
+           )`,
+          [userId, userId],
+        );
+      }
+
       for (let i = 0; i < issues.length; i++) {
         const issue = issues[i];
 
@@ -133,7 +166,8 @@ export async function runImport(options: ImportOptions): Promise<ImportSummary> 
 
       // If there were errors, rollback
       if (summary.errors > 0) {
-        throw new Error(`Import failed with ${summary.errors} errors`);
+        const errorDetails = summary.errorMessages.join("; ");
+        throw new Error(`Import failed with ${summary.errors} errors: ${errorDetails}`);
       }
     });
   } catch (error) {
@@ -193,23 +227,25 @@ function tryCreateWithId(userId: string, issue: ItemData, preferredId?: number):
   }
 
   // Try to insert with preferred ID
-  const now = new Date().toISOString();
+  const createdAt = issue.created_at;
+  const updatedAt = new Date().toISOString();
   const id = preferredId.toString();
 
   try {
     db.run(
       `INSERT INTO items (id, user_id, question, answer, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, userId, issue.question, issue.answer || "", now, now],
+      [id, userId, issue.question, issue.answer || "", createdAt, updatedAt],
     );
     return id;
   } catch (error) {
-    // ID conflict: use auto-generated ID
-    const item = itemRepository.create({
-      userId,
-      question: issue.question,
-      answer: issue.answer,
-    });
-    return item.id;
+    // ID conflict: use auto-generated ID with explicit timestamps
+    db.run(
+      `INSERT INTO items (user_id, question, answer, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, issue.question, issue.answer || "", createdAt, updatedAt],
+    );
+    const result = db.query<{ id: string }, []>("SELECT last_insert_rowid() as id").get();
+    return result?.id || "";
   }
 }
