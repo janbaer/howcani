@@ -4,17 +4,9 @@ import ItemFormModal from '../components/ItemFormModal.svelte';
 import MarkdownRenderer from '../components/MarkdownRenderer.svelte';
 import TagBadge from '../components/TagBadge.svelte';
 import { getAuthState } from '../lib/auth.svelte';
-import {
-  deleteItem as deleteItemService,
-  fetchItem,
-  fetchTags,
-  formatDate,
-  type Item,
-  type ItemUpdateData,
-  type TagWithCount,
-  updateItem as updateItemService,
-} from '../lib/items.svelte';
-import { link, navigate } from '../lib/router.svelte';
+import { formatDate, type ItemUpdateData } from '../lib/items.svelte';
+import { link } from '../lib/router.svelte';
+import { ItemDetailStore } from '../stores/item-detail.store.svelte';
 
 interface Props {
   params: Record<string, string>;
@@ -22,83 +14,32 @@ interface Props {
 
 const { params }: Props = $props();
 const authState = getAuthState();
-
-let item = $state<Item | null>(null);
-let loading = $state(true);
-let notFound = $state(false);
-
-let editingItem = $state<Item | null | undefined>(undefined);
-let deletingItem = $state<Item | null | undefined>(undefined);
-let tagList = $state<TagWithCount[]>([]);
-let tagError = $state<string | null>(null);
+const store = new ItemDetailStore();
 
 const username = $derived(params.username);
 const itemId = $derived(params.id);
 const isOwner = $derived(authState.isAuthenticated && authState.user?.username === username);
 
-async function loadItem() {
-  loading = true;
-  notFound = false;
-  try {
-    item = await fetchItem(username, itemId);
-  } catch {
-    notFound = true;
-  }
-  loading = false;
+async function handleSave(data: ItemUpdateData) {
+  if (!authState.user) return;
+  await store.saveItem(authState.user, data);
 }
 
-async function loadTags() {
-  try {
-    tagList = await fetchTags(username);
-    tagError = null;
-  } catch (e) {
-    tagList = [];
-    tagError = e instanceof Error ? e.message : 'Failed to load tags';
-  }
+async function handleDelete(id: string) {
+  if (!authState.user) return;
+  await store.deleteItem(authState.user, id, username);
 }
 
-async function handleSaveItem(data: ItemUpdateData) {
-  if (!editingItem || !item) return;
-
-  // Store original for rollback
-  const original = { ...item };
-
-  // Optimistic update
-  item = { ...item, ...data };
-
-  try {
-    const updated = await updateItemService(authState.user.username, editingItem.id, data);
-    item = updated;
-    editingItem = undefined;
-  } catch (e) {
-    // Rollback on error
-    item = original;
-    throw e;
-  }
-}
-
-async function handleDeleteItem(id: string) {
-  if (!item) return;
-
-  await deleteItemService(authState.user.username, id);
-  // Navigate back to item list on successful delete
-  navigate(`/${username}/items`);
-}
-
+// Load data on route param change
 $effect(() => {
-  // Read derived values to track them as dependencies
-  void username;
-  void itemId;
-  loadItem();
-  loadTags();
+  store.load(username, itemId);
 });
 
 // Close modals on route change
 $effect(() => {
   void username;
   void itemId;
-  editingItem = undefined;
-  deletingItem = undefined;
+  store.closeModals();
 });
 </script>
 
@@ -116,7 +57,7 @@ $effect(() => {
   </a>
 
   <!-- Loading state -->
-  {#if loading}
+  {#if store.loading}
     <div class="space-y-4">
       <div class="skeleton h-8 w-3/4"></div>
       <div class="flex gap-2">
@@ -133,14 +74,14 @@ $effect(() => {
     </div>
 
   <!-- Not found -->
-  {:else if notFound}
+  {:else if store.notFound}
     <div class="py-16 text-center">
       <p class="font-mono text-4xl font-bold text-muted-foreground mb-2">404</p>
       <p class="text-muted-foreground">Question not found</p>
     </div>
 
   <!-- Item detail -->
-  {:else if item}
+  {:else if store.item}
     <article class="fade-in rounded-xl border border-border bg-card p-6 md:p-8">
       <!-- Header with checkmark and question -->
       <div class="flex gap-3 mb-4">
@@ -148,14 +89,14 @@ $effect(() => {
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
         <h1 class="font-mono text-lg md:text-xl font-bold text-card-foreground leading-snug">
-          {item.question}
+          {store.item.question}
         </h1>
       </div>
 
       <!-- Tags and metadata -->
       <div class="flex flex-wrap items-center gap-2 mb-6 pb-6 border-b border-border">
-        {#if item.tags.length > 0}
-          {#each item.tags as tag}
+        {#if store.item.tags.length > 0}
+          {#each store.item.tags as tag}
             <TagBadge name={tag.name} color={tag.color} />
           {/each}
         {/if}
@@ -165,18 +106,18 @@ $effect(() => {
             <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
-            <span class="font-mono">Created {formatDate(item.created_at)}</span>
+            <span class="font-mono">Created {formatDate(store.item.created_at)}</span>
           </div>
-          {#if item.updated_at !== item.created_at}
+          {#if store.item.updated_at !== store.item.created_at}
             <span>&middot;</span>
-            <span class="font-mono">Updated {formatDate(item.updated_at)}</span>
+            <span class="font-mono">Updated {formatDate(store.item.updated_at)}</span>
           {/if}
 
           {#if isOwner}
             <span>&middot;</span>
             <button
               type="button"
-              onclick={() => editingItem = item}
+              onclick={() => store.editingItem = store.item}
               class="flex items-center gap-1 rounded px-2 py-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               title="Edit question"
             >
@@ -187,7 +128,7 @@ $effect(() => {
             </button>
             <button
               type="button"
-              onclick={() => deletingItem = item}
+              onclick={() => store.deletingItem = store.item}
               class="flex items-center gap-1 rounded px-2 py-1 hover:bg-red-500/10 transition-colors text-muted-foreground hover:text-red-500"
               title="Delete question"
             >
@@ -201,8 +142,8 @@ $effect(() => {
       </div>
 
       <!-- Answer content -->
-      {#if item.answer}
-        <MarkdownRenderer content={item.answer} />
+      {#if store.item.answer}
+        <MarkdownRenderer content={store.item.answer} />
       {:else}
         <p class="text-muted-foreground italic text-sm">No answer yet.</p>
       {/if}
@@ -212,15 +153,15 @@ $effect(() => {
 
 <!-- Edit Modal -->
 <ItemFormModal
-  item={editingItem}
-  onSave={handleSaveItem}
-  onClose={() => editingItem = undefined}
-  existingTags={tagList}
+  item={store.editingItem}
+  onSave={handleSave}
+  onClose={() => store.closeModals()}
+  existingTags={store.tagList}
 />
 
 <!-- Delete Confirmation Modal -->
 <ItemDeleteConfirmModal
-  item={deletingItem}
-  onDelete={handleDeleteItem}
-  onClose={() => deletingItem = undefined}
+  item={store.deletingItem}
+  onDelete={handleDelete}
+  onClose={() => store.closeModals()}
 />
