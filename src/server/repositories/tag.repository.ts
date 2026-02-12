@@ -1,7 +1,7 @@
-import { db } from "../db/database";
-import type { Tag, TagWithCount } from "../domain/tag";
-import { randomColor } from "../domain/tag";
-import { BaseRepository } from "./base.repository";
+import { db } from '../db/database';
+import type { Tag, TagWithCount } from '../domain/tag';
+import { randomColor } from '../domain/tag';
+import { BaseRepository } from './base.repository';
 
 export type { Tag, TagWithCount };
 
@@ -13,7 +13,7 @@ export interface CreateTagDTO {
 
 export class TagRepository extends BaseRepository<Tag> {
   constructor() {
-    super("tags");
+    super('tags');
   }
 
   create(data: CreateTagDTO): Tag {
@@ -29,7 +29,7 @@ export class TagRepository extends BaseRepository<Tag> {
 
     const created = this.findById(id);
     if (!created) {
-      throw new Error("Failed to retrieve created tag");
+      throw new Error('Failed to retrieve created tag');
     }
     return created;
   }
@@ -49,12 +49,12 @@ export class TagRepository extends BaseRepository<Tag> {
     const values: string[] = [];
 
     if (data.name !== undefined) {
-      updates.push("name = ?");
+      updates.push('name = ?');
       values.push(data.name);
     }
 
     if (data.color !== undefined) {
-      updates.push("color = ?");
+      updates.push('color = ?');
       values.push(data.color);
     }
 
@@ -63,7 +63,7 @@ export class TagRepository extends BaseRepository<Tag> {
     }
 
     values.push(id);
-    db.run(`UPDATE tags SET ${updates.join(", ")} WHERE id = ?`, values);
+    db.run(`UPDATE tags SET ${updates.join(', ')} WHERE id = ?`, values);
 
     return this.findById(id);
   }

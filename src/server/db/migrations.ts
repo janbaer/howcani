@@ -1,4 +1,4 @@
-import { db } from "./database";
+import { db } from './database';
 
 interface Migration {
   version: number;
@@ -9,7 +9,7 @@ interface Migration {
 const MIGRATIONS: Migration[] = [
   {
     version: 1,
-    name: "create_users_table",
+    name: 'create_users_table',
     up: `
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -26,7 +26,7 @@ const MIGRATIONS: Migration[] = [
   },
   {
     version: 2,
-    name: "update_users_table_case_insensitive_username_remove_display_name",
+    name: 'update_users_table_case_insensitive_username_remove_display_name',
     up: `
       -- Create new table with desired schema
       CREATE TABLE users_new (
@@ -55,7 +55,7 @@ const MIGRATIONS: Migration[] = [
   },
   {
     version: 3,
-    name: "create_items_table",
+    name: 'create_items_table',
     up: `
       CREATE TABLE IF NOT EXISTS items (
         id TEXT PRIMARY KEY,
@@ -73,7 +73,7 @@ const MIGRATIONS: Migration[] = [
   },
   {
     version: 4,
-    name: "create_tags_and_item_tags_tables",
+    name: 'create_tags_and_item_tags_tables',
     up: `
       CREATE TABLE IF NOT EXISTS tags (
         id TEXT PRIMARY KEY,
@@ -101,7 +101,7 @@ const MIGRATIONS: Migration[] = [
   },
   {
     version: 5,
-    name: "create_items_fts5_table",
+    name: 'create_items_fts5_table',
     up: `
       CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
         question,
@@ -155,6 +155,6 @@ export function runMigrations(): void {
 }
 
 export function getCurrentVersion(): number {
-  const result = db.query<{ user_version: number }, []>("PRAGMA user_version").get();
+  const result = db.query<{ user_version: number }, []>('PRAGMA user_version').get();
   return result?.user_version ?? 0;
 }

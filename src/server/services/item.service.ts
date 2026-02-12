@@ -1,9 +1,9 @@
-import { runTransaction } from "../db/database";
-import { validateCreateItemData, validateUpdateItemData } from "../domain/item";
-import type { Tag } from "../domain/tag";
-import { type Item, itemRepository } from "../repositories";
-import type { TagService } from "./tag.service";
-import { userService } from "./user.service";
+import { runTransaction } from '../db/database';
+import { validateCreateItemData, validateUpdateItemData } from '../domain/item';
+import type { Tag } from '../domain/tag';
+import { type Item, itemRepository } from '../repositories';
+import type { TagService } from './tag.service';
+import { userService } from './user.service';
 
 export interface ItemWithTags extends Item {
   tags: Tag[];
@@ -36,14 +36,14 @@ export interface UpdateItemInput {
 }
 
 export type ItemError =
-  | { code: "VALIDATION_ERROR"; message: string }
-  | { code: "USER_NOT_FOUND"; message: string }
-  | { code: "NOT_FOUND"; message: string }
-  | { code: "FORBIDDEN"; message: string };
+  | { code: 'VALIDATION_ERROR'; message: string }
+  | { code: 'USER_NOT_FOUND'; message: string }
+  | { code: 'NOT_FOUND'; message: string }
+  | { code: 'FORBIDDEN'; message: string };
 
 type Result<T> = { success: true; data: T } | { success: false; error: ItemError };
 
-function createError(code: ItemError["code"], message: string): { success: false; error: ItemError } {
+function createError(code: ItemError['code'], message: string): { success: false; error: ItemError } {
   return { success: false, error: { code, message } };
 }
 
@@ -59,14 +59,14 @@ export class ItemService {
   createItem(input: CreateItemInput): Result<ItemWithTags> {
     const validation = validateCreateItemData(input);
     if (!validation.valid) {
-      return createError("VALIDATION_ERROR", validation.errors[0]);
+      return createError('VALIDATION_ERROR', validation.errors[0]);
     }
 
     const itemWithTags = runTransaction(() => {
       const item = itemRepository.create({
         userId: this.userId,
         question: input.question,
-        answer: input.answer ?? "",
+        answer: input.answer ?? '',
       });
 
       if (input.tags && input.tags.length > 0) {
@@ -83,12 +83,12 @@ export class ItemService {
   updateItem(itemId: string, input: UpdateItemInput): Result<ItemWithTags> {
     const validation = validateUpdateItemData(input);
     if (!validation.valid) {
-      return createError("VALIDATION_ERROR", validation.errors[0]);
+      return createError('VALIDATION_ERROR', validation.errors[0]);
     }
 
     const existingItem = itemRepository.findByIdAndUserId(itemId, this.userId);
     if (!existingItem) {
-      return createError("NOT_FOUND", "Item not found");
+      return createError('NOT_FOUND', 'Item not found');
     }
 
     const itemWithTags = runTransaction(() => {
@@ -98,7 +98,7 @@ export class ItemService {
       });
 
       if (!item) {
-        throw new Error("Failed to update item");
+        throw new Error('Failed to update item');
       }
 
       if (input.tags !== undefined) {
@@ -115,7 +115,7 @@ export class ItemService {
   deleteItem(itemId: string): Result<{ deleted: true }> {
     const existingItem = itemRepository.findByIdAndUserId(itemId, this.userId);
     if (!existingItem) {
-      return createError("NOT_FOUND", "Item not found");
+      return createError('NOT_FOUND', 'Item not found');
     }
 
     itemRepository.delete(itemId);
@@ -125,12 +125,12 @@ export class ItemService {
   getItem(itemId: string, username: string): Result<ItemWithTags> {
     const user = userService.findByUsername(username);
     if (!user) {
-      return createError("USER_NOT_FOUND", "User not found");
+      return createError('USER_NOT_FOUND', 'User not found');
     }
 
     const item = itemRepository.findByIdAndUserId(itemId, user.id);
     if (!item) {
-      return createError("NOT_FOUND", "Item not found");
+      return createError('NOT_FOUND', 'Item not found');
     }
 
     return {
@@ -146,11 +146,11 @@ export class ItemService {
   ): Result<PaginatedItemsResult> {
     const user = userService.findByUsername(username);
     if (!user) {
-      return createError("USER_NOT_FOUND", "User not found");
+      return createError('USER_NOT_FOUND', 'User not found');
     }
 
     const { limit = 50, offset = 0 } = pagination;
-    const hasFilters = (filters.search && filters.search.trim() !== "") || (filters.tags && filters.tags.length > 0);
+    const hasFilters = (filters.search && filters.search.trim() !== '') || (filters.tags && filters.tags.length > 0);
 
     const result = hasFilters
       ? itemRepository.searchItems(user.id, { limit, offset, search: filters.search, tags: filters.tags })
@@ -179,6 +179,6 @@ export class ItemService {
   }
 }
 
-import { tagService } from "./tag.service";
+import { tagService } from './tag.service';
 
-export const itemService = new ItemService("", tagService);
+export const itemService = new ItemService('', tagService);

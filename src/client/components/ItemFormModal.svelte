@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { Item, TagWithCount } from "../lib/items.svelte";
-import MarkdownEditor from "./MarkdownEditor.svelte";
+import type { Item, TagWithCount } from '../lib/items.svelte';
+import MarkdownEditor from './MarkdownEditor.svelte';
 
 interface Props {
   item: Item | null;
@@ -14,13 +14,13 @@ const { item, onSave, onClose, existingTags }: Props = $props();
 let dialogElement: HTMLDialogElement;
 let questionInput: HTMLInputElement;
 
-let question = $state("");
-let answer = $state("");
+let question = $state('');
+let answer = $state('');
 let selectedTags = $state<string[]>([]);
-let tagInput = $state("");
+let tagInput = $state('');
 let showTagDropdown = $state(false);
 let loading = $state(false);
-let error = $state("");
+let error = $state('');
 
 // Debounce timer for tag input
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -47,19 +47,19 @@ $effect(() => {
     question = item.question;
     answer = item.answer;
     selectedTags = item.tags.map((t) => t.name);
-    tagInput = "";
+    tagInput = '';
     loading = false;
-    error = "";
+    error = '';
     dialogElement?.showModal();
     questionInput?.focus();
   } else if (item === null) {
     // Create mode
-    question = "";
-    answer = "";
+    question = '';
+    answer = '';
     selectedTags = [];
-    tagInput = "";
+    tagInput = '';
     loading = false;
-    error = "";
+    error = '';
     dialogElement?.showModal();
     questionInput?.focus();
   } else {
@@ -71,9 +71,9 @@ $effect(() => {
 function validateQuestion(q: string): string {
   const trimmed = q.trim();
   if (!trimmed) {
-    return "Question cannot be empty";
+    return 'Question cannot be empty';
   }
-  return "";
+  return '';
 }
 
 async function handleSave() {
@@ -85,7 +85,7 @@ async function handleSave() {
   }
 
   loading = true;
-  error = "";
+  error = '';
 
   try {
     await onSave({
@@ -95,7 +95,7 @@ async function handleSave() {
     });
     onClose();
   } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to save question";
+    error = e instanceof Error ? e.message : 'Failed to save question';
     loading = false;
   }
 }
@@ -107,25 +107,25 @@ function handleCancel() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === "Enter" && e.ctrlKey && !loading) {
+  if (e.key === 'Enter' && e.ctrlKey && !loading) {
     e.preventDefault();
     handleSave();
   }
 }
 
 function handleTagInputKeydown(e: KeyboardEvent) {
-  if (e.key === "Enter") {
+  if (e.key === 'Enter') {
     e.preventDefault();
     const trimmed = tagInput.trim();
     if (trimmed && !selectedTags.includes(trimmed)) {
       selectedTags = [...selectedTags, trimmed];
-      tagInput = "";
+      tagInput = '';
       showTagDropdown = false;
     }
-  } else if (e.key === "Backspace" && !tagInput && selectedTags.length > 0) {
+  } else if (e.key === 'Backspace' && !tagInput && selectedTags.length > 0) {
     // Remove last tag when backspace on empty input
     selectedTags = selectedTags.slice(0, -1);
-  } else if (e.key === "Escape") {
+  } else if (e.key === 'Escape') {
     showTagDropdown = false;
   }
 }
@@ -142,7 +142,7 @@ function selectTag(tagName: string) {
   if (!selectedTags.includes(tagName)) {
     selectedTags = [...selectedTags, tagName];
   }
-  tagInput = "";
+  tagInput = '';
   showTagDropdown = false;
 }
 

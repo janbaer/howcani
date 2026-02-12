@@ -1,6 +1,6 @@
 <script lang="ts">
-import { clearError, getAuthState, register } from "../lib/auth.svelte";
-import { link } from "../lib/router.svelte";
+import { clearError, getAuthState, register } from '../lib/auth.svelte';
+import { link } from '../lib/router.svelte';
 
 interface Props {
   params?: Record<string, string>;
@@ -8,31 +8,31 @@ interface Props {
 
 const { params }: Props = $props();
 
-let username = $state("");
-let email = $state("");
-let password = $state("");
-let confirmPassword = $state("");
+let username = $state('');
+let email = $state('');
+let password = $state('');
+let confirmPassword = $state('');
 let isSubmitting = $state(false);
-let validationError = $state("");
+let validationError = $state('');
 
 const authState = getAuthState();
 
 async function handleSubmit(e: Event) {
   e.preventDefault();
-  validationError = "";
+  validationError = '';
 
   if (!username || !email || !password) {
-    validationError = "Please fill in all required fields";
+    validationError = 'Please fill in all required fields';
     return;
   }
 
   if (password !== confirmPassword) {
-    validationError = "Passwords do not match";
+    validationError = 'Passwords do not match';
     return;
   }
 
   if (password.length < 8) {
-    validationError = "Password must be at least 8 characters";
+    validationError = 'Password must be at least 8 characters';
     return;
   }
 

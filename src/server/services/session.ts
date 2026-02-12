@@ -1,5 +1,5 @@
-import { ItemService } from "./item.service";
-import { TagService } from "./tag.service";
+import { ItemService } from './item.service';
+import { TagService } from './tag.service';
 
 export interface UserSession {
   userId: string;
@@ -20,7 +20,7 @@ export function initSession(userId: string, username: string): UserSession {
 
 export function getSession(): UserSession {
   if (!currentSession) {
-    throw new Error("No active session");
+    throw new Error('No active session');
   }
   return currentSession;
 }

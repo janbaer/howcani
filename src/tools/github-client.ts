@@ -3,7 +3,7 @@
  * Handles GitHub API integration with pagination and rate limiting
  */
 
-import type { Issue } from "./json-format";
+import type { Issue } from './json-format';
 
 export interface GitHubIssueResponse {
   number: number;
@@ -14,7 +14,7 @@ export interface GitHubIssueResponse {
     color: string;
   }>;
   created_at: string;
-  state: "open" | "closed";
+  state: 'open' | 'closed';
 }
 
 export interface FetchOptions {
@@ -40,8 +40,8 @@ export async function fetchAllIssues(owner: string, repo: string, options: Fetch
     const url = `https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=${perPage}&page=${page}`;
 
     const headers: Record<string, string> = {
-      Accept: "application/vnd.github+json",
-      "User-Agent": "HowCanI-Migration-Tool",
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'HowCanI-Migration-Tool',
     };
 
     if (options.token) {
@@ -56,7 +56,7 @@ export async function fetchAllIssues(owner: string, repo: string, options: Fetch
         throw new Error(`Repository ${owner}/${repo} not found`);
       }
       if (response.status === 403) {
-        throw new Error("GitHub API access forbidden. Check your token or rate limits.");
+        throw new Error('GitHub API access forbidden. Check your token or rate limits.');
       }
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
@@ -72,7 +72,7 @@ export async function fetchAllIssues(owner: string, repo: string, options: Fetch
     // Convert GitHub issues to our format
     for (const item of data) {
       // Skip pull requests (they appear in issues endpoint)
-      if ("pull_request" in item) {
+      if ('pull_request' in item) {
         continue;
       }
 
@@ -92,7 +92,7 @@ export async function fetchAllIssues(owner: string, repo: string, options: Fetch
     // Report progress
     if (options.onProgress) {
       // Estimate total pages from Link header if available
-      const linkHeader = response.headers.get("Link");
+      const linkHeader = response.headers.get('Link');
       const totalPages = linkHeader ? extractLastPage(linkHeader) : page;
       options.onProgress(page, totalPages, issues.length);
     }
@@ -109,8 +109,8 @@ export async function fetchAllIssues(owner: string, repo: string, options: Fetch
  * Extracts rate limit information from response headers
  */
 export function getRateLimitInfo(response: Response): RateLimitInfo {
-  const remaining = response.headers.get("X-RateLimit-Remaining");
-  const reset = response.headers.get("X-RateLimit-Reset");
+  const remaining = response.headers.get('X-RateLimit-Remaining');
+  const reset = response.headers.get('X-RateLimit-Reset');
 
   return {
     remaining: remaining ? Number.parseInt(remaining, 10) : Number.POSITIVE_INFINITY,
@@ -128,7 +128,7 @@ export async function waitForRateLimitReset(resetTimestamp: number): Promise<voi
   if (waitSeconds > 0) {
     console.log(`\nRate limited. Waiting ${waitSeconds} seconds...`);
     await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
-    console.log("Rate limit reset. Resuming...\n");
+    console.log('Rate limit reset. Resuming...\n');
   }
 }
 

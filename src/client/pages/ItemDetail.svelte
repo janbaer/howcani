@@ -1,9 +1,9 @@
 <script lang="ts">
-import ItemDeleteConfirmModal from "../components/ItemDeleteConfirmModal.svelte";
-import ItemFormModal from "../components/ItemFormModal.svelte";
-import MarkdownRenderer from "../components/MarkdownRenderer.svelte";
-import TagBadge from "../components/TagBadge.svelte";
-import { getAuthState } from "../lib/auth.svelte";
+import ItemDeleteConfirmModal from '../components/ItemDeleteConfirmModal.svelte';
+import ItemFormModal from '../components/ItemFormModal.svelte';
+import MarkdownRenderer from '../components/MarkdownRenderer.svelte';
+import TagBadge from '../components/TagBadge.svelte';
+import { getAuthState } from '../lib/auth.svelte';
 import {
   deleteItem as deleteItemService,
   fetchItem,
@@ -13,8 +13,8 @@ import {
   type ItemUpdateData,
   type TagWithCount,
   updateItem as updateItemService,
-} from "../lib/items.svelte";
-import { link, navigate } from "../lib/router.svelte";
+} from '../lib/items.svelte';
+import { link, navigate } from '../lib/router.svelte';
 
 interface Props {
   params: Record<string, string>;
@@ -53,7 +53,7 @@ async function loadTags() {
     tagError = null;
   } catch (e) {
     tagList = [];
-    tagError = e instanceof Error ? e.message : "Failed to load tags";
+    tagError = e instanceof Error ? e.message : 'Failed to load tags';
   }
 }
 

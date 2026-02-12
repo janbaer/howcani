@@ -1,4 +1,4 @@
-import type { ValidationResult } from "./common";
+import type { ValidationResult } from './common';
 
 export type { ValidationResult };
 
@@ -18,18 +18,18 @@ export function validateUsername(username: string | null | undefined): Validatio
   const errors: string[] = [];
 
   if (!username) {
-    errors.push("Username is required");
+    errors.push('Username is required');
   } else {
     if (username.length < 3) {
-      errors.push("Username must be at least 3 characters");
+      errors.push('Username must be at least 3 characters');
     }
 
     if (username.length > 30) {
-      errors.push("Username cannot exceed 30 characters");
+      errors.push('Username cannot exceed 30 characters');
     }
 
     if (!USERNAME_REGEX.test(username)) {
-      errors.push("Username can only contain letters, numbers, hyphens, and underscores");
+      errors.push('Username can only contain letters, numbers, hyphens, and underscores');
     }
   }
 
@@ -43,9 +43,9 @@ export function validateEmail(email: string | null | undefined): ValidationResul
   const errors: string[] = [];
 
   if (!email) {
-    errors.push("Email is required");
+    errors.push('Email is required');
   } else if (!EMAIL_REGEX.test(email)) {
-    errors.push("Invalid email format");
+    errors.push('Invalid email format');
   }
 
   return {
@@ -58,7 +58,7 @@ export function validatePassword(password: string | null | undefined): Validatio
   const errors: string[] = [];
 
   if (!password) {
-    errors.push("Password is required");
+    errors.push('Password is required');
   }
 
   return {

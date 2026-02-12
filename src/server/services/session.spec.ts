@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 const mockTagRepositoryForSession = {
   findAllByUserId: mock(() => []),
@@ -26,79 +26,79 @@ const mockUserServiceForSession = {
   findByUsername: mock(() => null),
 };
 
-mock.module("../repositories", () => ({
+mock.module('../repositories', () => ({
   tagRepository: mockTagRepositoryForSession,
   itemRepository: mockItemRepositoryForSession,
 }));
 
-mock.module("./user.service", () => ({
+mock.module('./user.service', () => ({
   userService: mockUserServiceForSession,
 }));
 
-import { clearSession, getSession, hasSession, initSession } from "./session";
+import { clearSession, getSession, hasSession, initSession } from './session';
 
-describe("Session", () => {
+describe('Session', () => {
   beforeEach(() => {
     clearSession();
   });
 
-  describe("initSession", () => {
-    test("creates session with userId and username", () => {
-      const session = initSession("user-123", "john");
+  describe('initSession', () => {
+    test('creates session with userId and username', () => {
+      const session = initSession('user-123', 'john');
 
-      expect(session.userId).toBe("user-123");
-      expect(session.username).toBe("john");
+      expect(session.userId).toBe('user-123');
+      expect(session.username).toBe('john');
       expect(session.tagService).toBeDefined();
       expect(session.itemService).toBeDefined();
     });
 
-    test("replaces existing session", () => {
-      initSession("user-1", "alice");
-      initSession("user-2", "bob");
+    test('replaces existing session', () => {
+      initSession('user-1', 'alice');
+      initSession('user-2', 'bob');
 
       const session = getSession();
-      expect(session.userId).toBe("user-2");
-      expect(session.username).toBe("bob");
+      expect(session.userId).toBe('user-2');
+      expect(session.username).toBe('bob');
     });
   });
 
-  describe("getSession", () => {
-    test("returns active session", () => {
-      initSession("user-123", "john");
+  describe('getSession', () => {
+    test('returns active session', () => {
+      initSession('user-123', 'john');
 
       const session = getSession();
 
-      expect(session.userId).toBe("user-123");
-      expect(session.username).toBe("john");
+      expect(session.userId).toBe('user-123');
+      expect(session.username).toBe('john');
     });
 
-    test("throws when no session exists", () => {
-      expect(() => getSession()).toThrow("No active session");
+    test('throws when no session exists', () => {
+      expect(() => getSession()).toThrow('No active session');
     });
   });
 
-  describe("hasSession", () => {
-    test("returns false when no session", () => {
+  describe('hasSession', () => {
+    test('returns false when no session', () => {
       expect(hasSession()).toBe(false);
     });
 
-    test("returns true when session exists", () => {
-      initSession("user-123", "john");
+    test('returns true when session exists', () => {
+      initSession('user-123', 'john');
 
       expect(hasSession()).toBe(true);
     });
   });
 
-  describe("clearSession", () => {
-    test("clears existing session", () => {
-      initSession("user-123", "john");
+  describe('clearSession', () => {
+    test('clears existing session', () => {
+      initSession('user-123', 'john');
 
       clearSession();
 
       expect(hasSession()).toBe(false);
     });
 
-    test("is safe to call when no session", () => {
+    test('is safe to call when no session', () => {
       expect(() => clearSession()).not.toThrow();
     });
   });

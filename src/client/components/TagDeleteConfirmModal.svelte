@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { TagWithCount } from "../lib/items.svelte";
+import type { TagWithCount } from '../lib/items.svelte';
 
 interface Props {
   tag: TagWithCount | null;
@@ -13,12 +13,12 @@ let dialogElement: HTMLDialogElement;
 let cancelButton: HTMLButtonElement;
 
 let loading = $state(false);
-let error = $state("");
+let error = $state('');
 
 // Open/close modal when tag prop changes
 $effect(() => {
   if (tag) {
-    error = "";
+    error = '';
     dialogElement?.showModal();
     // Focus cancel button (safer default)
     setTimeout(() => cancelButton?.focus(), 100);
@@ -31,13 +31,13 @@ async function handleDelete() {
   if (!tag) return;
 
   loading = true;
-  error = "";
+  error = '';
 
   try {
     await onDelete(tag.id);
     onClose();
   } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to delete tag";
+    error = e instanceof Error ? e.message : 'Failed to delete tag';
     loading = false;
   }
 }

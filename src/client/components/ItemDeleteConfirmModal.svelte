@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Item } from "../lib/items.svelte";
+import type { Item } from '../lib/items.svelte';
 
 interface Props {
   item: Item | null;
@@ -13,13 +13,13 @@ let dialogElement: HTMLDialogElement;
 let cancelButton: HTMLButtonElement;
 
 let loading = $state(false);
-let error = $state("");
+let error = $state('');
 
 // Open/close modal when item prop changes
 $effect(() => {
   if (item) {
     loading = false;
-    error = "";
+    error = '';
     dialogElement?.showModal();
     // Focus cancel button by default (safer)
     setTimeout(() => cancelButton?.focus(), 100);
@@ -32,13 +32,13 @@ async function handleDelete() {
   if (!item) return;
 
   loading = true;
-  error = "";
+  error = '';
 
   try {
     await onDelete(item.id);
     onClose();
   } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to delete question";
+    error = e instanceof Error ? e.message : 'Failed to delete question';
     loading = false;
   }
 }

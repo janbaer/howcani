@@ -1,20 +1,20 @@
 <script lang="ts">
-import Layout from "./components/Layout.svelte";
-import { checkAuth, getAuthState } from "./lib/auth.svelte";
-import { getCurrentPath, matchRoute, type RouteMatch, setRoutes, subscribe } from "./lib/router.svelte";
-import Home from "./pages/Home.svelte";
-import ItemDetail from "./pages/ItemDetail.svelte";
-import ItemList from "./pages/ItemList.svelte";
-import Login from "./pages/Login.svelte";
-import NotFound from "./pages/NotFound.svelte";
-import Register from "./pages/Register.svelte";
+import Layout from './components/Layout.svelte';
+import { checkAuth, getAuthState } from './lib/auth.svelte';
+import { getCurrentPath, matchRoute, type RouteMatch, setRoutes, subscribe } from './lib/router.svelte';
+import Home from './pages/Home.svelte';
+import ItemDetail from './pages/ItemDetail.svelte';
+import ItemList from './pages/ItemList.svelte';
+import Login from './pages/Login.svelte';
+import NotFound from './pages/NotFound.svelte';
+import Register from './pages/Register.svelte';
 
 setRoutes([
-  { pattern: "/", component: Home },
-  { pattern: "/login", component: Login },
-  { pattern: "/register", component: Register },
-  { pattern: "/:username/items", component: ItemList },
-  { pattern: "/:username/items/:id", component: ItemDetail },
+  { pattern: '/', component: Home },
+  { pattern: '/login', component: Login },
+  { pattern: '/register', component: Register },
+  { pattern: '/:username/items', component: ItemList },
+  { pattern: '/:username/items/:id', component: ItemDetail },
 ]);
 
 let path = $state(getCurrentPath());

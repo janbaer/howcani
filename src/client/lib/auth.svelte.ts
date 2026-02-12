@@ -1,5 +1,5 @@
-import { auth, setAccessToken, type User } from "./api";
-import { navigate } from "./router.svelte";
+import { auth, setAccessToken, type User } from './api';
+import { navigate } from './router.svelte';
 
 interface AuthState {
   user: User | null;
@@ -74,7 +74,7 @@ export async function logout(): Promise<void> {
   state.user = null;
   state.isAuthenticated = false;
   state.error = null;
-  navigate("/login");
+  navigate('/login');
 }
 
 export async function checkAuth(): Promise<void> {

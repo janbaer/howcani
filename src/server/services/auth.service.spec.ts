@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
-import type { User } from "../repositories/user.repository";
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { User } from '../repositories/user.repository';
 
 const testUsers = new Map<string, User>();
 
@@ -17,7 +17,7 @@ const mockTagRepositoryForAuth = {
   getTagsForItem: mock(() => []),
 };
 
-mock.module("../repositories/tag.repository", () => ({
+mock.module('../repositories/tag.repository', () => ({
   tagRepository: mockTagRepositoryForAuth,
 }));
 
@@ -56,19 +56,19 @@ const mockUserRepository = {
   }),
 };
 
-mock.module("../repositories", () => ({
+mock.module('../repositories', () => ({
   userRepository: mockUserRepository,
 }));
 
-import { AuthService } from "./auth.service";
+import { AuthService } from './auth.service';
 
 const validUser = {
-  username: "john",
-  email: "john@example.com",
-  password: "secure123",
+  username: 'john',
+  email: 'john@example.com',
+  password: 'secure123',
 };
 
-describe("AuthService", () => {
+describe('AuthService', () => {
   let authService: AuthService;
 
   beforeEach(() => {
@@ -76,8 +76,8 @@ describe("AuthService", () => {
     authService = new AuthService();
   });
 
-  describe("register", () => {
-    test("creates user account with hashed password and returns JWT token", async () => {
+  describe('register', () => {
+    test('creates user account with hashed password and returns JWT token', async () => {
       const result = await authService.register(validUser);
 
       expect(result.success).toBe(true);
@@ -85,12 +85,12 @@ describe("AuthService", () => {
 
       const { user, token } = result.data;
 
-      expect(user).toHaveProperty("id");
+      expect(user).toHaveProperty('id');
       expect(user.username).toBe(validUser.username);
       expect(user.email).toBe(validUser.email);
-      expect(user).not.toHaveProperty("password_hash");
+      expect(user).not.toHaveProperty('password_hash');
 
-      expect(typeof token).toBe("string");
+      expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
 
       const mockUser = mockUserRepository.findByUsername(validUser.username);
@@ -99,76 +99,76 @@ describe("AuthService", () => {
       expect(mockUser?.password_hash).not.toBe(validUser.password);
     });
 
-    test("rejects duplicate username", async () => {
+    test('rejects duplicate username', async () => {
       await authService.register(validUser);
 
       const result = await authService.register({
         username: validUser.username,
-        email: "different@example.com",
-        password: "secure456",
+        email: 'different@example.com',
+        password: 'secure456',
       });
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("VALIDATION_ERROR");
-      expect(result.error.message).toBe("Username already exists");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.message).toBe('Username already exists');
     });
 
     test.each([
-      ["ab", "too short"],
-      ["a".repeat(31), "too long"],
-    ])("rejects username that is %s", async (username) => {
+      ['ab', 'too short'],
+      ['a'.repeat(31), 'too long'],
+    ])('rejects username that is %s', async (username) => {
       const result = await authService.register({
         username,
-        email: "test@example.com",
-        password: "secure123",
+        email: 'test@example.com',
+        password: 'secure123',
       });
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("VALIDATION_ERROR");
-      expect(result.error.message).toContain("3-30 characters");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.message).toContain('3-30 characters');
     });
 
     test.each([
-      "john@doe",
-      "john.doe",
-      "john doe",
-      "john!",
-    ])("rejects username with invalid characters: %s", async (username) => {
+      'john@doe',
+      'john.doe',
+      'john doe',
+      'john!',
+    ])('rejects username with invalid characters: %s', async (username) => {
       const result = await authService.register({
         username,
-        email: "test@example.com",
-        password: "secure123",
+        email: 'test@example.com',
+        password: 'secure123',
       });
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("VALIDATION_ERROR");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
     });
 
-    test("rejects password shorter than 8 characters", async () => {
+    test('rejects password shorter than 8 characters', async () => {
       const result = await authService.register({
         ...validUser,
-        password: "short",
+        password: 'short',
       });
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("VALIDATION_ERROR");
-      expect(result.error.message).toContain("at least 8 characters");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.message).toContain('at least 8 characters');
     });
 
     test.each([
-      "notanemail",
-      "missing@domain",
-      "@nodomain.com",
-      "no@domain",
-    ])("rejects invalid email format: %s", async (email) => {
+      'notanemail',
+      'missing@domain',
+      '@nodomain.com',
+      'no@domain',
+    ])('rejects invalid email format: %s', async (email) => {
       const result = await authService.register({
         ...validUser,
         email,
@@ -177,13 +177,13 @@ describe("AuthService", () => {
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("VALIDATION_ERROR");
-      expect(result.error.message).toContain("email");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.message).toContain('email');
     });
   });
 
-  describe("login", () => {
-    test("verifies password and returns JWT token", async () => {
+  describe('login', () => {
+    test('verifies password and returns JWT token', async () => {
       await authService.register(validUser);
 
       const result = await authService.login({
@@ -196,41 +196,41 @@ describe("AuthService", () => {
 
       const { user, token } = result.data;
 
-      expect(user).toHaveProperty("id");
+      expect(user).toHaveProperty('id');
       expect(user.username).toBe(validUser.username);
       expect(user.email).toBe(validUser.email);
-      expect(user).not.toHaveProperty("password_hash");
+      expect(user).not.toHaveProperty('password_hash');
 
-      expect(typeof token).toBe("string");
+      expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
     });
 
-    test("rejects incorrect password", async () => {
+    test('rejects incorrect password', async () => {
       await authService.register(validUser);
 
       const result = await authService.login({
         username: validUser.username,
-        password: "wrongpassword",
+        password: 'wrongpassword',
       });
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("UNAUTHORIZED");
-      expect(result.error.message).toBe("Invalid credentials");
+      expect(result.error.code).toBe('UNAUTHORIZED');
+      expect(result.error.message).toBe('Invalid credentials');
     });
 
     test("rejects non-existent username without revealing it doesn't exist", async () => {
       const result = await authService.login({
-        username: "alice",
-        password: "anypassword",
+        username: 'alice',
+        password: 'anypassword',
       });
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("UNAUTHORIZED");
-      expect(result.error.message).toBe("Invalid credentials");
+      expect(result.error.code).toBe('UNAUTHORIZED');
+      expect(result.error.message).toBe('Invalid credentials');
     });
   });
 });

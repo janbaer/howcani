@@ -3,9 +3,9 @@
  * Orchestrates the import process with transaction safety and duplicate detection
  */
 
-import { db, runTransaction } from "../server/db/database";
-import { itemRepository, tagRepository, userRepository } from "../server/repositories";
-import type { ItemData, TagData } from "./issue-mapper";
+import { db, runTransaction } from '../server/db/database';
+import { itemRepository, tagRepository, userRepository } from '../server/repositories';
+import type { ItemData, TagData } from './issue-mapper';
 
 export interface ImportOptions {
   userId: string;
@@ -33,7 +33,7 @@ export interface ImportSummary {
  */
 export function hasExistingData(userId: string): boolean {
   const result = db
-    .query<{ count: number }, [string]>("SELECT COUNT(*) as count FROM items WHERE user_id = ?")
+    .query<{ count: number }, [string]>('SELECT COUNT(*) as count FROM items WHERE user_id = ?')
     .get(userId);
   return result !== null && result.count > 0;
 }
@@ -88,7 +88,7 @@ export async function runImport(options: ImportOptions): Promise<ImportSummary> 
     // If force-reimport, delete all existing data first
     if (forceReimport) {
       // Delete all items for this user (cascades to item_tags via FOREIGN KEY)
-      db.run("DELETE FROM items WHERE user_id = ?", [userId]);
+      db.run('DELETE FROM items WHERE user_id = ?', [userId]);
 
       // Clean up orphaned tags (tags that are no longer referenced by any items for this user)
       db.run(
@@ -163,7 +163,7 @@ export async function runImport(options: ImportOptions): Promise<ImportSummary> 
 
     // If there were errors, rollback
     if (summary.errors > 0) {
-      const errorDetails = summary.errorMessages.join("; ");
+      const errorDetails = summary.errorMessages.join('; ');
       throw new Error(`Import failed with ${summary.errors} errors: ${errorDetails}`);
     }
   });
@@ -178,7 +178,7 @@ function findExistingItem(userId: string, question: string): { id: string } | nu
   const normalized = question.toLowerCase().trim();
 
   return db
-    .query<{ id: string }, [string, string]>("SELECT id FROM items WHERE user_id = ? AND LOWER(TRIM(question)) = ?")
+    .query<{ id: string }, [string, string]>('SELECT id FROM items WHERE user_id = ? AND LOWER(TRIM(question)) = ?')
     .get(userId, normalized);
 }
 
@@ -228,7 +228,7 @@ function tryCreateWithId(userId: string, issue: ItemData, preferredId?: number):
     db.run(
       `INSERT INTO items (id, user_id, question, answer, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, userId, issue.question, issue.answer || "", createdAt, updatedAt],
+      [id, userId, issue.question, issue.answer || '', createdAt, updatedAt],
     );
     return id;
   } catch (_error) {
@@ -236,9 +236,9 @@ function tryCreateWithId(userId: string, issue: ItemData, preferredId?: number):
     db.run(
       `INSERT INTO items (user_id, question, answer, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?)`,
-      [userId, issue.question, issue.answer || "", createdAt, updatedAt],
+      [userId, issue.question, issue.answer || '', createdAt, updatedAt],
     );
-    const result = db.query<{ id: string }, []>("SELECT last_insert_rowid() as id").get();
-    return result?.id || "";
+    const result = db.query<{ id: string }, []>('SELECT last_insert_rowid() as id').get();
+    return result?.id || '';
   }
 }

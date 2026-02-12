@@ -1,16 +1,16 @@
-import { randomColor, type Tag, type TagWithCount, validateTagColor, validateTagName } from "../domain/tag";
-import { tagRepository } from "../repositories";
-import { userService } from "./user.service";
+import { randomColor, type Tag, type TagWithCount, validateTagColor, validateTagName } from '../domain/tag';
+import { tagRepository } from '../repositories';
+import { userService } from './user.service';
 
 export type TagError =
-  | { code: "USER_NOT_FOUND"; message: string }
-  | { code: "NOT_FOUND"; message: string }
-  | { code: "VALIDATION_ERROR"; message: string }
-  | { code: "DUPLICATE_TAG"; message: string };
+  | { code: 'USER_NOT_FOUND'; message: string }
+  | { code: 'NOT_FOUND'; message: string }
+  | { code: 'VALIDATION_ERROR'; message: string }
+  | { code: 'DUPLICATE_TAG'; message: string };
 
 type Result<T> = { success: true; data: T } | { success: false; error: TagError };
 
-function createError(code: TagError["code"], message: string): { success: false; error: TagError } {
+function createError(code: TagError['code'], message: string): { success: false; error: TagError } {
   return { success: false, error: { code, message } };
 }
 
@@ -53,7 +53,7 @@ export class TagService {
 
     for (const name of tagNames) {
       const trimmed = name.trim();
-      if (trimmed === "") continue;
+      if (trimmed === '') continue;
 
       const existing = tagRepository.findByNameAndUserId(trimmed, this.userId);
       if (existing) {
@@ -95,14 +95,14 @@ export class TagService {
   updateTag(tagId: string, data: { name?: string; color?: string }): Result<Tag> {
     const tag = tagRepository.findByIdAndUserId(tagId, this.userId);
     if (!tag) {
-      return createError("NOT_FOUND", "Tag not found");
+      return createError('NOT_FOUND', 'Tag not found');
     }
 
     // Validate name if provided
     if (data.name !== undefined) {
       const nameValidation = validateTagName(data.name);
       if (!nameValidation.valid) {
-        return createError("VALIDATION_ERROR", nameValidation.errors[0]);
+        return createError('VALIDATION_ERROR', nameValidation.errors[0]);
       }
 
       // Check for duplicate name (case-insensitive)
@@ -110,7 +110,7 @@ export class TagService {
       if (trimmedName.toLowerCase() !== tag.name.toLowerCase()) {
         const existing = tagRepository.findByNameAndUserId(trimmedName, this.userId);
         if (existing) {
-          return createError("DUPLICATE_TAG", `Tag '${trimmedName}' already exists`);
+          return createError('DUPLICATE_TAG', `Tag '${trimmedName}' already exists`);
         }
       }
     }
@@ -119,14 +119,14 @@ export class TagService {
     if (data.color !== undefined) {
       const colorValidation = validateTagColor(data.color);
       if (!colorValidation.valid) {
-        return createError("VALIDATION_ERROR", colorValidation.errors[0]);
+        return createError('VALIDATION_ERROR', colorValidation.errors[0]);
       }
     }
 
     // Update tag
     const updated = tagRepository.update(tagId, data);
     if (!updated) {
-      return createError("NOT_FOUND", "Tag not found");
+      return createError('NOT_FOUND', 'Tag not found');
     }
 
     // Update cache
@@ -140,7 +140,7 @@ export class TagService {
   deleteTag(tagId: string): Result<{ deleted: true }> {
     const tag = tagRepository.findByIdAndUserId(tagId, this.userId);
     if (!tag) {
-      return createError("NOT_FOUND", "Tag not found");
+      return createError('NOT_FOUND', 'Tag not found');
     }
 
     // Delete the tag (cascade deletes item_tags associations via DB constraint)
@@ -164,7 +164,7 @@ export class TagService {
   listTags(username: string): Result<TagWithCount[]> {
     const user = userService.findByUsername(username);
     if (!user) {
-      return createError("USER_NOT_FOUND", "User not found");
+      return createError('USER_NOT_FOUND', 'User not found');
     }
 
     const tags = tagRepository.findByUserId(user.id);
@@ -174,7 +174,7 @@ export class TagService {
   getSuggestions(username: string, prefix: string): Result<string[]> {
     const user = userService.findByUsername(username);
     if (!user) {
-      return createError("USER_NOT_FOUND", "User not found");
+      return createError('USER_NOT_FOUND', 'User not found');
     }
 
     const suggestions = tagRepository.findSuggestions(user.id, prefix);
@@ -182,4 +182,4 @@ export class TagService {
   }
 }
 
-export const tagService = new TagService("");
+export const tagService = new TagService('');

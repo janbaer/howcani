@@ -1,4 +1,4 @@
-import type { ValidationResult } from "./common";
+import type { ValidationResult } from './common';
 
 export type { ValidationResult };
 
@@ -27,8 +27,8 @@ export const MAX_ANSWER_LENGTH = 50_000;
 export function validateQuestion(question: string | null | undefined): ValidationResult {
   const errors: string[] = [];
 
-  if (!question || question.trim() === "") {
-    errors.push("Question is required");
+  if (!question || question.trim() === '') {
+    errors.push('Question is required');
   } else if (question.length > MAX_QUESTION_LENGTH) {
     errors.push(`Question must be at most ${MAX_QUESTION_LENGTH} characters`);
   }

@@ -1,19 +1,19 @@
-import { Elysia, t } from "elysia";
-import { StatusCodes } from "http-status-codes";
-import { authPlugin } from "../middleware";
-import { getSession } from "../services/session";
-import { tagService } from "../services/tag.service";
+import { Elysia, t } from 'elysia';
+import { StatusCodes } from 'http-status-codes';
+import { authPlugin } from '../middleware';
+import { getSession } from '../services/session';
+import { tagService } from '../services/tag.service';
 
-export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
+export const tagRoutes = new Elysia({ prefix: '/:username/tags' })
   .use(authPlugin)
   .get(
-    "/",
+    '/',
     ({ params, set }) => {
       const result = tagService.listTags(params.username);
 
       if (!result.success) {
         set.status = StatusCodes.NOT_FOUND;
-        return { error: { message: result.error.message, code: "NOT_FOUND" } };
+        return { error: { message: result.error.message, code: 'NOT_FOUND' } };
       }
 
       return { tags: result.data };
@@ -25,14 +25,14 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
     },
   )
   .get(
-    "/suggestions",
+    '/suggestions',
     ({ params, query, set }) => {
-      const prefix = query.q ?? "";
+      const prefix = query.q ?? '';
       const result = tagService.getSuggestions(params.username, prefix);
 
       if (!result.success) {
         set.status = StatusCodes.NOT_FOUND;
-        return { error: { message: result.error.message, code: "NOT_FOUND" } };
+        return { error: { message: result.error.message, code: 'NOT_FOUND' } };
       }
 
       return { suggestions: result.data };
@@ -47,12 +47,12 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
     },
   )
   .put(
-    "/:id",
+    '/:id',
     ({ params, body, user, set }) => {
       if (!user) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
-          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+          error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
         };
       }
 
@@ -61,7 +61,7 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
         return {
           error: {
             message: "Not authorized to modify this user's content",
-            code: "FORBIDDEN",
+            code: 'FORBIDDEN',
           },
         };
       }
@@ -73,17 +73,17 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
       });
 
       if (!result.success) {
-        if (result.error.code === "NOT_FOUND") {
+        if (result.error.code === 'NOT_FOUND') {
           set.status = StatusCodes.NOT_FOUND;
-          return { error: { message: result.error.message, code: "NOT_FOUND" } };
+          return { error: { message: result.error.message, code: 'NOT_FOUND' } };
         }
-        if (result.error.code === "DUPLICATE_TAG") {
+        if (result.error.code === 'DUPLICATE_TAG') {
           set.status = StatusCodes.BAD_REQUEST;
-          return { error: { message: result.error.message, code: "VALIDATION_ERROR" } };
+          return { error: { message: result.error.message, code: 'VALIDATION_ERROR' } };
         }
-        if (result.error.code === "VALIDATION_ERROR") {
+        if (result.error.code === 'VALIDATION_ERROR') {
           set.status = StatusCodes.BAD_REQUEST;
-          return { error: { message: result.error.message, code: "VALIDATION_ERROR" } };
+          return { error: { message: result.error.message, code: 'VALIDATION_ERROR' } };
         }
         set.status = StatusCodes.INTERNAL_SERVER_ERROR;
         return { error: { message: result.error.message, code: result.error.code } };
@@ -103,12 +103,12 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
     },
   )
   .delete(
-    "/:id",
+    '/:id',
     ({ params, user, set }) => {
       if (!user) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
-          error: { message: "Authentication required", code: "UNAUTHORIZED" },
+          error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
         };
       }
 
@@ -117,7 +117,7 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
         return {
           error: {
             message: "Not authorized to modify this user's content",
-            code: "FORBIDDEN",
+            code: 'FORBIDDEN',
           },
         };
       }
@@ -126,10 +126,10 @@ export const tagRoutes = new Elysia({ prefix: "/:username/tags" })
       const result = sessionTagService.deleteTag(params.id);
 
       if (!result.success) {
-        if (result.error.code === "NOT_FOUND") {
+        if (result.error.code === 'NOT_FOUND') {
           set.status = StatusCodes.NOT_FOUND;
           return {
-            error: { message: result.error.message, code: "NOT_FOUND" },
+            error: { message: result.error.message, code: 'NOT_FOUND' },
           };
         }
         set.status = StatusCodes.INTERNAL_SERVER_ERROR;

@@ -1,19 +1,19 @@
-import { Database } from "bun:sqlite";
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { setDatabase } from "../server/db/database";
-import { runMigrations } from "../server/db/migrations";
-import { itemRepository, tagRepository, userRepository } from "../server/repositories";
-import { hasExistingData, runImport } from "./import-runner";
-import type { ItemData } from "./issue-mapper";
+import { Database } from 'bun:sqlite';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import { setDatabase } from '../server/db/database';
+import { runMigrations } from '../server/db/migrations';
+import { itemRepository, tagRepository, userRepository } from '../server/repositories';
+import { hasExistingData, runImport } from './import-runner';
+import type { ItemData } from './issue-mapper';
 
-describe("import-runner", () => {
+describe('import-runner', () => {
   let testDb: Database;
   let testUserId: string;
 
   beforeEach(() => {
     // Create in-memory database for testing
-    testDb = new Database(":memory:", { strict: true });
-    testDb.run("PRAGMA foreign_keys = ON");
+    testDb = new Database(':memory:', { strict: true });
+    testDb.run('PRAGMA foreign_keys = ON');
     setDatabase(testDb);
 
     // Run migrations
@@ -21,9 +21,9 @@ describe("import-runner", () => {
 
     // Create test user
     const user = userRepository.create({
-      username: "testuser",
-      email: "test@example.com",
-      passwordHash: "hashedpassword",
+      username: 'testuser',
+      email: 'test@example.com',
+      passwordHash: 'hashedpassword',
     });
     testUserId = user.id;
   });
@@ -34,25 +34,25 @@ describe("import-runner", () => {
     }
   });
 
-  describe("runImport", () => {
-    test("imports items from issue data", async () => {
+  describe('runImport', () => {
+    test('imports items from issue data', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "How do I use Bun?",
-          answer: "Install Bun...",
+          question: 'How do I use Bun?',
+          answer: 'Install Bun...',
           tags: [
-            { name: "bun", color: "0e8a16" },
-            { name: "help", color: "ff5722" },
+            { name: 'bun', color: '0e8a16' },
+            { name: 'help', color: 'ff5722' },
           ],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
         {
           id: 2,
-          question: "How do I use Svelte?",
-          answer: "Install Svelte...",
-          tags: [{ name: "svelte", color: "ff3e00" }],
-          created_at: "2024-01-02T00:00:00Z",
+          question: 'How do I use Svelte?',
+          answer: 'Install Svelte...',
+          tags: [{ name: 'svelte', color: 'ff3e00' }],
+          created_at: '2024-01-02T00:00:00Z',
         },
       ];
 
@@ -75,14 +75,14 @@ describe("import-runner", () => {
       expect(tags).toHaveLength(3);
     });
 
-    test("detects duplicates by normalized question", async () => {
+    test('detects duplicates by normalized question', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "How do I use Bun?",
-          answer: "Answer 1",
+          question: 'How do I use Bun?',
+          answer: 'Answer 1',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -93,10 +93,10 @@ describe("import-runner", () => {
       const duplicateIssues: ItemData[] = [
         {
           id: 2,
-          question: "  how do i use bun?  ", // Different case and whitespace
-          answer: "Answer 2",
+          question: '  how do i use bun?  ', // Different case and whitespace
+          answer: 'Answer 2',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -113,14 +113,14 @@ describe("import-runner", () => {
       expect(items.items).toHaveLength(1);
     });
 
-    test("updates existing items when force flag is true", async () => {
+    test('updates existing items when force flag is true', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "How do I use Bun?",
-          answer: "Old answer",
+          question: 'How do I use Bun?',
+          answer: 'Old answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -131,10 +131,10 @@ describe("import-runner", () => {
       const updatedIssues: ItemData[] = [
         {
           id: 1,
-          question: "How do I use Bun?",
-          answer: "New answer",
-          tags: [{ name: "updated", color: "ff0000" }],
-          created_at: "2024-01-01T00:00:00Z",
+          question: 'How do I use Bun?',
+          answer: 'New answer',
+          tags: [{ name: 'updated', color: 'ff0000' }],
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -150,50 +150,50 @@ describe("import-runner", () => {
       // Verify item was updated
       const items = itemRepository.findByUserId(testUserId);
       expect(items.items).toHaveLength(1);
-      expect(items.items[0].answer).toBe("New answer");
+      expect(items.items[0].answer).toBe('New answer');
 
       // Verify tags were updated
       const tags = tagRepository.getTagsForItem(items.items[0].id);
       expect(tags).toHaveLength(1);
-      expect(tags[0].name).toBe("updated");
+      expect(tags[0].name).toBe('updated');
     });
 
-    test("preserves issue numbers as item IDs", async () => {
+    test('preserves issue numbers as item IDs', async () => {
       const issues: ItemData[] = [
         {
           id: 42,
-          question: "Test question",
-          answer: "Test answer",
+          question: 'Test question',
+          answer: 'Test answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
       await runImport({ userId: testUserId, issues });
 
       // Verify item has ID 42
-      const item = itemRepository.findById("42");
+      const item = itemRepository.findById('42');
       expect(item).not.toBeNull();
-      expect(item?.question).toBe("Test question");
+      expect(item?.question).toBe('Test question');
     });
 
-    test("handles ID conflicts and tracks mappings", async () => {
+    test('handles ID conflicts and tracks mappings', async () => {
       // Create item with ID "1" directly via SQL
       const now = new Date().toISOString();
       testDb.run(
         `INSERT INTO items (id, user_id, question, answer, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ["1", testUserId, "Existing question", "", now, now],
+        ['1', testUserId, 'Existing question', '', now, now],
       );
 
       // Try to import issue #1 (should conflict)
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "New question",
-          answer: "New answer",
+          question: 'New question',
+          answer: 'New answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -202,24 +202,24 @@ describe("import-runner", () => {
       expect(summary.imported).toBe(1);
       expect(summary.idMappings).toHaveLength(1);
       expect(summary.idMappings[0].issueNumber).toBe(1);
-      expect(summary.idMappings[0].itemId).not.toBe("1");
+      expect(summary.idMappings[0].itemId).not.toBe('1');
 
       // Verify both items exist
       const items = itemRepository.findByUserId(testUserId);
       expect(items.items).toHaveLength(2);
     });
 
-    test("creates tags with correct colors", async () => {
+    test('creates tags with correct colors', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "Answer",
+          question: 'Test',
+          answer: 'Answer',
           tags: [
-            { name: "bug", color: "d73a4a" },
-            { name: "feature", color: "0e8a16" },
+            { name: 'bug', color: 'd73a4a' },
+            { name: 'feature', color: '0e8a16' },
           ],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -228,28 +228,28 @@ describe("import-runner", () => {
       const tags = tagRepository.findByUserId(testUserId);
       expect(tags).toHaveLength(2);
 
-      const bugTag = tags.find((t) => t.name === "bug");
-      const featureTag = tags.find((t) => t.name === "feature");
+      const bugTag = tags.find((t) => t.name === 'bug');
+      const featureTag = tags.find((t) => t.name === 'feature');
 
-      expect(bugTag?.color).toBe("d73a4a");
-      expect(featureTag?.color).toBe("0e8a16");
+      expect(bugTag?.color).toBe('d73a4a');
+      expect(featureTag?.color).toBe('0e8a16');
     });
 
-    test("reuses existing tags instead of creating duplicates", async () => {
+    test('reuses existing tags instead of creating duplicates', async () => {
       // Create tag first
       const _existingTag = tagRepository.create({
         userId: testUserId,
-        name: "bun",
-        color: "ff0000",
+        name: 'bun',
+        color: 'ff0000',
       });
 
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "Answer",
-          tags: [{ name: "bun", color: "0e8a16" }], // Different color
-          created_at: "2024-01-01T00:00:00Z",
+          question: 'Test',
+          answer: 'Answer',
+          tags: [{ name: 'bun', color: '0e8a16' }], // Different color
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -261,17 +261,17 @@ describe("import-runner", () => {
       // Verify only one tag exists (original color preserved)
       const tags = tagRepository.findByUserId(testUserId);
       expect(tags).toHaveLength(1);
-      expect(tags[0].color).toBe("ff0000"); // Original color
+      expect(tags[0].color).toBe('ff0000'); // Original color
     });
 
-    test("supports dry-run mode without database changes", async () => {
+    test('supports dry-run mode without database changes', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "Answer",
-          tags: [{ name: "test", color: "ff0000" }],
-          created_at: "2024-01-01T00:00:00Z",
+          question: 'Test',
+          answer: 'Answer',
+          tags: [{ name: 'test', color: 'ff0000' }],
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -292,30 +292,30 @@ describe("import-runner", () => {
       expect(tags).toHaveLength(0);
     });
 
-    test("accumulates errors but completes import", async () => {
+    test('accumulates errors but completes import', async () => {
       // Since ID conflicts are handled gracefully, this test verifies
       // that errors are tracked but don't cause rollback
       const now = new Date().toISOString();
       testDb.run(
         `INSERT INTO items (id, user_id, question, answer, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        ["100", testUserId, "Existing question", "", now, now],
+        ['100', testUserId, 'Existing question', '', now, now],
       );
 
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Valid question",
-          answer: "Valid answer",
+          question: 'Valid question',
+          answer: 'Valid answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
         {
           id: 100, // Will conflict with existing ID (handled gracefully)
-          question: "Conflicting question",
-          answer: "Answer",
+          question: 'Conflicting question',
+          answer: 'Answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -327,53 +327,53 @@ describe("import-runner", () => {
       expect(summary.idMappings).toHaveLength(1);
     });
 
-    test("throws error for non-existent user", async () => {
+    test('throws error for non-existent user', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "Answer",
+          question: 'Test',
+          answer: 'Answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
       await expect(
         runImport({
-          userId: "nonexistent",
+          userId: 'nonexistent',
           issues,
         }),
-      ).rejects.toThrow("User not found");
+      ).rejects.toThrow('User not found');
     });
 
-    test("tracks tag statistics correctly", async () => {
+    test('tracks tag statistics correctly', async () => {
       // Create one existing tag
       tagRepository.create({
         userId: testUserId,
-        name: "existing",
-        color: "ff0000",
+        name: 'existing',
+        color: 'ff0000',
       });
 
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test 1",
-          answer: "Answer",
+          question: 'Test 1',
+          answer: 'Answer',
           tags: [
-            { name: "existing", color: "000000" }, // Reused
-            { name: "new1", color: "111111" }, // Created
+            { name: 'existing', color: '000000' }, // Reused
+            { name: 'new1', color: '111111' }, // Created
           ],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
         {
           id: 2,
-          question: "Test 2",
-          answer: "Answer",
+          question: 'Test 2',
+          answer: 'Answer',
           tags: [
-            { name: "new1", color: "111111" }, // Reused (from previous item)
-            { name: "new2", color: "222222" }, // Created
+            { name: 'new1', color: '111111' }, // Reused (from previous item)
+            { name: 'new2', color: '222222' }, // Created
           ],
-          created_at: "2024-01-02T00:00:00Z",
+          created_at: '2024-01-02T00:00:00Z',
         },
       ];
 
@@ -383,14 +383,14 @@ describe("import-runner", () => {
       expect(summary.tagsReused).toBe(2); // existing, new1 (second time)
     });
 
-    test("handles items without tags", async () => {
+    test('handles items without tags', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "Answer",
+          question: 'Test',
+          answer: 'Answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -408,14 +408,14 @@ describe("import-runner", () => {
       expect(tags).toHaveLength(0);
     });
 
-    test("handles empty answer", async () => {
+    test('handles empty answer', async () => {
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "",
+          question: 'Test',
+          answer: '',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -424,16 +424,16 @@ describe("import-runner", () => {
       expect(summary.imported).toBe(1);
 
       const items = itemRepository.findByUserId(testUserId);
-      expect(items.items[0].answer).toBe("");
+      expect(items.items[0].answer).toBe('');
     });
 
-    test("preserves original created_at timestamp from JSON", async () => {
-      const historicalDate = "2024-01-15T10:30:00Z";
+    test('preserves original created_at timestamp from JSON', async () => {
+      const historicalDate = '2024-01-15T10:30:00Z';
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "How do I use Bun?",
-          answer: "Answer",
+          question: 'How do I use Bun?',
+          answer: 'Answer',
           tags: [],
           created_at: historicalDate,
         },
@@ -446,15 +446,15 @@ describe("import-runner", () => {
       expect(items.items[0].created_at).toBe(historicalDate);
     });
 
-    test("sets updated_at to current timestamp (not from JSON)", async () => {
-      const historicalDate = "2024-01-15T10:30:00Z";
+    test('sets updated_at to current timestamp (not from JSON)', async () => {
+      const historicalDate = '2024-01-15T10:30:00Z';
       const beforeImport = new Date();
 
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "How do I use Bun?",
-          answer: "Answer",
+          question: 'How do I use Bun?',
+          answer: 'Answer',
           tags: [],
           created_at: historicalDate,
         },
@@ -475,21 +475,21 @@ describe("import-runner", () => {
     });
   });
 
-  describe("hasExistingData", () => {
-    test("returns false for empty database", () => {
+  describe('hasExistingData', () => {
+    test('returns false for empty database', () => {
       const result = hasExistingData(testUserId);
       expect(result).toBe(false);
     });
 
-    test("returns true when user has existing items", async () => {
+    test('returns true when user has existing items', async () => {
       // Import some data
       const issues: ItemData[] = [
         {
           id: 1,
-          question: "Test",
-          answer: "Answer",
+          question: 'Test',
+          answer: 'Answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -500,23 +500,23 @@ describe("import-runner", () => {
     });
   });
 
-  describe("forceReimport", () => {
-    test("deletes all existing items and reimports with correct timestamps", async () => {
+  describe('forceReimport', () => {
+    test('deletes all existing items and reimports with correct timestamps', async () => {
       // Initial import
       const initialIssues: ItemData[] = [
         {
           id: 1,
-          question: "Old question 1",
-          answer: "Old answer",
+          question: 'Old question 1',
+          answer: 'Old answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
         {
           id: 2,
-          question: "Old question 2",
-          answer: "Old answer",
+          question: 'Old question 2',
+          answer: 'Old answer',
           tags: [],
-          created_at: "2024-01-02T00:00:00Z",
+          created_at: '2024-01-02T00:00:00Z',
         },
       ];
 
@@ -529,10 +529,10 @@ describe("import-runner", () => {
       const newIssues: ItemData[] = [
         {
           id: 1,
-          question: "New question 1",
-          answer: "New answer",
+          question: 'New question 1',
+          answer: 'New answer',
           tags: [],
-          created_at: "2025-06-15T12:00:00Z",
+          created_at: '2025-06-15T12:00:00Z',
         },
       ];
 
@@ -540,22 +540,22 @@ describe("import-runner", () => {
 
       const itemsAfterReimport = itemRepository.findByUserId(testUserId);
       expect(itemsAfterReimport.items).toHaveLength(1);
-      expect(itemsAfterReimport.items[0].question).toBe("New question 1");
-      expect(itemsAfterReimport.items[0].created_at).toBe("2025-06-15T12:00:00Z");
+      expect(itemsAfterReimport.items[0].question).toBe('New question 1');
+      expect(itemsAfterReimport.items[0].created_at).toBe('2025-06-15T12:00:00Z');
     });
 
-    test("cleans up orphaned tags during reimport", async () => {
+    test('cleans up orphaned tags during reimport', async () => {
       // Initial import with tags
       const initialIssues: ItemData[] = [
         {
           id: 1,
-          question: "Question 1",
-          answer: "Answer",
+          question: 'Question 1',
+          answer: 'Answer',
           tags: [
-            { name: "tag1", color: "ff0000" },
-            { name: "tag2", color: "00ff00" },
+            { name: 'tag1', color: 'ff0000' },
+            { name: 'tag2', color: '00ff00' },
           ],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -568,10 +568,10 @@ describe("import-runner", () => {
       const newIssues: ItemData[] = [
         {
           id: 1,
-          question: "Question 1",
-          answer: "Answer",
-          tags: [{ name: "tag1", color: "ff0000" }],
-          created_at: "2024-01-01T00:00:00Z",
+          question: 'Question 1',
+          answer: 'Answer',
+          tags: [{ name: 'tag1', color: 'ff0000' }],
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -579,16 +579,16 @@ describe("import-runner", () => {
 
       const tagsAfterReimport = tagRepository.findByUserId(testUserId);
       expect(tagsAfterReimport).toHaveLength(1);
-      expect(tagsAfterReimport[0].name).toBe("tag1");
+      expect(tagsAfterReimport[0].name).toBe('tag1');
     });
 
-    test.skip("preserves tags used by other users during reimport", async () => {
+    test.skip('preserves tags used by other users during reimport', async () => {
       // TODO: Fix FOREIGN KEY constraint issue with second user creation
       // Create another user
       const otherUser = userRepository.create({
-        username: "otheruser",
-        email: "other@example.com",
-        passwordHash: "hashedpassword",
+        username: 'otheruser',
+        email: 'other@example.com',
+        passwordHash: 'hashedpassword',
       });
       expect(otherUser).toBeDefined();
       expect(otherUser.id).toBeDefined();
@@ -597,20 +597,20 @@ describe("import-runner", () => {
       const testUserIssues: ItemData[] = [
         {
           id: 1,
-          question: "Test user question",
-          answer: "Answer",
-          tags: [{ name: "shared", color: "ff0000" }],
-          created_at: "2024-01-01T00:00:00Z",
+          question: 'Test user question',
+          answer: 'Answer',
+          tags: [{ name: 'shared', color: 'ff0000' }],
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
       const otherUserIssues: ItemData[] = [
         {
           id: 1,
-          question: "Other user question",
-          answer: "Answer",
-          tags: [{ name: "shared", color: "00ff00" }],
-          created_at: "2024-01-01T00:00:00Z",
+          question: 'Other user question',
+          answer: 'Answer',
+          tags: [{ name: 'shared', color: '00ff00' }],
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -620,11 +620,11 @@ describe("import-runner", () => {
       try {
         const summary2 = await runImport({ userId: otherUser.id, issues: otherUserIssues });
         if (summary2.errors > 0) {
-          console.log("Errors:", summary2.errorMessages);
+          console.log('Errors:', summary2.errorMessages);
         }
         expect(summary2.errors).toBe(0);
       } catch (error) {
-        console.log("Import threw error:", error);
+        console.log('Import threw error:', error);
         throw error;
       }
 
@@ -637,10 +637,10 @@ describe("import-runner", () => {
       const newIssues: ItemData[] = [
         {
           id: 1,
-          question: "New question",
-          answer: "Answer",
+          question: 'New question',
+          answer: 'Answer',
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
+          created_at: '2024-01-01T00:00:00Z',
         },
       ];
 
@@ -651,7 +651,7 @@ describe("import-runner", () => {
 
       expect(testUserTagsAfter).toHaveLength(0); // Test user's tag removed
       expect(otherUserTagsAfter).toHaveLength(1); // Other user's tag preserved
-      expect(otherUserTagsAfter[0].name).toBe("shared");
+      expect(otherUserTagsAfter[0].name).toBe('shared');
     });
   });
 });

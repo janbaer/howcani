@@ -1,7 +1,7 @@
 <script lang="ts">
-import type { Snippet } from "svelte";
-import Footer from "./Footer.svelte";
-import Header from "./Header.svelte";
+import type { Snippet } from 'svelte';
+import Footer from './Footer.svelte';
+import Header from './Header.svelte';
 
 interface Props {
   children: Snippet;

@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
-import type { Tag, TagWithCount } from "../domain/tag";
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { Tag, TagWithCount } from '../domain/tag';
 
 interface TestUser {
   id: string;
@@ -20,7 +20,7 @@ const mockTagRepository = {
       id: crypto.randomUUID(),
       user_id: data.userId,
       name: data.name,
-      color: data.color ?? "0e8a16",
+      color: data.color ?? '0e8a16',
       created_at: new Date().toISOString(),
     };
     testTags.set(tag.id, tag);
@@ -107,15 +107,15 @@ const mockTagRepository = {
   }),
 };
 
-mock.module("../repositories", () => ({
+mock.module('../repositories', () => ({
   tagRepository: mockTagRepository,
 }));
 
-mock.module("./user.service", () => ({
+mock.module('./user.service', () => ({
   userService: mockUserService,
 }));
 
-import { TagService } from "./tag.service";
+import { TagService } from './tag.service';
 
 function createTestUser(username: string): TestUser {
   const user: TestUser = {
@@ -126,78 +126,78 @@ function createTestUser(username: string): TestUser {
   return user;
 }
 
-describe("TagService", () => {
+describe('TagService', () => {
   beforeEach(() => {
     testUsers.clear();
     testTags.clear();
     itemTagMap.clear();
   });
 
-  describe("resolveOrCreateTags", () => {
+  describe('resolveOrCreateTags', () => {
     test("creates new tags that don't exist", () => {
-      const user = createTestUser("john");
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(["bun", "networking"]);
+      const tagIds = tagService.resolveOrCreateTags(['bun', 'networking']);
 
       expect(tagIds).toHaveLength(2);
-      expect(mockTagRepository.findByNameAndUserId("bun", user.id)).not.toBeNull();
-      expect(mockTagRepository.findByNameAndUserId("networking", user.id)).not.toBeNull();
+      expect(mockTagRepository.findByNameAndUserId('bun', user.id)).not.toBeNull();
+      expect(mockTagRepository.findByNameAndUserId('networking', user.id)).not.toBeNull();
     });
 
-    test("reuses existing tags (case-insensitive)", () => {
-      const user = createTestUser("john");
+    test('reuses existing tags (case-insensitive)', () => {
+      const user = createTestUser('john');
       const existing = mockTagRepository.create({
         userId: user.id,
-        name: "Bun",
+        name: 'Bun',
       });
       const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(["bun"]);
+      const tagIds = tagService.resolveOrCreateTags(['bun']);
 
       expect(tagIds).toHaveLength(1);
       expect(tagIds[0]).toBe(existing.id);
     });
 
-    test("mixes existing and new tags", () => {
-      const user = createTestUser("john");
+    test('mixes existing and new tags', () => {
+      const user = createTestUser('john');
       const existing = mockTagRepository.create({
         userId: user.id,
-        name: "bun",
+        name: 'bun',
       });
       const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(["bun", "networking"]);
+      const tagIds = tagService.resolveOrCreateTags(['bun', 'networking']);
 
       expect(tagIds).toHaveLength(2);
       expect(tagIds[0]).toBe(existing.id);
-      expect(mockTagRepository.findByNameAndUserId("networking", user.id)).not.toBeNull();
+      expect(mockTagRepository.findByNameAndUserId('networking', user.id)).not.toBeNull();
     });
 
-    test("skips empty and whitespace-only names", () => {
-      const user = createTestUser("john");
+    test('skips empty and whitespace-only names', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(["", "  ", "bun"]);
+      const tagIds = tagService.resolveOrCreateTags(['', '  ', 'bun']);
 
       expect(tagIds).toHaveLength(1);
-      expect(mockTagRepository.findByNameAndUserId("bun", user.id)).not.toBeNull();
+      expect(mockTagRepository.findByNameAndUserId('bun', user.id)).not.toBeNull();
     });
 
-    test("trims whitespace from tag names", () => {
-      const user = createTestUser("john");
+    test('trims whitespace from tag names', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const tagIds = tagService.resolveOrCreateTags(["  bun  "]);
+      const tagIds = tagService.resolveOrCreateTags(['  bun  ']);
 
       expect(tagIds).toHaveLength(1);
-      const tag = mockTagRepository.findByNameAndUserId("bun", user.id);
+      const tag = mockTagRepository.findByNameAndUserId('bun', user.id);
       expect(tag).not.toBeNull();
-      expect(tag?.name).toBe("bun");
+      expect(tag?.name).toBe('bun');
     });
 
-    test("returns empty array for empty input", () => {
-      const user = createTestUser("john");
+    test('returns empty array for empty input', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
       const tagIds = tagService.resolveOrCreateTags([]);
@@ -205,25 +205,25 @@ describe("TagService", () => {
       expect(tagIds).toEqual([]);
     });
 
-    test("assigns colors to newly created tags", () => {
-      const user = createTestUser("john");
+    test('assigns colors to newly created tags', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      tagService.resolveOrCreateTags(["bun"]);
+      tagService.resolveOrCreateTags(['bun']);
 
-      const tag = mockTagRepository.findByNameAndUserId("bun", user.id);
+      const tag = mockTagRepository.findByNameAndUserId('bun', user.id);
       expect(tag?.color).toMatch(/^[0-9a-f]{6}$/);
     });
   });
 
-  describe("listTags", () => {
-    test("returns tags for user", () => {
-      const user = createTestUser("john");
-      mockTagRepository.create({ userId: user.id, name: "bun" });
-      mockTagRepository.create({ userId: user.id, name: "networking" });
+  describe('listTags', () => {
+    test('returns tags for user', () => {
+      const user = createTestUser('john');
+      mockTagRepository.create({ userId: user.id, name: 'bun' });
+      mockTagRepository.create({ userId: user.id, name: 'networking' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.listTags("john");
+      const result = tagService.listTags('john');
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -231,138 +231,138 @@ describe("TagService", () => {
       expect(result.data).toHaveLength(2);
     });
 
-    test("returns error for non-existent user", () => {
-      const user = createTestUser("john");
+    test('returns error for non-existent user', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const result = tagService.listTags("nonexistent");
+      const result = tagService.listTags('nonexistent');
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("USER_NOT_FOUND");
+      expect(result.error.code).toBe('USER_NOT_FOUND');
     });
   });
 
-  describe("getSuggestions", () => {
-    test("returns matching suggestions", () => {
-      const user = createTestUser("john");
-      mockTagRepository.create({ userId: user.id, name: "networking" });
-      mockTagRepository.create({ userId: user.id, name: "network-config" });
-      mockTagRepository.create({ userId: user.id, name: "bun" });
+  describe('getSuggestions', () => {
+    test('returns matching suggestions', () => {
+      const user = createTestUser('john');
+      mockTagRepository.create({ userId: user.id, name: 'networking' });
+      mockTagRepository.create({ userId: user.id, name: 'network-config' });
+      mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.getSuggestions("john", "net");
+      const result = tagService.getSuggestions('john', 'net');
 
       expect(result.success).toBe(true);
       if (!result.success) return;
 
-      expect(result.data).toEqual(["network-config", "networking"]);
+      expect(result.data).toEqual(['network-config', 'networking']);
     });
 
-    test("returns error for non-existent user", () => {
-      const user = createTestUser("john");
+    test('returns error for non-existent user', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const result = tagService.getSuggestions("nonexistent", "net");
+      const result = tagService.getSuggestions('nonexistent', 'net');
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("USER_NOT_FOUND");
+      expect(result.error.code).toBe('USER_NOT_FOUND');
     });
   });
 
-  describe("updateTag", () => {
-    test("updates tag name", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "old-name" });
+  describe('updateTag', () => {
+    test('updates tag name', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'old-name' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag(tag.id, { name: "new-name" });
+      const result = tagService.updateTag(tag.id, { name: 'new-name' });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
-      expect(result.data.name).toBe("new-name");
+      expect(result.data.name).toBe('new-name');
     });
 
-    test("updates tag color", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('updates tag color', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag(tag.id, { color: "ff5722" });
+      const result = tagService.updateTag(tag.id, { color: 'ff5722' });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
-      expect(result.data.color).toBe("ff5722");
+      expect(result.data.color).toBe('ff5722');
     });
 
-    test("returns error for non-existent tag", () => {
-      const user = createTestUser("john");
+    test('returns error for non-existent tag', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag("nonexistent", { name: "new" });
+      const result = tagService.updateTag('nonexistent', { name: 'new' });
 
       expect(result.success).toBe(false);
       if (result.success) return;
-      expect(result.error.code).toBe("NOT_FOUND");
+      expect(result.error.code).toBe('NOT_FOUND');
     });
 
-    test("returns error for invalid name", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('returns error for invalid name', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag(tag.id, { name: "" });
+      const result = tagService.updateTag(tag.id, { name: '' });
 
       expect(result.success).toBe(false);
       if (result.success) return;
-      expect(result.error.code).toBe("VALIDATION_ERROR");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
     });
 
-    test("returns error for invalid color", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('returns error for invalid color', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag(tag.id, { color: "not-hex" });
+      const result = tagService.updateTag(tag.id, { color: 'not-hex' });
 
       expect(result.success).toBe(false);
       if (result.success) return;
-      expect(result.error.code).toBe("VALIDATION_ERROR");
+      expect(result.error.code).toBe('VALIDATION_ERROR');
     });
 
-    test("returns error for duplicate name", () => {
-      const user = createTestUser("john");
-      mockTagRepository.create({ userId: user.id, name: "existing" });
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('returns error for duplicate name', () => {
+      const user = createTestUser('john');
+      mockTagRepository.create({ userId: user.id, name: 'existing' });
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag(tag.id, { name: "existing" });
+      const result = tagService.updateTag(tag.id, { name: 'existing' });
 
       expect(result.success).toBe(false);
       if (result.success) return;
-      expect(result.error.code).toBe("DUPLICATE_TAG");
+      expect(result.error.code).toBe('DUPLICATE_TAG');
     });
 
-    test("allows renaming to same name with different case", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('allows renaming to same name with different case', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      const result = tagService.updateTag(tag.id, { name: "BUN" });
+      const result = tagService.updateTag(tag.id, { name: 'BUN' });
 
       expect(result.success).toBe(true);
     });
   });
 
-  describe("deleteTag", () => {
-    test("deletes unused tag", () => {
-      const user = createTestUser("john");
+  describe('deleteTag', () => {
+    test('deletes unused tag', () => {
+      const user = createTestUser('john');
       const tag = mockTagRepository.create({
         userId: user.id,
-        name: "old-tag",
+        name: 'old-tag',
       });
       const tagService = new TagService(user.id);
 
@@ -375,22 +375,22 @@ describe("TagService", () => {
       expect(testTags.has(tag.id)).toBe(false);
     });
 
-    test("returns error for non-existent tag", () => {
-      const user = createTestUser("john");
+    test('returns error for non-existent tag', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const result = tagService.deleteTag("nonexistent");
+      const result = tagService.deleteTag('nonexistent');
 
       expect(result.success).toBe(false);
       if (result.success) return;
 
-      expect(result.error.code).toBe("NOT_FOUND");
+      expect(result.error.code).toBe('NOT_FOUND');
     });
 
-    test("deletes tag even when in use (cascade delete)", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
-      itemTagMap.set("item-1", [tag.id]);
+    test('deletes tag even when in use (cascade delete)', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
+      itemTagMap.set('item-1', [tag.id]);
       const tagService = new TagService(user.id);
 
       const result = tagService.deleteTag(tag.id);
@@ -398,75 +398,75 @@ describe("TagService", () => {
       expect(result.success).toBe(true);
       expect(testTags.has(tag.id)).toBe(false);
       // Tag should be removed from item associations
-      const itemTags = tagService.findTagsForItem("item-1");
+      const itemTags = tagService.findTagsForItem('item-1');
       expect(itemTags).toHaveLength(0);
     });
   });
 
-  describe("cache initialization", () => {
-    test("loads tags and item-tag associations", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
-      itemTagMap.set("item-1", [tag.id]);
+  describe('cache initialization', () => {
+    test('loads tags and item-tag associations', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
+      itemTagMap.set('item-1', [tag.id]);
 
       const tagService = new TagService(user.id);
 
-      const tags = tagService.findTagsForItem("item-1");
+      const tags = tagService.findTagsForItem('item-1');
       expect(tags).toHaveLength(1);
-      expect(tags[0].name).toBe("bun");
+      expect(tags[0].name).toBe('bun');
     });
   });
 
-  describe("findTagsForItem with cache", () => {
-    test("uses cache when available", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
-      itemTagMap.set("item-1", [tag.id]);
+  describe('findTagsForItem with cache', () => {
+    test('uses cache when available', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
+      itemTagMap.set('item-1', [tag.id]);
       const tagService = new TagService(user.id);
 
       mockTagRepository.getTagsForItem.mockClear?.();
-      const tags = tagService.findTagsForItem("item-1");
+      const tags = tagService.findTagsForItem('item-1');
 
       expect(tags).toHaveLength(1);
-      expect(tags[0].name).toBe("bun");
+      expect(tags[0].name).toBe('bun');
     });
 
-    test("returns empty array for untagged item", () => {
-      const user = createTestUser("john");
+    test('returns empty array for untagged item', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      const tags = tagService.findTagsForItem("item-1");
+      const tags = tagService.findTagsForItem('item-1');
 
       expect(tags).toHaveLength(0);
     });
   });
 
-  describe("cache maintenance", () => {
-    test("resolveOrCreateTags adds new tags to cache", () => {
-      const user = createTestUser("john");
+  describe('cache maintenance', () => {
+    test('resolveOrCreateTags adds new tags to cache', () => {
+      const user = createTestUser('john');
       const tagService = new TagService(user.id);
 
-      tagService.resolveOrCreateTags(["new-tag"]);
+      tagService.resolveOrCreateTags(['new-tag']);
 
-      const tag = mockTagRepository.findByNameAndUserId("new-tag", user.id);
+      const tag = mockTagRepository.findByNameAndUserId('new-tag', user.id);
       expect(tag).not.toBeNull();
     });
 
-    test("setItemTags updates cache", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('setItemTags updates cache', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
-      tagService.setItemTags("item-1", [tag.id]);
+      tagService.setItemTags('item-1', [tag.id]);
 
-      const tags = tagService.findTagsForItem("item-1");
+      const tags = tagService.findTagsForItem('item-1');
       expect(tags).toHaveLength(1);
       expect(tags[0].id).toBe(tag.id);
     });
 
-    test("deleteTag removes tag from cache", () => {
-      const user = createTestUser("john");
-      const tag = mockTagRepository.create({ userId: user.id, name: "bun" });
+    test('deleteTag removes tag from cache', () => {
+      const user = createTestUser('john');
+      const tag = mockTagRepository.create({ userId: user.id, name: 'bun' });
       const tagService = new TagService(user.id);
 
       tagService.deleteTag(tag.id);

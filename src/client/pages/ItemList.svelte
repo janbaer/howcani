@@ -1,11 +1,11 @@
 <script lang="ts">
-import ItemDeleteConfirmModal from "../components/ItemDeleteConfirmModal.svelte";
-import ItemFormModal from "../components/ItemFormModal.svelte";
-import MarkdownRenderer from "../components/MarkdownRenderer.svelte";
-import TagBadge from "../components/TagBadge.svelte";
-import TagSidebar from "../components/TagSidebar.svelte";
-import { getAuthState } from "../lib/auth.svelte";
-import { closeCreateModal, getCreateModalState, openCreateModal } from "../lib/create-modal.svelte";
+import ItemDeleteConfirmModal from '../components/ItemDeleteConfirmModal.svelte';
+import ItemFormModal from '../components/ItemFormModal.svelte';
+import MarkdownRenderer from '../components/MarkdownRenderer.svelte';
+import TagBadge from '../components/TagBadge.svelte';
+import TagSidebar from '../components/TagSidebar.svelte';
+import { getAuthState } from '../lib/auth.svelte';
+import { closeCreateModal, getCreateModalState, openCreateModal } from '../lib/create-modal.svelte';
 import {
   createItem,
   deleteItem as deleteItemService,
@@ -19,8 +19,8 @@ import {
   type TagWithCount,
   truncateAnswer,
   updateItem as updateItemService,
-} from "../lib/items.svelte";
-import { getCurrentQuery, link } from "../lib/router.svelte";
+} from '../lib/items.svelte';
+import { getCurrentQuery, link } from '../lib/router.svelte';
 
 interface Props {
   params: Record<string, string>;
@@ -46,7 +46,7 @@ let deletingItem = $state<Item | null | undefined>(undefined);
 
 const username = $derived(params.username);
 const query = $derived(getCurrentQuery());
-const searchQuery = $derived(query.search || "");
+const searchQuery = $derived(query.search || '');
 const isOwner = $derived(authState.isAuthenticated && authState.user?.username === username);
 
 // Responsive page size: load 2-3 viewports worth of content
@@ -82,7 +82,7 @@ async function loadItems(append = false) {
     }
     total = data.total;
   } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to load items";
+    error = e instanceof Error ? e.message : 'Failed to load items';
   }
   loading = false;
 }
@@ -93,7 +93,7 @@ async function loadTags() {
     tagError = null;
   } catch (e) {
     tagList = [];
-    tagError = e instanceof Error ? e.message : "Failed to load tags";
+    tagError = e instanceof Error ? e.message : 'Failed to load tags';
   }
 }
 
@@ -154,8 +154,8 @@ async function handleSaveItem(data: ItemCreateData) {
       id: tempId,
       user_id: authState.user.id,
       question: data.question,
-      answer: data.answer || "",
-      tags: data.tags?.map((name) => ({ id: `temp-${name}`, name, color: "888888" })) || [],
+      answer: data.answer || '',
+      tags: data.tags?.map((name) => ({ id: `temp-${name}`, name, color: '888888' })) || [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -201,10 +201,10 @@ async function handleDeleteItem(id: string) {
 function handleCardKeyDown(item: Item, e: KeyboardEvent) {
   if (!isOwner) return;
 
-  if (e.key === "Enter" && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+  if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
     e.preventDefault();
     editingItem = item;
-  } else if (e.key === "Delete" || e.key === "Backspace") {
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
     deletingItem = item;
   }
@@ -238,7 +238,7 @@ $effect(() => {
       loading = false;
     })
     .catch((e) => {
-      error = e instanceof Error ? e.message : "Failed to load questions";
+      error = e instanceof Error ? e.message : 'Failed to load questions';
       loading = false;
     });
 
@@ -249,7 +249,7 @@ $effect(() => {
     })
     .catch((e) => {
       tagList = [];
-      tagError = e instanceof Error ? e.message : "Failed to load tags";
+      tagError = e instanceof Error ? e.message : 'Failed to load tags';
     });
 });
 
@@ -261,7 +261,7 @@ $effect(() => {
 
   // Observer configuration: start loading 100px before sentinel enters viewport
   const observerOptions = {
-    rootMargin: "100px",
+    rootMargin: '100px',
     threshold: 0.1,
   };
 

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from 'bun:test';
 import {
   type CreateItemData,
   type Item,
@@ -8,85 +8,85 @@ import {
   validateCreateItemData,
   validateQuestion,
   validateUpdateItemData,
-} from "./item";
+} from './item';
 
-describe("Item Domain", () => {
-  describe("Item interface", () => {
-    test("item has required fields", () => {
+describe('Item Domain', () => {
+  describe('Item interface', () => {
+    test('item has required fields', () => {
       const item: Item = {
-        id: "123",
-        user_id: "456",
-        question: "How do I configure X?",
-        answer: "Follow these steps...",
-        created_at: "2024-01-15T10:00:00Z",
-        updated_at: "2024-01-15T10:00:00Z",
+        id: '123',
+        user_id: '456',
+        question: 'How do I configure X?',
+        answer: 'Follow these steps...',
+        created_at: '2024-01-15T10:00:00Z',
+        updated_at: '2024-01-15T10:00:00Z',
       };
 
-      expect(item.id).toBe("123");
-      expect(item.user_id).toBe("456");
-      expect(item.question).toBe("How do I configure X?");
-      expect(item.answer).toBe("Follow these steps...");
-      expect(item.created_at).toBe("2024-01-15T10:00:00Z");
-      expect(item.updated_at).toBe("2024-01-15T10:00:00Z");
+      expect(item.id).toBe('123');
+      expect(item.user_id).toBe('456');
+      expect(item.question).toBe('How do I configure X?');
+      expect(item.answer).toBe('Follow these steps...');
+      expect(item.created_at).toBe('2024-01-15T10:00:00Z');
+      expect(item.updated_at).toBe('2024-01-15T10:00:00Z');
     });
   });
 
-  describe("validateQuestion", () => {
-    test("accepts non-empty question", () => {
-      const result = validateQuestion("How do I configure X?");
+  describe('validateQuestion', () => {
+    test('accepts non-empty question', () => {
+      const result = validateQuestion('How do I configure X?');
 
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
 
-    test("rejects empty question", () => {
-      const result = validateQuestion("");
+    test('rejects empty question', () => {
+      const result = validateQuestion('');
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("rejects null question", () => {
+    test('rejects null question', () => {
       const result = validateQuestion(null);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("rejects undefined question", () => {
+    test('rejects undefined question', () => {
       const result = validateQuestion(undefined);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("rejects whitespace-only question", () => {
-      const result = validateQuestion("   ");
+    test('rejects whitespace-only question', () => {
+      const result = validateQuestion('   ');
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("rejects question exceeding max length", () => {
-      const result = validateQuestion("a".repeat(MAX_QUESTION_LENGTH + 1));
+    test('rejects question exceeding max length', () => {
+      const result = validateQuestion('a'.repeat(MAX_QUESTION_LENGTH + 1));
 
       expect(result.valid).toBe(false);
       expect(result.errors).toContain(`Question must be at most ${MAX_QUESTION_LENGTH} characters`);
     });
 
-    test("accepts question at max length", () => {
-      const result = validateQuestion("a".repeat(MAX_QUESTION_LENGTH));
+    test('accepts question at max length', () => {
+      const result = validateQuestion('a'.repeat(MAX_QUESTION_LENGTH));
 
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
   });
 
-  describe("validateCreateItemData", () => {
-    test("accepts valid data with question and answer", () => {
+  describe('validateCreateItemData', () => {
+    test('accepts valid data with question and answer', () => {
       const data: Partial<CreateItemData> = {
-        question: "How do I deploy with Bun?",
-        answer: "Use `bun build` and run the output.",
+        question: 'How do I deploy with Bun?',
+        answer: 'Use `bun build` and run the output.',
       };
 
       const result = validateCreateItemData(data);
@@ -95,10 +95,10 @@ describe("Item Domain", () => {
       expect(result.errors).toEqual([]);
     });
 
-    test("accepts valid data with empty answer", () => {
+    test('accepts valid data with empty answer', () => {
       const data: Partial<CreateItemData> = {
-        question: "How do I configure X?",
-        answer: "",
+        question: 'How do I configure X?',
+        answer: '',
       };
 
       const result = validateCreateItemData(data);
@@ -107,9 +107,9 @@ describe("Item Domain", () => {
       expect(result.errors).toEqual([]);
     });
 
-    test("accepts valid data without answer field", () => {
+    test('accepts valid data without answer field', () => {
       const data: Partial<CreateItemData> = {
-        question: "How do I configure X?",
+        question: 'How do I configure X?',
       };
 
       const result = validateCreateItemData(data);
@@ -118,18 +118,18 @@ describe("Item Domain", () => {
       expect(result.errors).toEqual([]);
     });
 
-    test("rejects missing question", () => {
+    test('rejects missing question', () => {
       const data: Partial<CreateItemData> = {
-        answer: "Some answer",
+        answer: 'Some answer',
       };
 
       const result = validateCreateItemData(data);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("preserves markdown in answer", () => {
+    test('preserves markdown in answer', () => {
       const markdownAnswer = `## Steps
 1. First step
 2. Second step
@@ -137,7 +137,7 @@ describe("Item Domain", () => {
 \`code example\``;
 
       const data: Partial<CreateItemData> = {
-        question: "How do I do something?",
+        question: 'How do I do something?',
         answer: markdownAnswer,
       };
 
@@ -147,10 +147,10 @@ describe("Item Domain", () => {
       expect(data.answer).toBe(markdownAnswer);
     });
 
-    test("rejects answer exceeding max length", () => {
+    test('rejects answer exceeding max length', () => {
       const data: Partial<CreateItemData> = {
-        question: "Valid question",
-        answer: "a".repeat(MAX_ANSWER_LENGTH + 1),
+        question: 'Valid question',
+        answer: 'a'.repeat(MAX_ANSWER_LENGTH + 1),
       };
 
       const result = validateCreateItemData(data);
@@ -160,11 +160,11 @@ describe("Item Domain", () => {
     });
   });
 
-  describe("validateUpdateItemData", () => {
-    test("accepts valid update with question and answer", () => {
+  describe('validateUpdateItemData', () => {
+    test('accepts valid update with question and answer', () => {
       const data: Partial<UpdateItemData> = {
-        question: "Updated question",
-        answer: "Updated answer",
+        question: 'Updated question',
+        answer: 'Updated answer',
       };
 
       const result = validateUpdateItemData(data);
@@ -173,9 +173,9 @@ describe("Item Domain", () => {
       expect(result.errors).toEqual([]);
     });
 
-    test("accepts update with only answer", () => {
+    test('accepts update with only answer', () => {
       const data: Partial<UpdateItemData> = {
-        answer: "Updated answer",
+        answer: 'Updated answer',
       };
 
       const result = validateUpdateItemData(data);
@@ -184,38 +184,38 @@ describe("Item Domain", () => {
       expect(result.errors).toEqual([]);
     });
 
-    test("accepts empty update", () => {
+    test('accepts empty update', () => {
       const result = validateUpdateItemData({});
 
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
 
-    test("rejects empty question when question is provided", () => {
+    test('rejects empty question when question is provided', () => {
       const data: Partial<UpdateItemData> = {
-        question: "",
+        question: '',
       };
 
       const result = validateUpdateItemData(data);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("rejects whitespace-only question when question is provided", () => {
+    test('rejects whitespace-only question when question is provided', () => {
       const data: Partial<UpdateItemData> = {
-        question: "   ",
+        question: '   ',
       };
 
       const result = validateUpdateItemData(data);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Question is required");
+      expect(result.errors).toContain('Question is required');
     });
 
-    test("rejects question exceeding max length", () => {
+    test('rejects question exceeding max length', () => {
       const data: Partial<UpdateItemData> = {
-        question: "a".repeat(MAX_QUESTION_LENGTH + 1),
+        question: 'a'.repeat(MAX_QUESTION_LENGTH + 1),
       };
 
       const result = validateUpdateItemData(data);
@@ -224,9 +224,9 @@ describe("Item Domain", () => {
       expect(result.errors).toContain(`Question must be at most ${MAX_QUESTION_LENGTH} characters`);
     });
 
-    test("rejects answer exceeding max length", () => {
+    test('rejects answer exceeding max length', () => {
       const data: Partial<UpdateItemData> = {
-        answer: "a".repeat(MAX_ANSWER_LENGTH + 1),
+        answer: 'a'.repeat(MAX_ANSWER_LENGTH + 1),
       };
 
       const result = validateUpdateItemData(data);

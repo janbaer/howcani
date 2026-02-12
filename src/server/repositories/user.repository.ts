@@ -1,5 +1,5 @@
-import { db } from "../db/database";
-import { BaseRepository } from "./base.repository";
+import { db } from '../db/database';
+import { BaseRepository } from './base.repository';
 
 export interface User {
   id: string;
@@ -23,7 +23,7 @@ export interface UpdateUserDTO {
 
 export class UserRepository extends BaseRepository<User> {
   constructor() {
-    super("users");
+    super('users');
   }
 
   create(data: CreateUserDTO): User {
@@ -38,7 +38,7 @@ export class UserRepository extends BaseRepository<User> {
 
     const created = this.findById(id);
     if (!created) {
-      throw new Error("Failed to retrieve created user");
+      throw new Error('Failed to retrieve created user');
     }
     return created;
   }
@@ -51,21 +51,21 @@ export class UserRepository extends BaseRepository<User> {
     const values: (string | null)[] = [];
 
     if (data.username !== undefined) {
-      updates.push("username = ?");
+      updates.push('username = ?');
       values.push(data.username);
     }
     if (data.email !== undefined) {
-      updates.push("email = ?");
+      updates.push('email = ?');
       values.push(data.email);
     }
 
     if (updates.length === 0) return user;
 
-    updates.push("updated_at = ?");
+    updates.push('updated_at = ?');
     values.push(this.now());
     values.push(id);
 
-    db.run(`UPDATE users SET ${updates.join(", ")} WHERE id = ?`, values);
+    db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
 
     return this.findById(id);
   }

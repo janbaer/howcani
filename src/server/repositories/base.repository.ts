@@ -1,4 +1,4 @@
-import { db } from "../db/database";
+import { db } from '../db/database';
 
 export abstract class BaseRepository<T extends { id: string }> {
   constructor(protected readonly tableName: string) {}

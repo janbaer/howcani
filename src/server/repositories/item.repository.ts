@@ -1,17 +1,17 @@
-import { db } from "../db/database";
-import type { Item } from "../domain/item";
-import { BaseRepository } from "./base.repository";
+import { db } from '../db/database';
+import type { Item } from '../domain/item';
+import { BaseRepository } from './base.repository';
 
 export type { Item };
 
 export function sanitizeFtsQuery(input: string): string {
   const escaped = input
-    .replace(/["\-*()^~:]/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/["\-*()^~:]/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
-  if (escaped === "") return '""';
-  const terms = escaped.split(" ").filter(Boolean);
-  return terms.map((term) => `"${term}"*`).join(" ");
+  if (escaped === '') return '""';
+  const terms = escaped.split(' ').filter(Boolean);
+  return terms.map((term) => `"${term}"*`).join(' ');
 }
 
 export interface CreateItemDTO {
@@ -42,7 +42,7 @@ export interface PaginatedResult<T> {
 
 export class ItemRepository extends BaseRepository<Item> {
   constructor() {
-    super("items");
+    super('items');
   }
 
   create(data: CreateItemDTO): Item {
@@ -52,12 +52,12 @@ export class ItemRepository extends BaseRepository<Item> {
     db.run(
       `INSERT INTO items (id, user_id, question, answer, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, data.userId, data.question, data.answer ?? "", now, now],
+      [id, data.userId, data.question, data.answer ?? '', now, now],
     );
 
     const created = this.findById(id);
     if (!created) {
-      throw new Error("Failed to retrieve created item");
+      throw new Error('Failed to retrieve created item');
     }
     return created;
   }
@@ -91,21 +91,21 @@ export class ItemRepository extends BaseRepository<Item> {
     const values: (string | null)[] = [];
 
     if (data.question !== undefined) {
-      updates.push("question = ?");
+      updates.push('question = ?');
       values.push(data.question);
     }
     if (data.answer !== undefined) {
-      updates.push("answer = ?");
+      updates.push('answer = ?');
       values.push(data.answer);
     }
 
     if (updates.length === 0) return item;
 
-    updates.push("updated_at = ?");
+    updates.push('updated_at = ?');
     values.push(this.now());
     values.push(id);
 
-    db.run(`UPDATE items SET ${updates.join(", ")} WHERE id = ?`, values);
+    db.run(`UPDATE items SET ${updates.join(', ')} WHERE id = ?`, values);
 
     return this.findById(id);
   }
@@ -113,7 +113,7 @@ export class ItemRepository extends BaseRepository<Item> {
   searchItems(userId: string, options: SearchOptions = {}): PaginatedResult<Item> {
     const { limit = 50, offset = 0, search, tags } = options;
     const normalizedTags = this.normalizeTagFilters(tags);
-    const hasSearch = search !== undefined && search.trim() !== "";
+    const hasSearch = search !== undefined && search.trim() !== '';
     const hasTags = normalizedTags !== undefined && normalizedTags.length > 0;
 
     if (!hasSearch && !hasTags) {
@@ -138,7 +138,7 @@ export class ItemRepository extends BaseRepository<Item> {
     const normalized: string[] = [];
     for (const tag of tags) {
       const trimmed = tag.trim();
-      if (trimmed === "") continue;
+      if (trimmed === '') continue;
 
       const key = trimmed.toLowerCase();
       if (seen.has(key)) continue;
@@ -177,7 +177,7 @@ export class ItemRepository extends BaseRepository<Item> {
   }
 
   private filterByTags(userId: string, tags: string[], limit: number, offset: number): PaginatedResult<Item> {
-    const placeholders = tags.map(() => "?").join(", ");
+    const placeholders = tags.map(() => '?').join(', ');
     const params: (string | number)[] = [userId, ...tags, tags.length];
 
     const countResult = db
@@ -218,7 +218,7 @@ export class ItemRepository extends BaseRepository<Item> {
     offset: number,
   ): PaginatedResult<Item> {
     const sanitized = sanitizeFtsQuery(search);
-    const placeholders = tags.map(() => "?").join(", ");
+    const placeholders = tags.map(() => '?').join(', ');
 
     const matchedIdsParams: (string | number)[] = [userId, sanitized];
     const matchedIdsSql = `SELECT items.id, items.rowid AS item_rowid FROM items

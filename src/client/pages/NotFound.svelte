@@ -1,5 +1,5 @@
 <script lang="ts">
-import { link } from "../lib/router.svelte";
+import { link } from '../lib/router.svelte';
 
 interface Props {
   params?: Record<string, string>;

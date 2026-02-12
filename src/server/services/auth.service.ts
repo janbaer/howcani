@@ -1,6 +1,6 @@
-import { createToken, hashPassword, type TokenPayload, verifyPassword, verifyToken } from "../auth";
-import { type User, userRepository } from "../repositories";
-import { initSession } from "./session";
+import { createToken, hashPassword, type TokenPayload, verifyPassword, verifyToken } from '../auth';
+import { type User, userRepository } from '../repositories';
+import { initSession } from './session';
 
 export interface RegisterInput {
   username: string;
@@ -14,7 +14,7 @@ export interface LoginInput {
 }
 
 export interface AuthResult {
-  user: Omit<User, "password_hash">;
+  user: Omit<User, 'password_hash'>;
   token: string;
 }
 
@@ -25,7 +25,7 @@ export interface AuthError {
 
 type Result<T> = { success: true; data: T } | { success: false; error: AuthError };
 
-function sanitizeUser(user: User): Omit<User, "password_hash"> {
+function sanitizeUser(user: User): Omit<User, 'password_hash'> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password_hash: _, ...safeUser } = user;
   return safeUser;
@@ -38,15 +38,15 @@ function createError(code: string, message: string): { success: false; error: Au
 function validateUsername(username: string): AuthError | null {
   if (!username || username.length < 3 || username.length > 30) {
     return {
-      code: "VALIDATION_ERROR",
-      message: "Username must be 3-30 characters",
+      code: 'VALIDATION_ERROR',
+      message: 'Username must be 3-30 characters',
     };
   }
 
   if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
     return {
-      code: "VALIDATION_ERROR",
-      message: "Username can only contain letters, numbers, hyphens, and underscores",
+      code: 'VALIDATION_ERROR',
+      message: 'Username can only contain letters, numbers, hyphens, and underscores',
     };
   }
 
@@ -56,8 +56,8 @@ function validateUsername(username: string): AuthError | null {
 function validatePassword(password: string): AuthError | null {
   if (!password || password.length < 8) {
     return {
-      code: "VALIDATION_ERROR",
-      message: "Password must be at least 8 characters",
+      code: 'VALIDATION_ERROR',
+      message: 'Password must be at least 8 characters',
     };
   }
   return null;
@@ -66,7 +66,7 @@ function validatePassword(password: string): AuthError | null {
 function validateEmail(email: string): AuthError | null {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
-    return { code: "VALIDATION_ERROR", message: "Invalid email format" };
+    return { code: 'VALIDATION_ERROR', message: 'Invalid email format' };
   }
   return null;
 }
@@ -104,11 +104,11 @@ export class AuthService {
     }
 
     if (userRepository.usernameExists(input.username)) {
-      return createError("VALIDATION_ERROR", "Username already exists");
+      return createError('VALIDATION_ERROR', 'Username already exists');
     }
 
     if (userRepository.findByEmail(input.email)) {
-      return createError("VALIDATION_ERROR", "Email already exists");
+      return createError('VALIDATION_ERROR', 'Email already exists');
     }
 
     const passwordHash = await hashPassword(input.password);
@@ -126,17 +126,17 @@ export class AuthService {
 
   async login(input: LoginInput): Promise<Result<AuthResult>> {
     if (!input.username || !input.password) {
-      return createError("UNAUTHORIZED", "Invalid credentials");
+      return createError('UNAUTHORIZED', 'Invalid credentials');
     }
 
     const user = userRepository.findByUsername(input.username);
     if (!user) {
-      return createError("UNAUTHORIZED", "Invalid credentials");
+      return createError('UNAUTHORIZED', 'Invalid credentials');
     }
 
     const isValid = await verifyPassword(input.password, user.password_hash);
     if (!isValid) {
-      return createError("UNAUTHORIZED", "Invalid credentials");
+      return createError('UNAUTHORIZED', 'Invalid credentials');
     }
 
     initSession(user.id, user.username);
@@ -147,15 +147,15 @@ export class AuthService {
     };
   }
 
-  async getCurrentUser(accessToken: string): Promise<Result<Omit<User, "password_hash">>> {
+  async getCurrentUser(accessToken: string): Promise<Result<Omit<User, 'password_hash'>>> {
     const payload = await verifyToken(accessToken);
     if (!payload) {
-      return createError("INVALID_TOKEN", "Invalid or expired token");
+      return createError('INVALID_TOKEN', 'Invalid or expired token');
     }
 
     const user = userRepository.findById(payload.userId);
     if (!user) {
-      return createError("USER_NOT_FOUND", "User not found");
+      return createError('USER_NOT_FOUND', 'User not found');
     }
 
     return {
@@ -168,7 +168,7 @@ export class AuthService {
     return verifyToken(token);
   }
 
-  getUserById(userId: string): Omit<User, "password_hash"> | null {
+  getUserById(userId: string): Omit<User, 'password_hash'> | null {
     const user = userRepository.findById(userId);
     return user ? sanitizeUser(user) : null;
   }

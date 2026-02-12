@@ -5,11 +5,11 @@
  * Loads JSON file into database with repeatable and idempotent behavior
  */
 
-import { db } from "../server/db/database";
-import { userRepository } from "../server/repositories";
-import { hasExistingData, runImport } from "./import-runner";
-import { mapIssueToItem } from "./issue-mapper";
-import { validateExportData } from "./json-format";
+import { db } from '../server/db/database';
+import { userRepository } from '../server/repositories';
+import { hasExistingData, runImport } from './import-runner';
+import { mapIssueToItem } from './issue-mapper';
+import { validateExportData } from './json-format';
 
 interface CliArgs {
   user?: string;
@@ -31,39 +31,39 @@ function parseArgs(args: string[]): CliArgs {
     const arg = args[i];
 
     switch (arg) {
-      case "--user":
-      case "-u":
+      case '--user':
+      case '-u':
         result.user = args[++i];
         break;
-      case "--file":
-      case "-f":
+      case '--file':
+      case '-f':
         result.file = args[++i];
         break;
-      case "--dry-run":
-      case "-d":
+      case '--dry-run':
+      case '-d':
         result.dryRun = true;
         break;
-      case "--force":
+      case '--force':
         result.force = true;
         break;
-      case "--force-reimport":
+      case '--force-reimport':
         result.forceReimport = true;
         break;
-      case "--yes":
-      case "-y":
+      case '--yes':
+      case '-y':
         result.yes = true;
         break;
-      case "--verbose":
-      case "-v":
+      case '--verbose':
+      case '-v':
         result.verbose = true;
         break;
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showHelp();
         process.exit(0);
         break;
       default:
-        if (arg.startsWith("-")) {
+        if (arg.startsWith('-')) {
           console.error(`Unknown option: ${arg}`);
           showHelp();
           process.exit(1);
@@ -127,15 +127,15 @@ function validateArgs(args: CliArgs): void {
   const errors: string[] = [];
 
   if (!args.user) {
-    errors.push("--user is required");
+    errors.push('--user is required');
   }
 
   if (!args.file) {
-    errors.push("--file is required");
+    errors.push('--file is required');
   }
 
   if (errors.length > 0) {
-    console.error("Error: Missing required arguments:\n");
+    console.error('Error: Missing required arguments:\n');
     for (const error of errors) {
       console.error(`  - ${error}`);
     }
@@ -163,7 +163,7 @@ function formatDuration(ms: number): string {
  */
 function getItemCount(userId: string): number {
   const result = db
-    .query<{ count: number }, [string]>("SELECT COUNT(*) as count FROM items WHERE user_id = ?")
+    .query<{ count: number }, [string]>('SELECT COUNT(*) as count FROM items WHERE user_id = ?')
     .get(userId);
   return result?.count ?? 0;
 }
@@ -175,13 +175,13 @@ function getItemCount(userId: string): number {
  */
 async function promptForDeletion(itemCount: number): Promise<boolean> {
   console.log(`\n⚠️  Found ${itemCount} existing items in database.`);
-  console.log("Re-importing will DELETE all existing data and replace with JSON data.");
-  console.log("This is necessary to fix incorrect created_at timestamps.\n");
+  console.log('Re-importing will DELETE all existing data and replace with JSON data.');
+  console.log('This is necessary to fix incorrect created_at timestamps.\n');
 
-  const answer = prompt("Delete existing data and re-import? (yes/no): ");
+  const answer = prompt('Delete existing data and re-import? (yes/no): ');
 
   // Accept only exact "yes" (case-insensitive)
-  return answer !== null && answer.toLowerCase() === "yes";
+  return answer !== null && answer.toLowerCase() === 'yes';
 }
 
 /**
@@ -207,7 +207,7 @@ async function main(): Promise<void> {
     }
     jsonData = await file.json();
   } catch (error) {
-    console.error("✗ Error reading JSON file:");
+    console.error('✗ Error reading JSON file:');
     if (error instanceof Error) {
       console.error(`  ${error.message}`);
     } else {
@@ -219,7 +219,7 @@ async function main(): Promise<void> {
   // Validate JSON structure
   const validation = validateExportData(jsonData);
   if (!validation.valid) {
-    console.error("✗ Invalid JSON format:\n");
+    console.error('✗ Invalid JSON format:\n');
     for (const error of validation.errors) {
       console.error(`  - ${error.field}: ${error.message}`);
     }
@@ -236,19 +236,19 @@ async function main(): Promise<void> {
   const user = userRepository.findByUsername(username);
   if (!user) {
     console.error(`✗ Error: User not found: ${username}`);
-    console.error("  Create user first before importing.");
+    console.error('  Create user first before importing.');
     process.exit(1);
   }
 
   console.log(`Importing to user: ${username}`);
   if (args.dryRun) {
-    console.log("  Mode: DRY RUN (no database changes)");
+    console.log('  Mode: DRY RUN (no database changes)');
   }
   if (args.force) {
-    console.log("  Mode: FORCE UPDATE (update existing items)");
+    console.log('  Mode: FORCE UPDATE (update existing items)');
   }
   if (args.forceReimport) {
-    console.log("  Mode: FORCE REIMPORT (delete all and replace with JSON)");
+    console.log('  Mode: FORCE REIMPORT (delete all and replace with JSON)');
   }
   console.log();
 
@@ -260,7 +260,7 @@ async function main(): Promise<void> {
         const itemCount = getItemCount(user.id);
         const confirmed = await promptForDeletion(itemCount);
         if (!confirmed) {
-          console.log("\n✓ Import cancelled. No data was modified.");
+          console.log('\n✓ Import cancelled. No data was modified.');
           process.exit(0);
         }
       }
@@ -283,8 +283,8 @@ async function main(): Promise<void> {
     const duration = Date.now() - startTime;
 
     // Display summary
-    console.log(`\n${args.dryRun ? "✓ Dry run complete!" : "✓ Import complete!"}`);
-    console.log("\nStatistics:");
+    console.log(`\n${args.dryRun ? '✓ Dry run complete!' : '✓ Import complete!'}`);
+    console.log('\nStatistics:');
     console.log(`  Total issues in JSON: ${summary.total}`);
     console.log(`  Items imported: ${summary.imported}`);
     console.log(`  Items skipped (duplicates): ${summary.skipped}`);
@@ -295,7 +295,7 @@ async function main(): Promise<void> {
 
     // Show ID mappings if any
     if (summary.idMappings.length > 0) {
-      console.log("\nID Mappings (due to conflicts):");
+      console.log('\nID Mappings (due to conflicts):');
       for (const mapping of summary.idMappings) {
         console.log(`  Issue #${mapping.issueNumber} → Item #${mapping.itemId}`);
       }
@@ -303,14 +303,14 @@ async function main(): Promise<void> {
 
     // Show errors if any
     if (summary.errorMessages.length > 0) {
-      console.log("\nErrors:");
+      console.log('\nErrors:');
       for (const error of summary.errorMessages) {
         console.log(`  - ${error}`);
       }
       process.exit(1);
     }
   } catch (error) {
-    console.error("\n✗ Import failed:");
+    console.error('\n✗ Import failed:');
     if (error instanceof Error) {
       console.error(`  ${error.message}`);
     } else {

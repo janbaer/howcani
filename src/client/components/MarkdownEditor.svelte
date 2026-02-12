@@ -1,8 +1,8 @@
 <script lang="ts">
-import type * as CodeMirror from "codemirror";
-import { onDestroy, onMount } from "svelte";
-import "codemirror/lib/codemirror.css";
-import "codemirror/mode/gfm/gfm";
+import type * as CodeMirror from 'codemirror';
+import { onDestroy, onMount } from 'svelte';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/mode/gfm/gfm';
 
 interface Props {
   value: string;
@@ -17,23 +17,23 @@ let editorElement: HTMLTextAreaElement;
 let editor: CodeMirror.Editor | null = null;
 
 onMount(async () => {
-  const CM = await import("codemirror");
+  const CM = await import('codemirror');
   const CodeMirrorConstructor = CM.default || CM;
 
   editor = CodeMirrorConstructor.fromTextArea(editorElement, {
     lineNumbers: true,
     lineWrapping: true,
     mode: {
-      name: "gfm",
+      name: 'gfm',
       highlightFormatting: true,
     },
     readOnly: disabled,
-    placeholder: placeholder || "Enter markdown here...",
+    placeholder: placeholder || 'Enter markdown here...',
   });
 
-  editor.setValue(value || "");
+  editor.setValue(value || '');
 
-  editor.on("change", () => {
+  editor.on('change', () => {
     if (editor && onChange && !disabled) {
       onChange(editor.getValue());
     }
@@ -51,7 +51,7 @@ onDestroy(() => {
 $effect(() => {
   if (editor && editor.getValue() !== value) {
     const cursor = editor.getCursor();
-    editor.setValue(value || "");
+    editor.setValue(value || '');
     editor.setCursor(cursor);
   }
 });
@@ -59,7 +59,7 @@ $effect(() => {
 // Update readonly state when disabled prop changes
 $effect(() => {
   if (editor) {
-    editor.setOption("readOnly", disabled);
+    editor.setOption('readOnly', disabled);
   }
 });
 </script>

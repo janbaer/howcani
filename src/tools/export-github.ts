@@ -5,10 +5,10 @@
  * Fetches issues from GitHub and saves to a portable JSON file
  */
 
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
-import { fetchAllIssues } from "./github-client";
-import { EXPORT_FORMAT_VERSION, type ExportData } from "./json-format";
+import { mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
+import { fetchAllIssues } from './github-client';
+import { EXPORT_FORMAT_VERSION, type ExportData } from './json-format';
 
 interface CliArgs {
   output?: string;
@@ -16,7 +16,7 @@ interface CliArgs {
   verbose?: boolean;
 }
 
-const DEFAULT_REPOSITORY = "janbaer/howcani-data";
+const DEFAULT_REPOSITORY = 'janbaer/howcani-data';
 
 /**
  * Parse command-line arguments
@@ -28,25 +28,25 @@ function parseArgs(args: string[]): CliArgs {
     const arg = args[i];
 
     switch (arg) {
-      case "--output":
-      case "-o":
+      case '--output':
+      case '-o':
         result.output = args[++i];
         break;
-      case "--repo":
-      case "-r":
+      case '--repo':
+      case '-r':
         result.repo = args[++i];
         break;
-      case "--verbose":
-      case "-v":
+      case '--verbose':
+      case '-v':
         result.verbose = true;
         break;
-      case "--help":
-      case "-h":
+      case '--help':
+      case '-h':
         showHelp();
         process.exit(0);
         break;
       default:
-        if (arg.startsWith("-")) {
+        if (arg.startsWith('-')) {
           console.error(`Unknown option: ${arg}`);
           showHelp();
           process.exit(1);
@@ -87,7 +87,7 @@ Examples:
  */
 function validateArgs(args: CliArgs): void {
   if (!args.output) {
-    console.error("Error: --output path is required\n");
+    console.error('Error: --output path is required\n');
     showHelp();
     process.exit(1);
   }
@@ -104,7 +104,7 @@ async function main(): Promise<void> {
   const outputPath = args.output!;
   const token = process.env.GITHUB_TOKEN;
 
-  const [owner, repo] = repository.split("/");
+  const [owner, repo] = repository.split('/');
   if (!owner || !repo) {
     console.error(`Error: Invalid repository format: ${repository}`);
     console.error('Expected format: "owner/repo"');
@@ -114,10 +114,10 @@ async function main(): Promise<void> {
   console.log(`Exporting issues from ${repository}...\n`);
 
   if (token) {
-    console.log("✓ Using GitHub token for authentication");
+    console.log('✓ Using GitHub token for authentication');
   } else {
-    console.log("⚠ No GitHub token found (rate limit: 60 requests/hour)");
-    console.log("  Set GITHUB_TOKEN environment variable for higher limits\n");
+    console.log('⚠ No GitHub token found (rate limit: 60 requests/hour)');
+    console.log('  Set GITHUB_TOKEN environment variable for higher limits\n');
   }
 
   try {
@@ -149,10 +149,10 @@ async function main(): Promise<void> {
     // Write JSON file with 2-space indentation
     await Bun.write(outputPath, JSON.stringify(exportData, null, 2));
 
-    console.log("✓ Export complete!");
+    console.log('✓ Export complete!');
     console.log(`Saved ${issues.length} issues to ${outputPath}`);
   } catch (error) {
-    console.error("\n✗ Export failed:");
+    console.error('\n✗ Export failed:');
     if (error instanceof Error) {
       console.error(`  ${error.message}`);
     } else {

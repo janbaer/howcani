@@ -1,6 +1,6 @@
 <script lang="ts">
-import { clearError, getAuthState, login } from "../lib/auth.svelte";
-import { link } from "../lib/router.svelte";
+import { clearError, getAuthState, login } from '../lib/auth.svelte';
+import { link } from '../lib/router.svelte';
 
 interface Props {
   params?: Record<string, string>;
@@ -8,8 +8,8 @@ interface Props {
 
 const { params }: Props = $props();
 
-let username = $state("");
-let password = $state("");
+let username = $state('');
+let password = $state('');
 let isSubmitting = $state(false);
 
 const authState = getAuthState();

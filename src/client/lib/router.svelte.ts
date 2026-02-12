@@ -42,19 +42,19 @@ function parseQuery(search: string): Record<string, string> {
 function compileRoute(pattern: string, component: unknown): CompiledRoute {
   const paramNames: string[] = [];
   const regexStr = pattern
-    .split("/")
+    .split('/')
     .map((segment) => {
-      if (segment.startsWith(":")) {
+      if (segment.startsWith(':')) {
         paramNames.push(segment.slice(1));
-        return "/([^/]+)";
+        return '/([^/]+)';
       }
-      return segment ? `/${segment}` : "";
+      return segment ? `/${segment}` : '';
     })
-    .join("");
+    .join('');
 
   return {
     pattern,
-    regex: new RegExp(`^${regexStr || "/"}$`),
+    regex: new RegExp(`^${regexStr || '/'}$`),
     paramNames,
     component,
   };
@@ -63,10 +63,10 @@ function compileRoute(pattern: string, component: unknown): CompiledRoute {
 export function setRoutes(routes: Route[]) {
   // Sort: static routes first (more specific), then by segment count descending
   const sorted = [...routes].sort((a, b) => {
-    const aHasParams = a.pattern.includes(":");
-    const bHasParams = b.pattern.includes(":");
+    const aHasParams = a.pattern.includes(':');
+    const bHasParams = b.pattern.includes(':');
     if (aHasParams !== bHasParams) return aHasParams ? 1 : -1;
-    return b.pattern.split("/").length - a.pattern.split("/").length;
+    return b.pattern.split('/').length - a.pattern.split('/').length;
   });
   _routes = sorted.map((r) => compileRoute(r.pattern, r.component));
 }
@@ -86,12 +86,12 @@ export function matchRoute(path: string): RouteMatch | null {
 }
 
 export function navigate(path: string) {
-  const [pathname, search] = path.split("?");
-  const newPath = pathname || "/";
-  const newQuery = parseQuery(search ? `?${search}` : "");
+  const [pathname, search] = path.split('?');
+  const newPath = pathname || '/';
+  const newQuery = parseQuery(search ? `?${search}` : '');
 
   if (newPath !== _currentPath || JSON.stringify(newQuery) !== JSON.stringify(_currentQuery)) {
-    history.pushState(null, "", path);
+    history.pushState(null, '', path);
     _currentPath = newPath;
     _currentQuery = newQuery;
     notifyListeners();
@@ -113,24 +113,24 @@ export function subscribe(fn: () => void) {
 
 export function link(node: HTMLAnchorElement) {
   function handleClick(e: MouseEvent) {
-    const href = node.getAttribute("href");
-    if (href?.startsWith("/") && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    const href = node.getAttribute('href');
+    if (href?.startsWith('/') && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
       e.preventDefault();
       navigate(href);
     }
   }
 
-  node.addEventListener("click", handleClick);
+  node.addEventListener('click', handleClick);
 
   return {
     destroy() {
-      node.removeEventListener("click", handleClick);
+      node.removeEventListener('click', handleClick);
     },
   };
 }
 
-if (typeof window !== "undefined") {
-  window.addEventListener("popstate", () => {
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', () => {
     _currentPath = window.location.pathname;
     _currentQuery = parseQuery(window.location.search);
     notifyListeners();

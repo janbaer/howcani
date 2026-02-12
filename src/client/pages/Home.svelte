@@ -1,6 +1,6 @@
 <script lang="ts">
-import { getAuthState } from "../lib/auth.svelte";
-import { link, navigate } from "../lib/router.svelte";
+import { getAuthState } from '../lib/auth.svelte';
+import { link, navigate } from '../lib/router.svelte';
 
 interface Props {
   params?: Record<string, string>;

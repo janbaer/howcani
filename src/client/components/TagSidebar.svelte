@@ -1,9 +1,9 @@
 <script lang="ts">
-import { getAuthState } from "../lib/auth.svelte";
-import type { TagWithCount } from "../lib/items.svelte";
-import { deleteTag as deleteTagService, updateTag as updateTagService } from "../lib/items.svelte";
-import TagDeleteConfirmModal from "./TagDeleteConfirmModal.svelte";
-import TagEditModal from "./TagEditModal.svelte";
+import { getAuthState } from '../lib/auth.svelte';
+import type { TagWithCount } from '../lib/items.svelte';
+import { deleteTag as deleteTagService, updateTag as updateTagService } from '../lib/items.svelte';
+import TagDeleteConfirmModal from './TagDeleteConfirmModal.svelte';
+import TagEditModal from './TagEditModal.svelte';
 
 interface Props {
   tags: TagWithCount[];
@@ -54,10 +54,10 @@ function closeModals() {
 function handleKeyDown(tag: TagWithCount, e: KeyboardEvent) {
   if (!isOwner) return;
 
-  if (e.key === "Enter") {
+  if (e.key === 'Enter') {
     e.preventDefault();
     editingTag = tag;
-  } else if (e.key === "Delete" || e.key === "Backspace") {
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
     deletingTag = tag;
   }

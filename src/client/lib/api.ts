@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = '/api';
 
 interface ApiError {
   code: string;
@@ -10,7 +10,7 @@ interface ApiResponse<T> {
   error?: ApiError;
 }
 
-import { TOKEN_KEY } from "./config";
+import { TOKEN_KEY } from './config';
 
 let accessToken: string | null = localStorage.getItem(TOKEN_KEY);
 
@@ -29,7 +29,7 @@ export function getAccessToken(): string | null {
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
@@ -41,7 +41,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
-      credentials: "include",
+      credentials: 'include',
     });
 
     const data = await response.json();
@@ -52,7 +52,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
     return { data: data as T };
   } catch {
-    return { error: { code: "NETWORK_ERROR", message: "Network error occurred" } };
+    return { error: { code: 'NETWORK_ERROR', message: 'Network error occurred' } };
   }
 }
 
@@ -73,21 +73,21 @@ export interface AuthResponse {
 
 export const auth = {
   async login(username: string, password: string): Promise<ApiResponse<AuthResponse>> {
-    return request<AuthResponse>("/auth/login", {
-      method: "POST",
+    return request<AuthResponse>('/auth/login', {
+      method: 'POST',
       body: JSON.stringify({ username, password }),
     });
   },
 
   async register(username: string, email: string, password: string): Promise<ApiResponse<AuthResponse>> {
-    return request<AuthResponse>("/auth/register", {
-      method: "POST",
+    return request<AuthResponse>('/auth/register', {
+      method: 'POST',
       body: JSON.stringify({ username, email, password }),
     });
   },
 
   async me(): Promise<ApiResponse<User>> {
-    return request<User>("/auth/me");
+    return request<User>('/auth/me');
   },
 };
 
@@ -148,13 +148,13 @@ export interface ItemUpdateResponse {
 export const items = {
   async list(username: string, params: ItemListParams = {}): Promise<ApiResponse<ItemListResponse>> {
     const query = new URLSearchParams();
-    if (params.limit) query.set("limit", String(params.limit));
-    if (params.offset) query.set("offset", String(params.offset));
-    if (params.search) query.set("search", params.search);
-    if (params.tags?.length) query.set("tags", params.tags.join(","));
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.offset) query.set('offset', String(params.offset));
+    if (params.search) query.set('search', params.search);
+    if (params.tags?.length) query.set('tags', params.tags.join(','));
 
     const qs = query.toString();
-    return request<ItemListResponse>(`/${username}/items${qs ? `?${qs}` : ""}`);
+    return request<ItemListResponse>(`/${username}/items${qs ? `?${qs}` : ''}`);
   },
 
   async getById(username: string, id: string): Promise<ApiResponse<{ item: Item }>> {
@@ -163,21 +163,21 @@ export const items = {
 
   async create(username: string, data: ItemCreateData): Promise<ApiResponse<ItemCreateResponse>> {
     return request<ItemCreateResponse>(`/${username}/items`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
   async update(username: string, id: string, data: ItemUpdateData): Promise<ApiResponse<ItemUpdateResponse>> {
     return request<ItemUpdateResponse>(`/${username}/items/${id}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
   async delete(username: string, id: string): Promise<ApiResponse<{ success: boolean }>> {
     return request<{ success: boolean }>(`/${username}/items/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   },
 };
@@ -208,14 +208,14 @@ export const tags = {
 
   async update(username: string, id: string, data: TagUpdateData): Promise<ApiResponse<TagUpdateResponse>> {
     return request<TagUpdateResponse>(`/${username}/tags/${id}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
   async delete(username: string, id: string): Promise<ApiResponse<{ success: boolean }>> {
     return request<{ success: boolean }>(`/${username}/tags/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   },
 };

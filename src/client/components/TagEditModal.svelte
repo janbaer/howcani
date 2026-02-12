@@ -1,6 +1,6 @@
 <script lang="ts">
-import type { TagWithCount } from "../lib/items.svelte";
-import ColorPicker from "./ColorPicker.svelte";
+import type { TagWithCount } from '../lib/items.svelte';
+import ColorPicker from './ColorPicker.svelte';
 
 interface Props {
   tag: TagWithCount | null;
@@ -14,10 +14,10 @@ const { tag, existingTags, onSave, onClose }: Props = $props();
 let dialogElement: HTMLDialogElement;
 let nameInput: HTMLInputElement;
 
-let editedName = $state("");
-let editedColor = $state("");
+let editedName = $state('');
+let editedColor = $state('');
 let loading = $state(false);
-let error = $state("");
+let error = $state('');
 
 // Open/close modal when tag prop changes
 $effect(() => {
@@ -25,7 +25,7 @@ $effect(() => {
     editedName = tag.name;
     editedColor = tag.color;
     loading = false;
-    error = "";
+    error = '';
     dialogElement?.showModal();
     // Focus name input after modal opens
     setTimeout(() => nameInput?.focus(), 100);
@@ -38,7 +38,7 @@ function validateName(name: string): string {
   const trimmed = name.trim();
 
   if (!trimmed) {
-    return "Tag name cannot be empty";
+    return 'Tag name cannot be empty';
   }
 
   // Check for duplicate (case-insensitive), but allow keeping the same name
@@ -49,7 +49,7 @@ function validateName(name: string): string {
     }
   }
 
-  return "";
+  return '';
 }
 
 async function handleSave() {
@@ -63,7 +63,7 @@ async function handleSave() {
   }
 
   loading = true;
-  error = "";
+  error = '';
 
   try {
     await onSave(tag.id, {
@@ -72,7 +72,7 @@ async function handleSave() {
     });
     onClose();
   } catch (e) {
-    error = e instanceof Error ? e.message : "Failed to update tag";
+    error = e instanceof Error ? e.message : 'Failed to update tag';
     loading = false;
   }
 }
@@ -84,7 +84,7 @@ function handleCancel() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === "Enter" && !loading) {
+  if (e.key === 'Enter' && !loading) {
     e.preventDefault();
     handleSave();
   }

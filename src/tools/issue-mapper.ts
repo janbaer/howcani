@@ -3,7 +3,7 @@
  * Transforms GitHub issues into FAQ items with tag mapping
  */
 
-import type { Issue, Label } from "./json-format";
+import type { Issue, Label } from './json-format';
 
 export interface ItemData {
   id?: number; // Optional: preserve issue number as item ID
@@ -18,22 +18,22 @@ export interface TagData {
   color: string;
 }
 
-const DEFAULT_TAG_COLOR = "6b7280"; // Gray color for invalid colors
+const DEFAULT_TAG_COLOR = '6b7280'; // Gray color for invalid colors
 
 /**
  * Validates ISO 8601 timestamp format
  * @throws Error if timestamp is invalid
  */
 export function validateTimestamp(timestamp: string, issueNumber?: number): void {
-  if (!timestamp || typeof timestamp !== "string" || timestamp.trim() === "") {
-    const issueInfo = issueNumber ? ` for issue #${issueNumber}` : "";
+  if (!timestamp || typeof timestamp !== 'string' || timestamp.trim() === '') {
+    const issueInfo = issueNumber ? ` for issue #${issueNumber}` : '';
     throw new Error(`Invalid created_at timestamp${issueInfo}: timestamp is empty or missing`);
   }
 
   // Basic ISO 8601 format validation (YYYY-MM-DDTHH:MM:SSZ or with timezone offset)
   const iso8601Pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
   if (!iso8601Pattern.test(timestamp)) {
-    const issueInfo = issueNumber ? ` for issue #${issueNumber}` : "";
+    const issueInfo = issueNumber ? ` for issue #${issueNumber}` : '';
     throw new Error(
       `Invalid created_at timestamp format${issueInfo}: "${timestamp}". Expected format: YYYY-MM-DDTHH:MM:SSZ`,
     );
@@ -69,7 +69,7 @@ export function mapTitleToQuestion(title: string): string {
  */
 export function mapBodyToAnswer(body: string | null): string {
   if (body === null || body === undefined) {
-    return "";
+    return '';
   }
   return body;
 }
@@ -90,7 +90,7 @@ export function mapLabelsToTags(labels: Label[]): TagData[] {
  */
 export function validateAndNormalizeColor(color: string): string {
   // Remove # prefix if present
-  const normalized = color.startsWith("#") ? color.slice(1) : color;
+  const normalized = color.startsWith('#') ? color.slice(1) : color;
 
   // Validate hex format (6 characters, 0-9a-f)
   const hexPattern = /^[0-9a-fA-F]{6}$/;

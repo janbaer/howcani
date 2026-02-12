@@ -8,30 +8,30 @@ const { value, onChange }: Props = $props();
 
 // Preset color palette matching backend DEFAULT_COLORS
 const PRESET_COLORS = [
-  "0e8a16", // Green
-  "ff5722", // Orange
-  "2196f3", // Blue
-  "9c27b0", // Purple
-  "f44336", // Red
-  "009688", // Teal
-  "ff9800", // Amber
-  "607d8b", // Blue Grey
-  "4caf50", // Light Green
-  "e91e63", // Pink
-  "3f51b5", // Indigo
-  "00bcd4", // Cyan
-  "cddc39", // Lime
-  "ffc107", // Yellow
-  "795548", // Brown
-  "9e9e9e", // Grey
+  '0e8a16', // Green
+  'ff5722', // Orange
+  '2196f3', // Blue
+  '9c27b0', // Purple
+  'f44336', // Red
+  '009688', // Teal
+  'ff9800', // Amber
+  '607d8b', // Blue Grey
+  '4caf50', // Light Green
+  'e91e63', // Pink
+  '3f51b5', // Indigo
+  '00bcd4', // Cyan
+  'cddc39', // Lime
+  'ffc107', // Yellow
+  '795548', // Brown
+  '9e9e9e', // Grey
 ];
 
 let customHex = $state(value);
-let validationError = $state("");
+let validationError = $state('');
 
 function selectColor(color: string) {
   customHex = color;
-  validationError = "";
+  validationError = '';
   onChange(color);
 }
 
@@ -43,26 +43,26 @@ function handleCustomInput(e: Event) {
   const hexRegex = /^[0-9a-fA-F]{6}$/;
 
   if (!input) {
-    validationError = "";
+    validationError = '';
     return;
   }
 
-  if (input.startsWith("#")) {
-    validationError = "Remove the # prefix";
+  if (input.startsWith('#')) {
+    validationError = 'Remove the # prefix';
     return;
   }
 
   if (input.length !== 6) {
-    validationError = "Must be exactly 6 characters";
+    validationError = 'Must be exactly 6 characters';
     return;
   }
 
   if (!hexRegex.test(input)) {
-    validationError = "Invalid hex color (use 0-9, A-F)";
+    validationError = 'Invalid hex color (use 0-9, A-F)';
     return;
   }
 
-  validationError = "";
+  validationError = '';
   onChange(input.toLowerCase());
 }
 </script>

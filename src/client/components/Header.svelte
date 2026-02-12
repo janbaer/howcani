@@ -1,22 +1,22 @@
 <script lang="ts">
-import { getAuthState, logout } from "../lib/auth.svelte";
-import { openCreateModal } from "../lib/create-modal.svelte";
-import { getCurrentPath, getCurrentQuery, link, navigate } from "../lib/router.svelte";
-import { isDark, toggleTheme } from "../lib/theme.svelte";
+import { getAuthState, logout } from '../lib/auth.svelte';
+import { openCreateModal } from '../lib/create-modal.svelte';
+import { getCurrentPath, getCurrentQuery, link, navigate } from '../lib/router.svelte';
+import { isDark, toggleTheme } from '../lib/theme.svelte';
 
 const authState = getAuthState();
 
-let searchQuery = $state("");
+let searchQuery = $state('');
 let searchTimeout = $state<ReturnType<typeof setTimeout> | null>(null);
 
 const currentPath = $derived(getCurrentPath());
-const isItemsPage = $derived(currentPath.includes("/items") && !currentPath.match(/\/items\/\d+$/));
+const isItemsPage = $derived(currentPath.includes('/items') && !currentPath.match(/\/items\/\d+$/));
 
 // Sync search from URL
 $effect(() => {
   if (isItemsPage) {
     const query = getCurrentQuery();
-    searchQuery = query.search || "";
+    searchQuery = query.search || '';
   }
 });
 
@@ -29,23 +29,23 @@ function handleSearch(e: Event) {
     const currentQuery = getCurrentQuery();
     const newParams = new URLSearchParams();
 
-    if (value) newParams.set("search", value);
-    if (currentQuery.tags) newParams.set("tags", currentQuery.tags);
+    if (value) newParams.set('search', value);
+    if (currentQuery.tags) newParams.set('tags', currentQuery.tags);
 
     const queryString = newParams.toString();
-    navigate(`${currentPath}${queryString ? `?${queryString}` : ""}`);
+    navigate(`${currentPath}${queryString ? `?${queryString}` : ''}`);
   }, 300);
 }
 
 function clearSearch() {
-  searchQuery = "";
+  searchQuery = '';
   const currentQuery = getCurrentQuery();
   const newParams = new URLSearchParams();
 
-  if (currentQuery.tags) newParams.set("tags", currentQuery.tags);
+  if (currentQuery.tags) newParams.set('tags', currentQuery.tags);
 
   const queryString = newParams.toString();
-  navigate(`${currentPath}${queryString ? `?${queryString}` : ""}`);
+  navigate(`${currentPath}${queryString ? `?${queryString}` : ''}`);
 }
 </script>
 

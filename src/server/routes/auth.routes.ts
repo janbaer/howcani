@@ -1,12 +1,12 @@
-import { Elysia, t } from "elysia";
-import { StatusCodes } from "http-status-codes";
-import { assertAuthenticated, authPlugin } from "../middleware";
-import { authService } from "../services/auth.service";
+import { Elysia, t } from 'elysia';
+import { StatusCodes } from 'http-status-codes';
+import { assertAuthenticated, authPlugin } from '../middleware';
+import { authService } from '../services/auth.service';
 
-export const authRoutes = new Elysia({ prefix: "/auth" })
+export const authRoutes = new Elysia({ prefix: '/auth' })
   .use(authPlugin)
   .post(
-    "/register",
+    '/register',
     async ({ body, set }) => {
       const result = await authService.register(body);
 
@@ -27,7 +27,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
     },
   )
   .post(
-    "/login",
+    '/login',
     async ({ body, set }) => {
       const result = await authService.login(body);
 
@@ -47,13 +47,13 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
     },
   )
   .get(
-    "/me",
+    '/me',
     ({ user, set }) => {
       assertAuthenticated(user);
       const userData = authService.getUserById(user.userId);
       if (!userData) {
         set.status = StatusCodes.NOT_FOUND;
-        return { error: { code: "USER_NOT_FOUND", message: "User not found" } };
+        return { error: { code: 'USER_NOT_FOUND', message: 'User not found' } };
       }
       return userData;
     },
