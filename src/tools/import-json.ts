@@ -7,7 +7,7 @@
 
 import { db } from "../server/db/database";
 import { userRepository } from "../server/repositories";
-import { runImport, hasExistingData } from "./import-runner";
+import { hasExistingData, runImport } from "./import-runner";
 import { mapIssueToItem } from "./issue-mapper";
 import { validateExportData } from "./json-format";
 
@@ -162,9 +162,9 @@ function formatDuration(ms: number): string {
  * @returns number of items
  */
 function getItemCount(userId: string): number {
-  const result = db.query<{ count: number }, [string]>(
-    "SELECT COUNT(*) as count FROM items WHERE user_id = ?",
-  ).get(userId);
+  const result = db
+    .query<{ count: number }, [string]>("SELECT COUNT(*) as count FROM items WHERE user_id = ?")
+    .get(userId);
   return result?.count ?? 0;
 }
 
@@ -283,7 +283,7 @@ async function main(): Promise<void> {
     const duration = Date.now() - startTime;
 
     // Display summary
-    console.log("\n" + (args.dryRun ? "✓ Dry run complete!" : "✓ Import complete!"));
+    console.log(`\n${args.dryRun ? "✓ Dry run complete!" : "✓ Import complete!"}`);
     console.log("\nStatistics:");
     console.log(`  Total issues in JSON: ${summary.total}`);
     console.log(`  Items imported: ${summary.imported}`);

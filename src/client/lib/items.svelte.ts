@@ -87,22 +87,22 @@ export function extractTextBeforeCode(answer: string): string | null {
   if (!textBefore) return null;
 
   // Remove markdown formatting for cleaner preview
-  textBefore = textBefore.replace(/[*_`]/g, '');
+  textBefore = textBefore.replace(/[*_`]/g, "");
 
   // Truncate if too long, but break at sentence or word boundary
   if (textBefore.length > 120) {
     const truncated = textBefore.substring(0, 120);
     // Try to break at sentence end
-    const lastPeriod = truncated.lastIndexOf('.');
+    const lastPeriod = truncated.lastIndexOf(".");
     if (lastPeriod > 60) {
       return truncated.substring(0, lastPeriod + 1);
     }
     // Otherwise break at word boundary
-    const lastSpace = truncated.lastIndexOf(' ');
+    const lastSpace = truncated.lastIndexOf(" ");
     if (lastSpace > 60) {
-      return truncated.substring(0, lastSpace) + "...";
+      return `${truncated.substring(0, lastSpace)}...`;
     }
-    return truncated + "...";
+    return `${truncated}...`;
   }
   return textBefore;
 }

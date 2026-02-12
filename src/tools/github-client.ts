@@ -3,7 +3,7 @@
  * Handles GitHub API integration with pagination and rate limiting
  */
 
-import type { Issue, Label } from "./json-format";
+import type { Issue } from "./json-format";
 
 export interface GitHubIssueResponse {
   number: number;

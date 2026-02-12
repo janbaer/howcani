@@ -1,9 +1,9 @@
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { closeDatabase, setDatabase } from "../server/db/database";
+import { setDatabase } from "../server/db/database";
 import { runMigrations } from "../server/db/migrations";
 import { itemRepository, tagRepository, userRepository } from "../server/repositories";
-import { type ImportOptions, runImport, hasExistingData } from "./import-runner";
+import { hasExistingData, runImport } from "./import-runner";
 import type { ItemData } from "./issue-mapper";
 
 describe("import-runner", () => {
@@ -52,7 +52,6 @@ describe("import-runner", () => {
           question: "How do I use Svelte?",
           answer: "Install Svelte...",
           tags: [{ name: "svelte", color: "ff3e00" }],
-          created_at: "2024-01-01T00:00:00Z",
           created_at: "2024-01-02T00:00:00Z",
         },
       ];
@@ -83,7 +82,6 @@ describe("import-runner", () => {
           question: "How do I use Bun?",
           answer: "Answer 1",
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
           created_at: "2024-01-01T00:00:00Z",
         },
       ];
@@ -168,7 +166,6 @@ describe("import-runner", () => {
           answer: "Test answer",
           tags: [],
           created_at: "2024-01-01T00:00:00Z",
-          created_at: "2024-01-01T00:00:00Z",
         },
       ];
 
@@ -240,7 +237,7 @@ describe("import-runner", () => {
 
     test("reuses existing tags instead of creating duplicates", async () => {
       // Create tag first
-      const existingTag = tagRepository.create({
+      const _existingTag = tagRepository.create({
         userId: testUserId,
         name: "bun",
         color: "ff0000",
@@ -438,7 +435,6 @@ describe("import-runner", () => {
           question: "How do I use Bun?",
           answer: "Answer",
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
           created_at: historicalDate,
         },
       ];
@@ -460,7 +456,6 @@ describe("import-runner", () => {
           question: "How do I use Bun?",
           answer: "Answer",
           tags: [],
-          created_at: "2024-01-01T00:00:00Z",
           created_at: historicalDate,
         },
       ];

@@ -6,7 +6,6 @@ import {
   mapLabelsToTags,
   mapTitleToQuestion,
   validateAndNormalizeColor,
-  validateTimestamp,
 } from "./issue-mapper";
 
 describe("issue-mapper", () => {
