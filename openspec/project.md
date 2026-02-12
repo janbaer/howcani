@@ -80,10 +80,13 @@ This enables:
 - Full-text search across questions and answers
 - Tag suggestions to prevent duplicates
 
-**Frontend-Guidelines**
-- Also frontend code should be separater in layers
-- For all business login in frontend use a service layer.
-- Svelte pages and components should use this service layer for communicating over REST with the backend
+**Frontend Guidelines**
+- Frontend code follows layer separation similar to the backend
+- **Pages** (`src/client/pages/`): Routing, lifecycle effects, template rendering. Thin orchestration only.
+- **Stores** (`src/client/stores/`): Reactive state management and business logic using Svelte 5 `$state` runes. Instance-based classes (not singletons) for per-page state. Named `*.store.svelte.ts`.
+- **Components** (`src/client/components/`): Reusable UI pieces receiving data via `$props()`. No direct API calls.
+- **Lib** (`src/client/lib/`): API clients, utilities, and global singletons (auth, router, theme). Named `*.svelte.ts` when using runes.
+- Pages create store instances and wire them to effects; stores handle data fetching, optimistic updates, and state mutations; lib modules handle REST communication with the backend
 
 ## Important Constraints
 - Personal use (single primary user, designed for multi-user)
