@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Build artifacts
+dist/
+
+# Data and databases
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test files
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+test/
+tests/
+__tests__/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# OpenSpec
+openspec/
+
+# Other
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

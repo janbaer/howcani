@@ -167,3 +167,271 @@ ID Mappings (due to conflicts):
 - Use `--force-reimport` to fix timestamps on existing items
 - Original imports may have used current date instead of GitHub date
 - Re-importing preserves the original GitHub creation timestamps
+
+## Docker Deployment
+
+HowCanI v3 includes complete Docker containerization for easy deployment to any environment.
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Access to Forgejo registry: `forgejo.home.janbaer.de`
+
+### Registry Authentication
+
+Before deploying, authenticate to the private Forgejo registry:
+
+```bash
+docker login forgejo.home.janbaer.de
+```
+
+Enter your credentials when prompted. Authentication persists and is used for all image operations.
+
+### Building and Publishing Images
+
+Use the automated build script to bump version, build Docker image, and push to registry:
+
+```bash
+# Bump patch version (1.0.0 -> 1.0.1) and publish
+./scripts/build-docker.sh patch
+
+# Bump minor version (1.0.0 -> 1.1.0) and publish
+./scripts/build-docker.sh minor
+
+# Bump major version (1.0.0 -> 2.0.0) and publish
+./scripts/build-docker.sh major
+```
+
+The build script:
+1. Validates prerequisites (Docker running, Bun installed, clean git tree)
+2. Bumps version in `package.json` and creates git tag
+3. Builds Bun binary
+4. Builds Docker image with multi-stage optimization
+5. Tags image with both version number and `latest`
+6. Pushes both tags to Forgejo registry
+7. Cleans up build artifacts
+
+Images are published to:
+- `forgejo.home.janbaer.de/jan/howcani:VERSION` (e.g., `3.0.1`)
+- `forgejo.home.janbaer.de/jan/howcani:latest`
+
+### Deployment with Docker Compose
+
+#### Initial Setup
+
+1. **Create data directory** with appropriate permissions:
+   ```bash
+   mkdir -p /path/to/data
+   chown $UID:$GID /path/to/data
+   ```
+
+2. **Configure environment** (optional - defaults work for most cases):
+   Create a `.env` file in the same directory as `docker-compose.yml`:
+   ```bash
+   # Application port (default: 3000)
+   HOWCANI_PORT=8080
+
+   # Data directory path (default: ./data)
+   HOWCANI_DATA_DIR=/var/lib/howcani/data
+
+   # User and group ID for file permissions (default: 1000:1000)
+   HOWCANI_UID=1001
+   HOWCANI_GID=1001
+   ```
+
+3. **Pull the latest image**:
+   ```bash
+   docker-compose pull
+   ```
+
+#### Starting the Service
+
+```bash
+# Start in detached mode
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Check status and health
+docker-compose ps
+```
+
+The application will be available at `http://localhost:3000` (or your configured port).
+
+#### Configuration Variables
+
+All runtime configuration is done via environment variables with sensible defaults:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HOWCANI_PORT` | Application port (host and container) | `3000` |
+| `HOWCANI_DATA_DIR` | Host directory for data persistence | `./data` |
+| `HOWCANI_UID` | User ID for container process | `1000` |
+| `HOWCANI_GID` | Group ID for container process | `1000` |
+
+These can be set in a `.env` file or passed directly:
+```bash
+HOWCANI_PORT=8080 docker-compose up -d
+```
+
+#### Database Migrations
+
+If database schema changes require migrations:
+
+```bash
+# Run migrations on the deployed database
+docker-compose run --rm howcani bun run db:migrate
+```
+
+Migrations should be run after pulling a new image but before starting the service.
+
+#### Health Monitoring
+
+The container includes a health check that polls the application endpoint every 30 seconds:
+
+```bash
+# Check health status
+docker-compose ps
+
+# View health check logs
+docker inspect howcani | grep -A 10 Health
+```
+
+#### Accessing Logs
+
+```bash
+# Follow logs in real-time
+docker-compose logs -f
+
+# View last 100 lines
+docker-compose logs --tail 100
+
+# Logs for specific time period
+docker logs howcani --since 1h
+```
+
+#### Managing the Service
+
+```bash
+# Stop the service
+docker-compose down
+
+# Restart the service
+docker-compose restart
+
+# Pull latest image and restart
+docker-compose pull && docker-compose up -d
+
+# View resource usage
+docker stats howcani
+```
+
+### Deploying Specific Versions
+
+By default, Docker Compose uses the `latest` tag. To deploy a specific version:
+
+1. Edit `docker-compose.yml` and change the image tag:
+   ```yaml
+   image: forgejo.home.janbaer.de/jan/howcani:3.0.1
+   ```
+
+2. Pull and restart:
+   ```bash
+   docker-compose pull
+   docker-compose up -d
+   ```
+
+### Rollback Strategy
+
+If a deployment introduces issues, roll back to a previous version:
+
+1. **Identify the last known good version** from your deployment notes or git tags
+
+2. **Update image tag** in `docker-compose.yml`:
+   ```yaml
+   image: forgejo.home.janbaer.de/jan/howcani:3.0.0  # Previous version
+   ```
+
+3. **Deploy the previous version**:
+   ```bash
+   docker-compose pull
+   docker-compose up -d
+   ```
+
+4. **Restore database backup** (if schema changed):
+   ```bash
+   docker-compose down
+   cp /path/to/data/howcani.db.backup /path/to/data/howcani.db
+   docker-compose up -d
+   ```
+
+**Best Practice:** Always backup the database before deploying major version changes:
+```bash
+cp /path/to/data/howcani.db /path/to/data/howcani.db.backup-$(date +%Y%m%d)
+```
+
+### Data Persistence
+
+All application data (SQLite database, uploads) is stored in the mounted data directory. This persists across container restarts and updates.
+
+**Backup the data directory regularly:**
+```bash
+# Simple file copy
+cp -r /path/to/data /path/to/backups/howcani-$(date +%Y%m%d)
+
+# With compression
+tar -czf howcani-backup-$(date +%Y%m%d).tar.gz /path/to/data
+```
+
+**Important:** Ensure the data directory on the host has correct ownership:
+```bash
+chown -R $UID:$GID /path/to/data
+```
+
+The container runs as the specified user (default: 1000:1000) and must have read/write permissions to the mounted directory.
+
+### Troubleshooting
+
+**Port already in use:**
+```bash
+# Check what's using the port
+sudo lsof -i :3000
+
+# Change port in .env file
+echo "HOWCANI_PORT=8080" > .env
+docker-compose up -d
+```
+
+**Permission denied on data directory:**
+```bash
+# Fix ownership
+chown -R $UID:$GID /path/to/data
+
+# Or match container user
+chown -R 1000:1000 /path/to/data
+```
+
+**Container fails to start:**
+```bash
+# Check logs for errors
+docker-compose logs
+
+# Verify image exists
+docker images | grep howcani
+
+# Pull image again
+docker-compose pull
+```
+
+**Health check failing:**
+```bash
+# Check if application is responding
+curl http://localhost:3000/
+
+# Check container logs
+docker-compose logs
+
+# Restart container
+docker-compose restart
+```
