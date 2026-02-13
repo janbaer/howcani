@@ -1,6 +1,5 @@
 import { resolve } from 'node:path';
 import { Elysia } from 'elysia';
-import index from '../index.html';
 import { runMigrations } from './db';
 import { authRoutes, itemRoutes, tagRoutes, userRoutes } from './routes';
 
@@ -23,20 +22,37 @@ const isDev = process.env.NODE_ENV !== 'production';
 export default {
   port: process.env.PORT || 3000,
 
-  routes: {
-    '/': index,
-    '/login': index,
-    '/register': index,
-    '/:username/items': index,
-    '/:username/items/:id': index,
-  },
-
   async fetch(req: Request) {
     const url = new URL(req.url);
 
     // API routes → Elysia
     if (url.pathname.startsWith('/api')) {
       return api.fetch(req);
+    }
+
+    // Client-side files - serve from built artifacts in production, transpile in dev
+    if (url.pathname.startsWith('/client/')) {
+      const clientDir = isDev ? resolve('./src/client') : resolve('./dist/client');
+      const fileName = url.pathname.replace('/client/', '');
+      const requestedPath = resolve(clientDir, fileName);
+
+      // Prevent directory traversal attacks
+      if (!requestedPath.startsWith(clientDir)) {
+        return new Response('Forbidden', { status: 403 });
+      }
+
+      const file = Bun.file(requestedPath);
+      if (await file.exists()) {
+        const contentType = requestedPath.endsWith('.css')
+          ? 'text/css'
+          : 'application/javascript';
+
+        return new Response(file, {
+          headers: {
+            'Content-Type': contentType,
+          },
+        });
+      }
     }
 
     // Static files from public

@@ -47,7 +47,6 @@ Current deployment is manual. We need an automated containerized deployment that
 **Rationale**:
 - Stays within Bun ecosystem - no need for npm
 - Simple TypeScript script reads package.json, bumps version following semver rules, writes back
-- Creates git tag after successful bump
 - Keeps version as single source of truth in package.json
 - Supports semantic versioning workflow (patch for bugfixes, minor for features, major for breaking)
 
@@ -55,11 +54,12 @@ Current deployment is manual. We need an automated containerized deployment that
 1. Parse current version from package.json
 2. Increment according to bump type (patch: 1.0.0→1.0.1, minor: 1.0.0→1.1.0, major: 1.0.0→2.0.0)
 3. Write updated package.json
-4. Create git tag (e.g., `v1.0.1`)
+
+**Note**: Git tagging removed during development. Can be added back later for production releases.
 
 **Alternatives Considered**:
 - `npm version`: Works but introduces npm dependency when we're fully on Bun
-- Manual version specification: Error-prone, no git tag integration
+- Manual version specification: Error-prone, less structured
 - `jq` for JSON manipulation: Works but less readable than TypeScript for semver logic
 
 ### 3. Build Script Architecture
