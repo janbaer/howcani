@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { SveltePlugin } from 'bun-plugin-svelte';
 
 const outdir = resolve('./dist/client');
+const isDev = process.env.NODE_ENV !== 'production';
 
 // Ensure output directory exists
 await mkdir(outdir, { recursive: true });
@@ -14,14 +15,14 @@ const result = await Bun.build({
   entrypoints: ['./src/client/main.ts'],
   outdir,
   target: 'browser',
-  minify: process.env.NODE_ENV === 'production',
+  minify: !isDev,
   splitting: true,
-  sourcemap: process.env.NODE_ENV !== 'production' ? 'external' : 'none',
+  sourcemap: isDev ? 'external' : 'none',
   plugins: [
     SveltePlugin({
-      development: false,
+      development: isDev,
       compilerOptions: {
-        dev: false,
+        dev: isDev,
       },
     }),
   ],

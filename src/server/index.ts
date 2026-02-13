@@ -1,9 +1,26 @@
 import { resolve } from 'node:path';
+import { existsSync } from 'node:fs';
 import { Elysia } from 'elysia';
 import { runMigrations } from './db';
 import { authRoutes, itemRoutes, tagRoutes, userRoutes } from './routes';
 
 runMigrations();
+
+// In dev mode, ensure client is built
+const isDev = process.env.NODE_ENV !== 'production';
+if (isDev && !existsSync('./dist/client/main.js')) {
+  console.log('[dev] Building client-side code...');
+  const buildResult = Bun.spawnSync(['bun', 'run', 'build-client.ts'], {
+    env: { ...process.env, NODE_ENV: 'development' },
+    stdout: 'inherit',
+    stderr: 'inherit',
+  });
+  if (buildResult.exitCode !== 0) {
+    console.error('[dev] Client build failed');
+    process.exit(1);
+  }
+  console.log('[dev] Client build complete');
+}
 
 const api = new Elysia().group('/api', (app) =>
   app
@@ -17,8 +34,6 @@ const api = new Elysia().group('/api', (app) =>
     })),
 );
 
-const isDev = process.env.NODE_ENV !== 'production';
-
 export default {
   port: process.env.PORT || 3000,
 
@@ -30,9 +45,9 @@ export default {
       return api.fetch(req);
     }
 
-    // Client-side files - serve from built artifacts in production, transpile in dev
+    // Client-side files - serve from built artifacts
     if (url.pathname.startsWith('/client/')) {
-      const clientDir = isDev ? resolve('./src/client') : resolve('./dist/client');
+      const clientDir = resolve('./dist/client');
       const fileName = url.pathname.replace('/client/', '');
       const requestedPath = resolve(clientDir, fileName);
 
