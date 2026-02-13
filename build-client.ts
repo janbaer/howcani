@@ -1,25 +1,21 @@
 #!/usr/bin/env bun
 
-import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { SveltePlugin } from 'bun-plugin-svelte';
 
-const outdir = resolve('./dist/client');
+const outdir = resolve('./dist');
 const isDev = process.env.NODE_ENV !== 'production';
 
-// Ensure output directory exists
-await mkdir(outdir, { recursive: true });
-
-// Build client-side code
 const result = await Bun.build({
-  entrypoints: ['./src/client/main.ts'],
+  entrypoints: ['./src/server/index.ts'],
   outdir,
-  target: 'browser',
+  root: '.',
+  target: 'bun',
   minify: !isDev,
-  splitting: true,
   sourcemap: isDev ? 'external' : 'none',
   plugins: [
     SveltePlugin({
+      forceSide: 'client',
       development: isDev,
       compilerOptions: {
         dev: isDev,
@@ -36,6 +32,9 @@ if (!result.success) {
   process.exit(1);
 }
 
-console.log('✓ Client build successful');
+console.log('✓ Build successful');
 console.log(`  Output: ${outdir}`);
 console.log(`  Files: ${result.outputs.length}`);
+for (const output of result.outputs) {
+  console.log(`  - ${output.path} (${output.kind})`);
+}

@@ -192,20 +192,18 @@ Enter your credentials when prompted. Authentication persists and is used for al
 Use the automated build script to bump version, build Docker image, and push to registry:
 
 ```bash
-# Bump patch version (1.0.0 -> 1.0.1) and publish
-./scripts/build-docker.sh patch
+# Bump patch version and publish (default when no argument given)
+./scripts/build-docker.sh
 
-# Bump minor version (1.0.0 -> 1.1.0) and publish
+# Explicitly specify bump type
 ./scripts/build-docker.sh minor
-
-# Bump major version (1.0.0 -> 2.0.0) and publish
 ./scripts/build-docker.sh major
 ```
 
 The build script:
-1. Validates prerequisites (Docker running, Bun installed, clean git tree)
+1. Validates prerequisites (Docker/Podman running, Bun installed, registry authentication)
 2. Bumps version in `package.json` and creates git tag
-3. Builds Bun binary
+3. Builds unified fullstack bundle (server + client compiled together)
 4. Builds Docker image with multi-stage optimization
 5. Tags image with both version number and `latest`
 6. Pushes both tags to Forgejo registry

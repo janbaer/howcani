@@ -35,23 +35,17 @@ usage() {
   echo "Bump version, build Docker image, and push to registry"
   echo ""
   echo "Arguments:"
-  echo "  patch   Increment patch version (1.0.0 -> 1.0.1)"
+  echo "  patch   Increment patch version (1.0.0 -> 1.0.1) [default]"
   echo "  minor   Increment minor version (1.0.0 -> 1.1.0)"
   echo "  major   Increment major version (1.0.0 -> 2.0.0)"
   echo ""
   echo "Examples:"
-  echo "  $0 patch"
+  echo "  $0          # defaults to patch"
   echo "  $0 minor"
   exit 1
 }
 
-# Check if version bump type is provided
-if [ -z "$1" ]; then
-  echo -e "${RED}Error: Version bump type is required${NC}"
-  usage
-fi
-
-BUMP_TYPE="$1"
+BUMP_TYPE="${1:-patch}"
 
 if [[ ! "$BUMP_TYPE" =~ ^(patch|minor|major)$ ]]; then
   echo -e "${RED}Error: Invalid bump type '$BUMP_TYPE'${NC}"

@@ -14,24 +14,23 @@ COPY package.json bun.lock ./
 # Install dependencies
 RUN bun install --frozen-lockfile
 
-# Copy source code and build scripts
+# Copy source code, public assets, and build scripts
 COPY src ./src
+COPY public ./public
 COPY tsconfig.json* ./
 COPY build-client.ts ./
 
 # Build client-side code
 RUN bun run build
 
-# Runtime stage - production dependencies only
+# Runtime stage - self-contained dist only
 FROM oven/bun:${BUN_VERSION}-slim AS runtime
 
 WORKDIR /app
 
-# Copy package files, source, and built assets from builder
-COPY --from=builder /build/package.json ./
-COPY --from=builder /build/node_modules ./node_modules
-COPY --from=builder /build/src ./src
-COPY --from=builder /build/dist ./dist
+# Copy only the self-contained build output
+COPY --from=builder /build/dist ./
+COPY --from=builder /build/public ./public
 
 # Set default environment variables
 ENV NODE_ENV=production
@@ -47,5 +46,5 @@ RUN mkdir -p /data && \
 # Switch to non-root user (bun user is built into the image)
 USER bun
 
-# Run the application with Bun
-ENTRYPOINT ["bun", "run", "src/server/index.ts"]
+# Run the unified server bundle
+ENTRYPOINT ["bun", "run", "src/server/index.js"]
