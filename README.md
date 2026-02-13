@@ -391,6 +391,156 @@ chown -R $UID:$GID /path/to/data
 
 The container runs as the specified user (default: 1000:1000) and must have read/write permissions to the mounted directory.
 
+### SQLite Database Backups
+
+HowCanI uses SQLite with WAL (Write-Ahead Logging) mode for better concurrency. When backing up the database, you must handle the WAL file correctly to ensure data consistency.
+
+#### Understanding SQLite WAL Files
+
+SQLite creates three files:
+- `howcani.db` - Main database file
+- `howcani.db-wal` - Write-Ahead Log (recent transactions not yet in main file)
+- `howcani.db-shm` - Shared memory (index to WAL file)
+
+**Important:** Recent changes may be in the `.db-wal` file and not in the main `.db` file. Copying only the `.db` file without checkpointing can result in data loss!
+
+#### Checkpoint Command
+
+The checkpoint command merges WAL changes back into the main database file:
+
+```bash
+sqlite3 /path/to/howcani.db "PRAGMA wal_checkpoint(TRUNCATE);"
+```
+
+**Output format:** `0|0|0`
+- First number: Return code (0 = success)
+- Second number: Number of pages checkpointed from WAL
+- Third number: Number of pages remaining in WAL
+
+Examples:
+```bash
+0|0|0    # Success, no pending changes, WAL empty
+0|150|0  # Success, checkpointed 150 pages, WAL now empty
+0|0|25   # Success, but 25 pages couldn't be checkpointed (database in use)
+1|0|0    # Error occurred
+```
+
+#### Backup Methods
+
+**Option 1: Checkpoint First (Recommended)**
+
+The safest method - checkpoint to merge WAL, then copy only the main database:
+
+```bash
+# 1. Stop the application
+docker-compose down
+
+# 2. Checkpoint to merge WAL into main database
+sqlite3 /path/to/data/howcani.db "PRAGMA wal_checkpoint(TRUNCATE);"
+
+# 3. Copy just the .db file (it now contains everything)
+cp /path/to/data/howcani.db /backups/howcani-$(date +%Y%m%d).db
+
+# 4. Restart the application
+docker-compose up -d
+```
+
+**Option 2: Copy All Files Together**
+
+If you can't checkpoint, copy all three files atomically:
+
+```bash
+# 1. Stop the application
+docker-compose down
+
+# 2. Copy all SQLite files together
+cp /path/to/data/howcani.db* /backups/
+
+# 3. On backup destination, checkpoint to merge
+sqlite3 /backups/howcani.db "PRAGMA wal_checkpoint(TRUNCATE);"
+
+# 4. Restart the application
+docker-compose up -d
+```
+
+#### Restoring from Backup
+
+```bash
+# 1. Stop the application
+docker-compose down
+
+# 2. Restore the database file
+cp /backups/howcani-20250213.db /path/to/data/howcani.db
+
+# 3. Remove old WAL files (will be recreated)
+rm -f /path/to/data/howcani.db-wal /path/to/data/howcani.db-shm
+
+# 4. Restart the application
+docker-compose up -d
+```
+
+#### Automated Backup Script
+
+Create a backup script for regular backups:
+
+```bash
+#!/bin/bash
+# backup-howcani.sh
+
+BACKUP_DIR="/backups/howcani"
+DATA_DIR="/path/to/data"
+DATE=$(date +%Y%m%d-%H%M%S)
+
+# Create backup directory
+mkdir -p "$BACKUP_DIR"
+
+# Stop application
+docker-compose -f /path/to/docker-compose.yml down
+
+# Checkpoint database
+sqlite3 "$DATA_DIR/howcani.db" "PRAGMA wal_checkpoint(TRUNCATE);"
+
+# Copy database
+cp "$DATA_DIR/howcani.db" "$BACKUP_DIR/howcani-$DATE.db"
+
+# Restart application
+docker-compose -f /path/to/docker-compose.yml up -d
+
+# Keep only last 7 days of backups
+find "$BACKUP_DIR" -name "howcani-*.db" -mtime +7 -delete
+
+echo "Backup complete: $BACKUP_DIR/howcani-$DATE.db"
+```
+
+Schedule with cron:
+```bash
+# Daily backup at 2 AM
+0 2 * * * /path/to/backup-howcani.sh >> /var/log/howcani-backup.log 2>&1
+```
+
+#### Copying Database Between Servers
+
+When migrating to a new server:
+
+```bash
+# On source server:
+# 1. Stop application
+docker-compose down
+
+# 2. Checkpoint database
+sqlite3 /data/howcani.db "PRAGMA wal_checkpoint(TRUNCATE);"
+
+# 3. Copy to destination
+scp /data/howcani.db user@newserver:/data/
+
+# On destination server:
+# 4. Set correct permissions
+chown 1000:1000 /data/howcani.db
+
+# 5. Start application (WAL files will be created automatically)
+docker-compose up -d
+```
+
 ### Troubleshooting
 
 **Port already in use:**
