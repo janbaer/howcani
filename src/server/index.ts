@@ -40,9 +40,12 @@ export default {
     }
 
     // Static files from public
-    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt']);
+    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt', '/app.webmanifest']);
     const staticExtensions = ['.css'];
-    const isStaticFile = staticFiles.has(url.pathname) || staticExtensions.some((ext) => url.pathname.endsWith(ext));
+    const isStaticFile =
+      staticFiles.has(url.pathname) ||
+      staticExtensions.some((ext) => url.pathname.endsWith(ext)) ||
+      url.pathname.startsWith('/icons/');
 
     if (isStaticFile) {
       const publicDir = resolve('./public');

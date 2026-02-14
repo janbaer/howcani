@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HowCanI</title>
     <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#2d9498" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
@@ -13,6 +14,10 @@
         var t = localStorage.getItem("howcani_theme");
         if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches))
           document.documentElement.classList.add("dark");
+        var m = document.createElement("link");
+        m.rel = "manifest";
+        m.href = "/app.webmanifest";
+        document.head.appendChild(m);
       })();
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
