@@ -74,27 +74,27 @@
 
 ## 7. Testing & Validation
 
-- [ ] 7.1 Test bump-version.ts script for patch increment
-- [ ] 7.2 Test bump-version.ts script for minor increment
-- [ ] 7.3 Test bump-version.ts script error handling (invalid type)
-- [ ] 7.4 Build Docker image locally: docker build -t test-howcani .
-- [ ] 7.5 Test Docker image runs: docker run -p 3000:3000 -v ./test-data:/data test-howcani
-- [ ] 7.6 Verify application accessible at localhost:3000
-- [ ] 7.7 Verify database created in mounted volume
-- [ ] 7.8 Test full build-docker.sh script with patch bump (dry-run to local registry first)
-- [ ] 7.9 Test Docker Compose with default configuration: docker-compose up -d
-- [ ] 7.10 Test Docker Compose with custom port via environment variable
-- [ ] 7.11 Test Docker Compose with custom data directory
-- [ ] 7.12 Test Docker Compose with custom user/group ID
-- [ ] 7.13 Verify health check passes: docker-compose ps
-- [ ] 7.14 Test container restart persists data
-- [ ] 7.15 Clean up test artifacts and validate .gitignore excludes them
+- [x] 7.1 Test bump-version.ts script for patch increment
+- [x] 7.2 Test bump-version.ts script for minor increment
+- [x] 7.3 Test bump-version.ts script error handling (invalid type)
+- [x] 7.4 Build Docker image locally: docker build -t test-howcani .
+- [x] 7.5 Test Docker image runs: docker run -p 3000:3000 -v ./test-data:/data test-howcani
+- [x] 7.6 Verify application accessible at localhost:3000
+- [x] 7.7 Verify database created in mounted volume
+- [x] 7.8 Test full build-docker.sh script with patch bump (dry-run to local registry first)
+- [x] 7.9 Test Docker Compose with default configuration: docker-compose up -d
+- [x] 7.10 Test Docker Compose with custom port via environment variable
+- [x] 7.11 Test Docker Compose with custom data directory
+- [x] 7.12 Test Docker Compose with custom user/group ID
+- [x] 7.13 Verify health check passes: docker-compose ps
+- [x] 7.14 Test container restart persists data
+- [x] 7.15 Clean up test artifacts and validate .gitignore excludes them
 
 ## 8. Production Deployment
 
-- [ ] 8.1 Authenticate to Forgejo registry: docker login forgejo.home.janbaer.de
-- [ ] 8.2 Run full build and push: ./scripts/build-docker.sh patch
-- [ ] 8.3 Verify images in registry: check forgejo.home.janbaer.de/jan/howcani tags
-- [ ] 8.4 Deploy to production environment using docker-compose.yml
-- [ ] 8.5 Verify production deployment health and accessibility
-- [ ] 8.6 Document current production version for rollback reference
+- [x] 8.1 Authenticate to Forgejo registry: docker login forgejo.home.janbaer.de
+- [x] 8.2 Run full build and push: ./scripts/build-docker.sh patch
+- [x] 8.3 Verify images in registry: check forgejo.home.janbaer.de/jan/howcani tags
+- [x] 8.4 Deploy to production environment using docker-compose.yml
+- [x] 8.5 Verify production deployment health and accessibility
+- [x] 8.6 Document current production version for rollback reference
