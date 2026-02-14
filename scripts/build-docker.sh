@@ -113,16 +113,7 @@ fi
 echo "📌 Bun version: $BUN_VERSION"
 echo ""
 
-# Step 3: Build Bun binary
-echo "🔨 Building Bun binary..."
-if ! bun run build; then
-  echo -e "${RED}Error: Bun build failed${NC}"
-  exit 1
-fi
-echo -e "${GREEN}✓${NC} Bun binary built successfully"
-echo ""
-
-# Step 4: Build container image
+# Step 3: Build container image
 echo "🐳 Building container image (Bun ${BUN_VERSION})..."
 VERSION_TAG="${FULL_IMAGE}:${VERSION}"
 if ! $CONTAINER_CMD build --build-arg BUN_VERSION="${BUN_VERSION}" -t "${VERSION_TAG}" .; then
@@ -132,7 +123,7 @@ fi
 echo -e "${GREEN}✓${NC} Container image built: ${VERSION_TAG}"
 echo ""
 
-# Step 5: Tag as latest
+# Step 4: Tag as latest
 echo "🏷️  Tagging as latest..."
 LATEST_TAG="${FULL_IMAGE}:latest"
 if ! $CONTAINER_CMD tag "${VERSION_TAG}" "${LATEST_TAG}"; then
@@ -142,7 +133,7 @@ fi
 echo -e "${GREEN}✓${NC} Tagged as: ${LATEST_TAG}"
 echo ""
 
-# Step 6: Push to registry
+# Step 5: Push to registry
 echo "📤 Pushing images to registry..."
 if ! $CONTAINER_CMD push "${VERSION_TAG}"; then
   echo -e "${RED}Error: Failed to push version tag${NC}"
@@ -155,14 +146,6 @@ if ! $CONTAINER_CMD push "${LATEST_TAG}"; then
   exit 1
 fi
 echo -e "${GREEN}✓${NC} Pushed: ${LATEST_TAG}"
-echo ""
-
-# Step 7: Cleanup
-echo "🧹 Cleaning up build artifacts..."
-if [ -d "dist" ]; then
-  rm -rf dist
-  echo -e "${GREEN}✓${NC} Removed dist/ directory"
-fi
 echo ""
 
 # Success message

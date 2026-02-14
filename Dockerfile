@@ -18,7 +18,11 @@ RUN bun install --frozen-lockfile
 COPY src ./src
 COPY public ./public
 COPY tsconfig.json* ./
+COPY bunfig.toml ./
 COPY build-client.ts ./
+
+# Run tests before building
+RUN bun test
 
 # Build client-side code
 RUN bun run build

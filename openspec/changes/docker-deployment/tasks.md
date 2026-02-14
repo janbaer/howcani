@@ -4,7 +4,6 @@
 - [x] 1.2 Implement version parsing from package.json using Bun.file API
 - [x] 1.3 Implement semantic version increment logic (patch/minor/major)
 - [x] 1.4 Implement package.json write with updated version
-- [x] 1.5 Implement git tag creation (format: v{version})
 - [x] 1.6 Add error handling for invalid bump types and git failures
 - [x] 1.7 Test script with all three bump types (patch, minor, major)
 

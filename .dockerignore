@@ -20,15 +20,6 @@ data/
 .env.*
 !.env.example
 
-# Test files
-**/*.test.ts
-**/*.test.js
-**/*.spec.ts
-**/*.spec.js
-test/
-tests/
-__tests__/
-
 # Documentation
 *.md
 !README.md
