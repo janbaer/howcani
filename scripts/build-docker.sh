@@ -97,7 +97,7 @@ fi
 echo ""
 
 # Step 2: Extract version from package.json
-VERSION=$(node -p "require('./package.json').version")
+VERSION=$(bun -p "require('./package.json').version")
 if [ -z "$VERSION" ]; then
   echo -e "${RED}Error: Could not extract version from package.json${NC}"
   exit 1
