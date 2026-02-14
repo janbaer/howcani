@@ -82,6 +82,10 @@ mock.module('./tag.service', () => ({
   tagService: {},
 }));
 
+mock.module('../db/database', () => ({
+  runTransaction: (fn: () => unknown) => fn(),
+}));
+
 import { ItemService } from './item.service';
 import type { TagService } from './tag.service';
 

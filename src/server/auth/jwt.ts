@@ -1,8 +1,11 @@
 import type { JWTPayload } from 'jose';
 import { jwtVerify, SignJWT } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
-const secret = new TextEncoder().encode(JWT_SECRET);
+const HOWCANI_JWT_SECRET = process.env.HOWCANI_JWT_SECRET;
+if (!HOWCANI_JWT_SECRET) {
+  throw new Error('HOWCANI_JWT_SECRET environment variable is required');
+}
+const secret = new TextEncoder().encode(HOWCANI_JWT_SECRET);
 
 const TOKEN_EXPIRATION = '7d';
 

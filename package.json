@@ -1,11 +1,12 @@
 {
   "name": "howcani",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.0.7",
   "type": "module",
   "scripts": {
     "dev": "bun --hot run src/server/index.ts",
-    "build": "NODE_ENV=production bun build src/server/index.ts --target=bun --outdir=dist",
+    "build": "NODE_ENV=production bun run build-client.ts",
+    "build:docker": "./scripts/build-docker.sh",
     "start": "NODE_ENV=production bun run src/server/index.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",

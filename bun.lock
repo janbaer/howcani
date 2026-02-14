@@ -5,7 +5,6 @@
     "": {
       "name": "howcani",
       "dependencies": {
-        "@svelte-parts/editor": "^0.0.26",
         "@types/dompurify": "3.2.0",
         "codemirror": "^5.65.18",
         "dompurify": "3.3.1",
@@ -67,8 +66,6 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
     "@sinclair/typebox": ["@sinclair/typebox@0.34.45", "", {}, "sha512-qJcFVfCa5jxBFSuv7S5WYbA8XdeCPmhnaVVfX/2Y6L8WYg8sk3XY2+6W0zH+3mq1Cz+YC7Ki66HfqX6IHAwnkg=="],
-
-    "@svelte-parts/editor": ["@svelte-parts/editor@0.0.26", "", { "dependencies": { "codemirror": "^5.58.2" }, "peerDependencies": { "svelte": "^3.29.7" } }, "sha512-5VyzZG9RrkawjVAG5QHCqRcFY1Tn5am1W+whRH+EYVjPJTqJho5rYaTE0+f3cIpcNAkfHMd3lFyIWccoW2gBAQ=="],
 
     "@sveltejs/acorn-typescript": ["@sveltejs/acorn-typescript@1.0.8", "", { "peerDependencies": { "acorn": "^8.9.0" } }, "sha512-esgN+54+q0NjB0Y/4BomT9samII7jGwNy/2a3wNZbT2A2RpmXsXwUt24LvLhx6jUq2gVk4cWEvcRO6MFQbOfNA=="],
 
