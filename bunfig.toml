@@ -6,5 +6,8 @@ exact = true
 # Test configuration
 coverage = true
 
+[define]
+"process.env.HOWCANI_JWT_SECRET" = "'dev-jwt-secret'"
+
 [serve.static]
 plugins = ["bun-plugin-svelte"]
