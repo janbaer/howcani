@@ -40,7 +40,11 @@ export default {
     }
 
     // Static files from public
-    if (url.pathname === '/favicon.png' || url.pathname === '/robots.txt' || url.pathname.endsWith('.css')) {
+    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt']);
+    const staticExtensions = ['.css'];
+    const isStaticFile = staticFiles.has(url.pathname) || staticExtensions.some((ext) => url.pathname.endsWith(ext));
+
+    if (isStaticFile) {
       const publicDir = resolve('./public');
       const requestedPath = resolve(publicDir, url.pathname.slice(1));
 
@@ -51,15 +55,7 @@ export default {
 
       const file = Bun.file(requestedPath);
       if (await file.exists()) {
-        return new Response(file, {
-          headers: {
-            'Content-Type': url.pathname.endsWith('.css')
-              ? 'text/css'
-              : url.pathname.endsWith('.png')
-                ? 'image/png'
-                : 'text/plain',
-          },
-        });
+        return new Response(file);
       }
     }
 
