@@ -98,16 +98,16 @@ function clearSearch() {
     <!-- Right actions -->
     <nav class="flex items-center gap-2">
       {#if authState.isAuthenticated && authState.user}
-        <a
-          href="/{authState.user.username}/items"
-          use:link
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          title="My Questions"
+        <button
+          onclick={openCreateModal}
+          class="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 font-mono text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+          title="Create a new question"
         >
-          <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-        </a>
+          New Question
+        </button>
       {/if}
 
       <!-- Dark mode toggle -->
@@ -127,31 +127,26 @@ function clearSearch() {
         {/if}
       </button>
 
+      <!-- User icon (always visible, rightmost) -->
       {#if authState.isAuthenticated && authState.user}
         <button
-          onclick={openCreateModal}
-          class="ml-1 flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 font-mono text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
-          title="Create a new question"
-        >
-          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          New Question
-        </button>
-        <button
           onclick={logout}
-          class="flex h-8 items-center rounded-lg px-2.5 font-mono text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          title={authState.user.username}
         >
-          Logout
+          <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
+          </svg>
         </button>
       {:else if !authState.isLoading}
-        <a
-          href="/login"
-          use:link
-          class="flex h-8 items-center rounded-lg bg-primary px-4 font-mono text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+        <button
+          onclick={() => navigate('/login')}
+          class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
-          Login
-        </a>
+          <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+        </button>
       {/if}
     </nav>
   </div>
@@ -200,23 +195,24 @@ function clearSearch() {
         {/if}
       </button>
       {#if authState.isAuthenticated && authState.user}
-        <a
-          href="/{authState.user.username}/items"
-          use:link
+        <button
+          onclick={logout}
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground"
+          title={authState.user.username}
+        >
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      {:else if !authState.isLoading}
+        <button
+          onclick={() => navigate('/login')}
           class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground"
         >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
-        </a>
-      {:else if !authState.isLoading}
-        <a
-          href="/login"
-          use:link
-          class="flex h-8 items-center rounded-lg bg-primary-foreground/20 px-3 font-mono text-xs font-medium text-primary-foreground"
-        >
-          Login
-        </a>
+        </button>
       {/if}
     </div>
   </div>
