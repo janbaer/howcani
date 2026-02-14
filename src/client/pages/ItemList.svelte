@@ -4,11 +4,13 @@ import ItemFormModal from '../components/ItemFormModal.svelte';
 import ActiveFilters from '../components/itemlist/ActiveFilters.svelte';
 import ItemCard from '../components/itemlist/ItemCard.svelte';
 import MobileTagChips from '../components/itemlist/MobileTagChips.svelte';
+import MobileTagOverlay from '../components/itemlist/MobileTagOverlay.svelte';
 import TagSidebar from '../components/TagSidebar.svelte';
 import { getAuthState } from '../lib/auth.svelte';
 import { getCreateModalState, openCreateModal } from '../lib/create-modal.svelte';
 import type { Item, ItemCreateData } from '../lib/items.svelte';
 import { getCurrentQuery } from '../lib/router.svelte';
+import { setTagOverlayAvailable } from '../lib/tag-overlay.svelte';
 import { ItemListStore } from '../stores/item-list.store.svelte';
 
 interface Props {
@@ -26,6 +28,11 @@ const searchQuery = $derived(query.search || '');
 const isOwner = $derived(authState.isAuthenticated && authState.user?.username === username);
 
 let sentinelElement = $state<HTMLDivElement | null>(null);
+
+$effect(() => {
+  setTagOverlayAvailable(store.tags.length > 0);
+  return () => setTagOverlayAvailable(false);
+});
 
 function toggleTag(tagName: string) {
   store.toggleTag(tagName, username, searchQuery);
@@ -79,6 +86,8 @@ $effect(() => {
   return () => observer.disconnect();
 });
 </script>
+
+<MobileTagOverlay tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
 
 <div class="flex gap-6">
   <!-- Desktop tag sidebar -->

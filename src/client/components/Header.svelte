@@ -2,9 +2,11 @@
 import { getAuthState, logout } from '../lib/auth.svelte';
 import { openCreateModal } from '../lib/create-modal.svelte';
 import { getCurrentPath, getCurrentQuery, link, navigate } from '../lib/router.svelte';
+import { getTagOverlayState, toggleTagOverlay } from '../lib/tag-overlay.svelte';
 import { isDark, toggleTheme } from '../lib/theme.svelte';
 
 const authState = getAuthState();
+const overlayState = getTagOverlayState();
 
 let searchQuery = $state('');
 let searchTimeout = $state<ReturnType<typeof setTimeout> | null>(null);
@@ -158,15 +160,30 @@ function clearSearch() {
 <!-- Mobile header -->
 <header class="sticky top-0 z-50 md:hidden bg-primary">
   <div class="flex h-14 items-center justify-between px-4">
-    <a href="/" use:link>
-      <svg class="h-7" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
+    <div class="flex items-center gap-3">
+      <!-- Hamburger button (only shown on items pages with tags) -->
+      {#if isItemsPage && overlayState.isAvailable}
+        <button
+          onclick={toggleTagOverlay}
+          class="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-colors lg:hidden"
+          aria-label="Toggle tag menu"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      {/if}
+
+      <a href="/" use:link>
+        <svg class="h-7" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
         <rect fill="hsl(var(--primary-foreground))" x="10" y="10" width="100" height="100" rx="25" ry="25"/>
         <rect fill="hsl(var(--primary))" x="38" y="35" width="14" height="50"/>
         <path fill="hsl(var(--primary))" d="M 82 35 L 82 85 L 68 85 L 68 62 C 68 62 60 68 52 64 L 52 52 C 60 55 68 45 68 35 Z" />
         <text x="130" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="hsl(var(--primary-foreground))">How</text>
         <text x="285" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="hsl(var(--primary-foreground))">CanI</text>
       </svg>
-    </a>
+      </a>
+    </div>
     <div class="flex items-center gap-2">
       <button
         onclick={toggleTheme}
