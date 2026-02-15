@@ -8,27 +8,9 @@ export interface UserSession {
   tagService: TagService;
 }
 
-let currentSession: UserSession | null = null;
-
-export function initSession(userId: string, username: string): UserSession {
+export function createSession(userId: string, username: string): UserSession {
   const tagService = new TagService(userId);
   const itemService = new ItemService(userId, tagService);
 
-  currentSession = { userId, username, itemService, tagService };
-  return currentSession;
-}
-
-export function getSession(): UserSession {
-  if (!currentSession) {
-    throw new Error('No active session');
-  }
-  return currentSession;
-}
-
-export function hasSession(): boolean {
-  return currentSession !== null;
-}
-
-export function clearSession(): void {
-  currentSession = null;
+  return { userId, username, itemService, tagService };
 }

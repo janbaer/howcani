@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { describe, expect, mock, test } from 'bun:test';
 
 const mockTagRepositoryForSession = {
   findAllByUserId: mock(() => []),
@@ -35,16 +35,12 @@ mock.module('./user.service', () => ({
   userService: mockUserServiceForSession,
 }));
 
-import { clearSession, getSession, hasSession, initSession } from './session';
+import { createSession } from './session';
 
 describe('Session', () => {
-  beforeEach(() => {
-    clearSession();
-  });
-
-  describe('initSession', () => {
+  describe('createSession', () => {
     test('creates session with userId and username', () => {
-      const session = initSession('user-123', 'john');
+      const session = createSession('user-123', 'john');
 
       expect(session.userId).toBe('user-123');
       expect(session.username).toBe('john');
@@ -52,54 +48,14 @@ describe('Session', () => {
       expect(session.itemService).toBeDefined();
     });
 
-    test('replaces existing session', () => {
-      initSession('user-1', 'alice');
-      initSession('user-2', 'bob');
+    test('creates independent sessions', () => {
+      const session1 = createSession('user-1', 'alice');
+      const session2 = createSession('user-2', 'bob');
 
-      const session = getSession();
-      expect(session.userId).toBe('user-2');
-      expect(session.username).toBe('bob');
-    });
-  });
-
-  describe('getSession', () => {
-    test('returns active session', () => {
-      initSession('user-123', 'john');
-
-      const session = getSession();
-
-      expect(session.userId).toBe('user-123');
-      expect(session.username).toBe('john');
-    });
-
-    test('throws when no session exists', () => {
-      expect(() => getSession()).toThrow('No active session');
-    });
-  });
-
-  describe('hasSession', () => {
-    test('returns false when no session', () => {
-      expect(hasSession()).toBe(false);
-    });
-
-    test('returns true when session exists', () => {
-      initSession('user-123', 'john');
-
-      expect(hasSession()).toBe(true);
-    });
-  });
-
-  describe('clearSession', () => {
-    test('clears existing session', () => {
-      initSession('user-123', 'john');
-
-      clearSession();
-
-      expect(hasSession()).toBe(false);
-    });
-
-    test('is safe to call when no session', () => {
-      expect(() => clearSession()).not.toThrow();
+      expect(session1.userId).toBe('user-1');
+      expect(session1.username).toBe('alice');
+      expect(session2.userId).toBe('user-2');
+      expect(session2.username).toBe('bob');
     });
   });
 });

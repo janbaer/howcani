@@ -2,7 +2,6 @@ import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { authPlugin } from '../middleware';
 import { itemService } from '../services/item.service';
-import { getSession } from '../services/session';
 
 export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   .use(authPlugin)
@@ -72,8 +71,8 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   )
   .post(
     '/',
-    ({ params, body, user, set }) => {
-      if (!user) {
+    ({ params, body, user, session, set }) => {
+      if (!user || !session) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
           error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
@@ -90,8 +89,7 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
         };
       }
 
-      const { itemService: sessionItemService } = getSession();
-      const result = sessionItemService.createItem({
+      const result = session.itemService.createItem({
         question: body.question ?? '',
         answer: body.answer,
         tags: body.tags,
@@ -120,8 +118,8 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   )
   .put(
     '/:id',
-    ({ params, body, user, set }) => {
-      if (!user) {
+    ({ params, body, user, session, set }) => {
+      if (!user || !session) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
           error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
@@ -138,8 +136,7 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
         };
       }
 
-      const { itemService: sessionItemService } = getSession();
-      const result = sessionItemService.updateItem(params.id, {
+      const result = session.itemService.updateItem(params.id, {
         question: body.question,
         answer: body.answer,
         tags: body.tags,
@@ -172,8 +169,8 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   )
   .delete(
     '/:id',
-    ({ params, user, set }) => {
-      if (!user) {
+    ({ params, user, session, set }) => {
+      if (!user || !session) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
           error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
@@ -190,8 +187,7 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
         };
       }
 
-      const { itemService: sessionItemService } = getSession();
-      const result = sessionItemService.deleteItem(params.id);
+      const result = session.itemService.deleteItem(params.id);
 
       if (!result.success) {
         set.status = StatusCodes.NOT_FOUND;

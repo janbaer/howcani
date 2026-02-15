@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { extractBearerToken, type TokenPayload, verifyToken } from '../auth';
-import { initSession } from '../services/session';
+import { type UserSession, createSession } from '../services/session';
 
 export function assertAuthenticated(user: TokenPayload | null): asserts user is TokenPayload {
   if (!user) {
@@ -14,17 +14,17 @@ export const authPlugin = new Elysia({ name: 'auth' })
     const token = extractBearerToken(headers.authorization);
 
     if (!token) {
-      return { user: null as TokenPayload | null };
+      return { user: null as TokenPayload | null, session: null as UserSession | null };
     }
 
     const payload = await verifyToken(token);
 
-    // Initialize session for authenticated requests
-    if (payload) {
-      initSession(payload.userId, payload.username);
+    if (!payload) {
+      return { user: null as TokenPayload | null, session: null as UserSession | null };
     }
 
-    return { user: payload };
+    const session = createSession(payload.userId, payload.username);
+    return { user: payload, session };
   })
   .macro({
     auth: {

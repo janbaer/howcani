@@ -144,19 +144,9 @@ mock.module('../services/tag.service', () => ({
 }));
 
 mock.module('../services/session', () => ({
-  getSession: mock(() => ({
-    tagService: mockTagService,
-    itemService: {},
-    userId: currentSessionUserId,
-    username: '',
-  })),
-  initSession: mock((userId: string, username: string) => {
+  createSession: mock((userId: string, username: string) => {
     currentSessionUserId = userId;
     return { userId, username, tagService: mockTagService, itemService: {} };
-  }),
-  hasSession: mock(() => currentSessionUserId !== null),
-  clearSession: mock(() => {
-    currentSessionUserId = null;
   }),
 }));
 

@@ -1,7 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { authPlugin } from '../middleware';
-import { getSession } from '../services/session';
 import { tagService } from '../services/tag.service';
 
 export const tagRoutes = new Elysia({ prefix: '/:username/tags' })
@@ -48,8 +47,8 @@ export const tagRoutes = new Elysia({ prefix: '/:username/tags' })
   )
   .put(
     '/:id',
-    ({ params, body, user, set }) => {
-      if (!user) {
+    ({ params, body, user, session, set }) => {
+      if (!user || !session) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
           error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
@@ -66,8 +65,7 @@ export const tagRoutes = new Elysia({ prefix: '/:username/tags' })
         };
       }
 
-      const { tagService: sessionTagService } = getSession();
-      const result = sessionTagService.updateTag(params.id, {
+      const result = session.tagService.updateTag(params.id, {
         name: body.name,
         color: body.color,
       });
@@ -104,8 +102,8 @@ export const tagRoutes = new Elysia({ prefix: '/:username/tags' })
   )
   .delete(
     '/:id',
-    ({ params, user, set }) => {
-      if (!user) {
+    ({ params, user, session, set }) => {
+      if (!user || !session) {
         set.status = StatusCodes.UNAUTHORIZED;
         return {
           error: { message: 'Authentication required', code: 'UNAUTHORIZED' },
@@ -122,8 +120,7 @@ export const tagRoutes = new Elysia({ prefix: '/:username/tags' })
         };
       }
 
-      const { tagService: sessionTagService } = getSession();
-      const result = sessionTagService.deleteTag(params.id);
+      const result = session.tagService.deleteTag(params.id);
 
       if (!result.success) {
         if (result.error.code === 'NOT_FOUND') {
