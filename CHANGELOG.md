@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.21 - 2026-02-15
+---
+
+- Replacing curl with bun for Docker healthcheck since slim image lacks curl
+
 ## 3.0.20 - 2026-02-15
 ---
 
