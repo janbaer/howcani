@@ -13,6 +13,7 @@ const result = await Bun.build({
   target: 'bun',
   minify: !isDev,
   sourcemap: isDev ? 'external' : 'none',
+  publicPath: '/', // Use absolute paths for assets to fix nested route issues
   plugins: [
     SveltePlugin({
       forceSide: 'client',

@@ -39,13 +39,16 @@ export default {
       return api.fetch(req);
     }
 
-    // Static files from public
+    // Static files from public directory
     const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt', '/app.webmanifest']);
     const staticExtensions = ['.css'];
     const isStaticFile =
       staticFiles.has(url.pathname) ||
       staticExtensions.some((ext) => url.pathname.endsWith(ext)) ||
       url.pathname.startsWith('/icons/');
+
+    // In production, also serve bundled chunks from dist/
+    const isChunkFile = !isDev && url.pathname.match(/^\/chunk-[a-z0-9]+\.(js|css)$/i);
 
     if (isStaticFile) {
       const publicDir = resolve('./public');
@@ -62,10 +65,24 @@ export default {
       }
     }
 
-    // SPA fallback
-    return new Response(Bun.file('src/index.html').stream(), {
-      headers: { 'Content-Type': 'text/html' },
-    });
+    // Serve bundled chunks in production
+    if (isChunkFile) {
+      const distDir = resolve('./dist');
+      const requestedPath = resolve(distDir, url.pathname.slice(1));
+
+      // Prevent directory traversal attacks
+      if (!requestedPath.startsWith(distDir)) {
+        return new Response('Forbidden', { status: 403 });
+      }
+
+      const file = Bun.file(requestedPath);
+      if (await file.exists()) {
+        return new Response(file);
+      }
+    }
+
+    // Let Bun's routes map handle SPA routes
+    // Returning undefined delegates to default routing behavior
   },
 
   development: isDev,

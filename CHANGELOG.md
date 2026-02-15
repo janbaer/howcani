@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.22 - 2026-02-15
+---
+
+- Fixed SPA routing issue where page refresh on nested routes (e.g., `/username/items/123`) resulted in white page due to JavaScript failing to load
+- Removed broken SPA fallback that served raw HTML instead of HTMLBundle, now delegating to Bun's routes map for proper module serving
+- Added production chunk file serving from dist directory to handle bundled assets
+- Added `publicPath: '/'` to build configuration to generate absolute paths instead of relative paths for assets, preventing path resolution issues on nested routes
+
 ## 3.0.21 - 2026-02-15
 ---
 
