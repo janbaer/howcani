@@ -1,8 +1,55 @@
-/node_modules/
-/dist/
-/.vscode/
+# Dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+.svelte-kit/
+.output/
+.vercel/
+.netlify/
+.wrangler/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Database
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-node_modules
-/build/
-/deploy/
-coverage
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# Cache
+.cache/
+.direnv/
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Lock files (we use bun.lock)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
