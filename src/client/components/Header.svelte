@@ -97,7 +97,7 @@ function clearSearch() {
 
     <!-- Right actions -->
     <nav class="flex items-center gap-2">
-      {#if authState.isAuthenticated && authState.user}
+      {#if authState.isAuthenticated && authState.user && isItemsPage}
         <button
           onclick={openCreateModal}
           class="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 font-mono text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
