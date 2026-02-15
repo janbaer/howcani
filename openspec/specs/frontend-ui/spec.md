@@ -216,7 +216,10 @@ The UI MUST work on various screen sizes.
 **Then** the layout should:
 - Show item list in center (flexible width)
 - Show search bar in header area
-- Multi-column layout for optimal reading
+- CSS Grid with `repeat(auto-fill, minmax(32rem, 1fr))` for responsive columns
+- Progressive enhancement to `display: grid-lanes` masonry when browser supports it
+- Variable-height cards that size to content (no fixed min-height)
+- Fallback to `grid-template-rows: masonry` for Firefox Nightly
 
 #### Scenario: Mobile layout
 

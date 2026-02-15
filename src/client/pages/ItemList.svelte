@@ -230,7 +230,30 @@ $effect(() => {
 
 <style>
   .items-masonry {
-    columns: 32rem;
-    column-gap: 1rem;
+    /* Base fallback: standard grid */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
+    gap: 1rem;
+  }
+
+  /* Chromium 140-143: display: masonry (early implementation) */
+  @supports (display: masonry) {
+    .items-masonry {
+      display: masonry;
+    }
+  }
+
+  /* Chromium 144+, Safari TP 234+: grid-lanes (CSSWG standard) */
+  @supports (display: grid-lanes) {
+    .items-masonry {
+      display: grid-lanes;
+    }
+  }
+
+  /* Firefox Nightly: grid-based masonry */
+  @supports (grid-template-rows: masonry) {
+    .items-masonry {
+      grid-template-rows: masonry;
+    }
   }
 </style>

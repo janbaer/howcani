@@ -89,8 +89,6 @@ const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: 
 <style>
   .item-card {
     break-inside: avoid;
-    margin-bottom: 1rem;
-    min-height: 15rem;
   }
 
   .answer-preview {
