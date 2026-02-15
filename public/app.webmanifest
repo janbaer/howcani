@@ -3,7 +3,7 @@
   "short_name": "HowCanI",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#2d9498",
+  "theme_color": "#3f8375",
   "background_color": "#f0f5f4",
   "icons": [
     {

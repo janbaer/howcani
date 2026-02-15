@@ -232,7 +232,7 @@ $effect(() => {
   .items-masonry {
     /* Base fallback: standard grid */
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(32rem, 100%), 1fr));
     gap: 1rem;
   }
 
