@@ -583,3 +583,75 @@ docker-compose logs
 # Restart container
 docker-compose restart
 ```
+
+## MCP Server
+
+HowCanI exposes an MCP (Model Context Protocol) endpoint at `/mcp` that allows AI clients like Claude Code or Claude Desktop to search, browse, and create knowledge base items.
+
+### Available Tools
+
+| Tool | Auth | Description |
+|------|------|-------------|
+| `search_items` | No | Full-text search with optional tag filtering |
+| `list_items` | No | Paginated list of items (newest first) |
+| `get_item` | No | Get a single item by ID |
+| `list_tags` | No | List all tags with item counts |
+| `create_item` | Bearer | Create a new item (auto-creates tags) |
+
+### Generating an API Token
+
+The `create_item` tool requires a JWT token. Generate a long-lived token (up to 365 days) using the API:
+
+```bash
+curl -X POST http://localhost:3000/api/auth/api-token \
+  -H "Content-Type: application/json" \
+  -d '{"username": "jan", "password": "your-password", "days": 90}'
+```
+
+### Authentication
+
+The `create_item` tool requires a Bearer token in the `Authorization` header. Read-only tools (`search_items`, `list_items`, `get_item`, `list_tags`) work without authentication.
+
+Set the token as an environment variable:
+
+```bash
+export HOWCANI_TOKEN="<token-from-api-token-endpoint>"
+```
+
+### Configuring Claude Code
+
+Add to `.mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "howcani": {
+      "type": "http",
+      "url": "http://localhost:3000/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HOWCANI_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+### Configuring Claude Desktop
+
+Add the following to your Claude Desktop configuration file (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "howcani": {
+      "type": "http",
+      "url": "http://localhost:3000/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HOWCANI_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+Replace `localhost:3000` with your server address if running remotely.

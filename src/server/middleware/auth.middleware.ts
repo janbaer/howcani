@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { extractBearerToken, type TokenPayload, verifyToken } from '../auth';
-import { type UserSession, createSession } from '../services/session';
+import { createSession, type UserSession } from '../services/session';
 
 export function assertAuthenticated(user: TokenPayload | null): asserts user is TokenPayload {
   if (!user) {

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "howcani-mcp": {
+      "type": "http",
+      "url": "http://localhost:3000/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HOWCANI_TOKEN}"
+      },
+      "env": {
+        "HOWCANI_TOKEN": "${HOWCANI_TOKEN}"
+      }
+    }
+  }
+}

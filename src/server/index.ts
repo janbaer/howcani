@@ -2,21 +2,29 @@ import { resolve } from 'node:path';
 import { Elysia } from 'elysia';
 import index from '../index.html';
 import { runMigrations } from './db';
+import { handleMcpRequest } from './mcp';
 import { authRoutes, itemRoutes, tagRoutes, userRoutes } from './routes';
 
 runMigrations();
 
-const api = new Elysia().group('/api', (app) =>
-  app
-    .use(authRoutes)
-    .use(userRoutes)
-    .use(itemRoutes)
-    .use(tagRoutes)
-    .get('/health', () => ({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    })),
-);
+const api = new Elysia()
+  .onError(({ code, set }) => {
+    if (code === 'VALIDATION') {
+      set.status = 422;
+      return { error: { code: 'VALIDATION_ERROR', message: 'Request validation failed' } };
+    }
+  })
+  .group('/api', (app) =>
+    app
+      .use(authRoutes)
+      .use(userRoutes)
+      .use(itemRoutes)
+      .use(tagRoutes)
+      .get('/health', () => ({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+      })),
+  );
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -33,6 +41,11 @@ export default {
 
   async fetch(req: Request) {
     const url = new URL(req.url);
+
+    // MCP endpoint
+    if (url.pathname === '/mcp') {
+      return handleMcpRequest(req);
+    }
 
     // API routes → Elysia
     if (url.pathname.startsWith('/api')) {

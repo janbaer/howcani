@@ -23,6 +23,14 @@ export async function createToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): P
     .sign(secret);
 }
 
+export async function createApiToken(payload: Omit<TokenPayload, 'iat' | 'exp'>, days: number): Promise<string> {
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime(`${days}d`)
+    .setIssuedAt()
+    .sign(secret);
+}
+
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
     const verified = await jwtVerify(token, secret);

@@ -11,7 +11,7 @@ export function sanitizeFtsQuery(input: string): string {
     .trim();
   if (escaped === '') return '""';
   const terms = escaped.split(' ').filter(Boolean);
-  return terms.map((term) => `"${term}"*`).join(' ');
+  return terms.map((term) => `"${term}"*`).join(' OR ');
 }
 
 export interface CreateItemDTO {

@@ -1,0 +1,127 @@
+import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { extractBearerToken, verifyToken } from '../auth/jwt.ts';
+import { ItemRepository } from '../repositories/item.repository.ts';
+import { TagRepository } from '../repositories/tag.repository.ts';
+import { UserRepository } from '../repositories/user.repository.ts';
+
+const userRepo = new UserRepository();
+const itemRepo = new ItemRepository();
+const tagRepo = new TagRepository();
+
+function success(data: unknown): CallToolResult {
+  return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+}
+
+function error(message: string): CallToolResult {
+  return { content: [{ type: 'text', text: message }], isError: true };
+}
+
+function resolveUser(username: string): { userId: string } | CallToolResult {
+  const user = userRepo.findByUsername(username);
+  if (!user) return error(`User "${username}" not found`);
+  return { userId: user.id };
+}
+
+function attachTags(items: { id: string }[]) {
+  return items.map((item) => ({
+    ...item,
+    tags: tagRepo.getTagsForItem(item.id),
+  }));
+}
+
+export function searchItems(args: { username: string; query?: string; tags?: string; limit?: number }): CallToolResult {
+  const resolved = resolveUser(args.username);
+  if ('isError' in resolved) return resolved;
+
+  const tagList = args.tags
+    ? args.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : undefined;
+
+  const result = itemRepo.searchItems(resolved.userId, {
+    search: args.query,
+    tags: tagList,
+    limit: Math.min(args.limit ?? 20, 100),
+  });
+
+  return success({
+    items: attachTags(result.items),
+    total: result.total,
+  });
+}
+
+export function listItems(args: { username: string; limit?: number; offset?: number }): CallToolResult {
+  const resolved = resolveUser(args.username);
+  if ('isError' in resolved) return resolved;
+
+  const result = itemRepo.findByUserId(resolved.userId, {
+    limit: Math.min(args.limit ?? 20, 100),
+    offset: args.offset ?? 0,
+  });
+
+  return success({
+    items: attachTags(result.items),
+    total: result.total,
+  });
+}
+
+export function getItem(args: { username: string; item_id: string }): CallToolResult {
+  const resolved = resolveUser(args.username);
+  if ('isError' in resolved) return resolved;
+
+  const item = itemRepo.findByIdAndUserId(args.item_id, resolved.userId);
+  if (!item) return error(`Item "${args.item_id}" not found`);
+
+  return success({
+    ...item,
+    tags: tagRepo.getTagsForItem(item.id),
+  });
+}
+
+export function listTags(args: { username: string }): CallToolResult {
+  const resolved = resolveUser(args.username);
+  if ('isError' in resolved) return resolved;
+
+  const tags = tagRepo.findByUserId(resolved.userId);
+  return success({ tags });
+}
+
+export async function createItem(args: {
+  authHeader?: string;
+  question: string;
+  answer?: string;
+  tags?: string[];
+}): Promise<CallToolResult> {
+  const token = extractBearerToken(args.authHeader);
+  if (!token) return error('Authentication failed: missing or invalid Authorization header');
+
+  const payload = await verifyToken(token);
+  if (!payload) return error('Authentication failed: invalid or expired token');
+
+  const item = itemRepo.create({
+    userId: payload.userId,
+    question: args.question,
+    answer: args.answer,
+  });
+
+  if (args.tags && args.tags.length > 0) {
+    const tagIds: string[] = [];
+    for (const tagName of args.tags) {
+      const existing = tagRepo.findByNameAndUserId(tagName, payload.userId);
+      if (existing) {
+        tagIds.push(existing.id);
+      } else {
+        const created = tagRepo.create({ userId: payload.userId, name: tagName });
+        tagIds.push(created.id);
+      }
+    }
+    tagRepo.setItemTags(item.id, tagIds);
+  }
+
+  return success({
+    ...item,
+    tags: tagRepo.getTagsForItem(item.id),
+  });
+}
