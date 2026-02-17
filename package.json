@@ -1,7 +1,7 @@
 {
   "name": "howcani",
   "private": true,
-  "version": "3.0.22",
+  "version": "3.0.24",
   "type": "module",
   "scripts": {
     "dev": "bun --hot run src/server/index.ts",
@@ -28,6 +28,7 @@
     "typescript-eslint": "8.52.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.26.0",
     "@types/dompurify": "3.2.0",
     "codemirror": "^5.65.18",
     "dompurify": "3.3.1",

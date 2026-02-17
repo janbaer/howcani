@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.23 - 2026-02-17
+---
+
+- Added MCP server with Bearer token header-based authentication for knowledge base access
+- Added Claude Code slash commands (`/howcani-create`, `/howcani-search`) for quick knowledge base interaction
+- Added global error handler to prevent sensitive data exposure in validation errors
+- Fixed `/api-token` endpoint to accept string input for the `days` parameter
+- Fixed FTS5 full-text search to use OR logic instead of AND for broader keyword matching
+- Updated README with complete MCP authentication setup and environment variable configuration
+
 ## 3.0.22 - 2026-02-15
 ---
 
