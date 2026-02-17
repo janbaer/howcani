@@ -60,65 +60,44 @@ The application MUST provide client-side routing for different views.
 The item list MUST display FAQ items with previews and interaction options.
 
 #### Scenario: Display item in list
+- **WHEN** rendering an item in the list
+- **THEN** the card SHALL show the question as a clickable title, full answer preview, ALL tags without truncation, and timestamps
 
-**Given** item exists with:
-- Question: "How do I deploy with Bun?"
-- Answer: "Long markdown answer..."
-- Tags: ["bun", "deployment"]
+#### Scenario: Show all tags without truncation
+- **WHEN** an item has any number of tags
+- **THEN** ALL tags SHALL be displayed on the card with no `+N` overflow indicator
+- **AND** tags SHALL wrap to additional lines as needed
 
-**When** rendering in list
+#### Scenario: Show timestamps on desktop and tablet
+- **WHEN** viewport width is 768px or greater (md breakpoint)
+- **THEN** the card SHALL display both `created_at` and `updated_at` timestamps without seconds
+- **AND** `updated_at` SHALL only be shown if it differs from `created_at`
 
-**Then** the component should:
-- Show question as clickable title (links to detail page)
-- Show truncated answer preview (first 200 chars, plain text)
-- Show tag badges with colors
-- Show edit/delete buttons (if owner)
+#### Scenario: Show timestamp on mobile
+- **WHEN** viewport width is less than 768px
+- **THEN** the card SHALL display only `created_at` without seconds
+- **AND** `updated_at` SHALL NOT be shown on mobile
+
+#### Scenario: Item never edited
+- **WHEN** an item's `updated_at` equals its `created_at`
+- **THEN** only `created_at` SHALL be shown, even on desktop/tablet
+- **AND** no "Updated" timestamp or label SHALL appear
 
 #### Scenario: Truncate long answers
-
-**Given** item has answer longer than 200 characters
-
-**When** rendering in list
-
-**Then** the component should:
-- Show first 200 characters
-- Add "..." ellipsis
-- Preserve word boundaries (don't cut mid-word)
-- Don't render markdown in preview (show as plain text)
+- **WHEN** item has answer longer than 200 characters
+- **THEN** the component should show first 200 characters with "..." ellipsis, preserving word boundaries
 
 #### Scenario: Empty state when no items
-
-**Given** user has zero items
-
-**When** viewing items list
-
-**Then** the component should:
-- Show empty state message: "No items yet"
-- Show "Add your first item" button (if owner)
-- Not show empty list
+- **WHEN** user has zero items
+- **THEN** the component should show "No items yet" and an "Add your first item" button (if owner)
 
 #### Scenario: Loading state during fetch
-
-**Given** items are being loaded
-
-**When** API request is in progress
-
-**Then** the component should:
-- Show loading indicator/skeleton
-- Disable interactions
-- Show skeleton for 3-5 items
+- **WHEN** API request is in progress
+- **THEN** the component should show a loading indicator or skeleton
 
 #### Scenario: Pagination
-
-**Given** user has more items than page size (50)
-
-**When** viewing items list
-
-**Then** the component MUST:
-- Show current page items
-- Show total count
-- Provide "Load more" or pagination controls
-- Pass limit/offset to API
+- **WHEN** user has more items than page size
+- **THEN** the component MUST show current page items, total count, and pagination controls
 
 ### Requirement: Authentication State
 

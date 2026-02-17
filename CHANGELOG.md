@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.25 - 2026-02-17
+---
+
+- Show all tags on item cards in the listview without truncation, removing the `+N` overflow indicator (closes #11)
+- Show both created and updated timestamps on item cards on desktop and tablet displays, formatted without seconds (closes #12)
+- Updated timestamp is only shown when it differs from the creation timestamp (i.e. the item has been edited)
+- Mobile displays show only the creation timestamp to preserve space
+
 ## 3.0.23 - 2026-02-17
 ---
 

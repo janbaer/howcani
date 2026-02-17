@@ -1,7 +1,7 @@
 {
   "name": "howcani",
   "private": true,
-  "version": "3.0.24",
+  "version": "3.0.25",
   "type": "module",
   "scripts": {
     "dev": "bun --hot run src/server/index.ts",

@@ -41,21 +41,24 @@ const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: 
 
   <!-- Line 1: Tags -->
   <div class="flex items-center gap-2 flex-wrap mt-auto">
-    {#each item.tags.slice(0, 2) as tag}
+    {#each item.tags as tag}
       <TagBadge name={tag.name} color={tag.color} />
     {/each}
-    {#if item.tags.length > 2}
-      <span class="font-mono text-xs text-muted-foreground">+{item.tags.length - 2}</span>
-    {/if}
   </div>
 
   <!-- Line 2: Date left, actions right -->
   <div class="flex items-center mt-2">
     <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+      <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
+      <span class="hidden md:inline text-muted-foreground/60">Created</span>
       <span class="font-mono">{formatTimestamp(item.created_at)}</span>
+      {#if item.updated_at !== item.created_at}
+        <span class="hidden md:inline text-muted-foreground/40">·</span>
+        <span class="hidden md:inline text-muted-foreground/60">Updated</span>
+        <span class="hidden md:inline font-mono">{formatTimestamp(item.updated_at)}</span>
+      {/if}
     </div>
 
     {#if isOwner}
