@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.27 - 2026-02-19
+---
+
+- Added copy-to-clipboard overlay button on code blocks in markdown answers (#18)
+- Added `update_item` tool to the built-in MCP server (#17)
+- Auto-login to Forgejo container registry using `$FORGEJO_TOKEN` when no existing authentication is cached (#19)
+- Renamed Forgejo token environment variable for consistency
+
 ## 3.0.26 - 2026-02-17
 ---
 
