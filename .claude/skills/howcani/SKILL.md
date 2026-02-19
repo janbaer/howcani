@@ -16,6 +16,8 @@ Use `jan` as the username for searching and creating new items.
 - Use the **first question** as the title/question of the saved item
 - The answer contains the full consolidated Q&A (original answer + all follow-up questions and answers)
 
+**Updating existing items:** When new information is available for a question that is already in the knowledge base (e.g., the user provides a correction, an improved answer, or asks a follow-up that extends an existing entry), offer to update the existing item using `mcp__howcani-mcp__update_item` rather than creating a duplicate. Show the user what will change and ask for confirmation before updating.
+
 When saving or displaying answers, use Markdown for formatting. Mark the user's questions like this: **User asked:** *question...*
 
 Ask the user, which tags should be assigned, and if there is no suitable for the current question, make proposal for a new tag.

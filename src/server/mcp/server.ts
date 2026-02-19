@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import pkg from '../../../package.json';
-import { createItem, getItem, listItems, listTags, searchItems } from './tools.ts';
+import { createItem, getItem, listItems, listTags, searchItems, updateItem } from './tools.ts';
 
 interface McpServerOptions {
   authHeader?: string;
@@ -53,6 +53,18 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       username: z.string().describe('Username whose tags to list'),
     },
     (args) => listTags(args),
+  );
+
+  server.tool(
+    'update_item',
+    'Update an existing knowledge base item (requires Bearer token in Authorization header)',
+    {
+      item_id: z.string().describe('The ID of the item to update'),
+      question: z.string().optional().describe('New question text'),
+      answer: z.string().optional().describe('New answer text'),
+      tags: z.array(z.string()).optional().describe('Full replacement tag list (created automatically if new)'),
+    },
+    async (args) => updateItem({ ...args, authHeader: options.authHeader }),
   );
 
   server.tool(

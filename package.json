@@ -14,7 +14,8 @@
     "lint:fix": "bunx @biomejs/biome check --fix ./src/",
     "db:migrate": "bun run src/server/db/migrate.ts",
     "export:github": "bun run src/tools/export-github.ts",
-    "import:json": "bun run src/tools/import-json.ts"
+    "import:json": "bun run src/tools/import-json.ts",
+    "mcp-inspect": "npx @modelcontextprotocol/inspector"
   },
   "devDependencies": {
     "@types/bun": "^1.1.16",

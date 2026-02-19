@@ -88,6 +88,49 @@ export function listTags(args: { username: string }): CallToolResult {
   return success({ tags });
 }
 
+export async function updateItem(args: {
+  authHeader?: string;
+  item_id: string;
+  question?: string;
+  answer?: string;
+  tags?: string[];
+}): Promise<CallToolResult> {
+  const token = extractBearerToken(args.authHeader);
+  if (!token) return error('Authentication failed: missing or invalid Authorization header');
+
+  const payload = await verifyToken(token);
+  if (!payload) return error('Authentication failed: invalid or expired token');
+
+  const existing = itemRepo.findByIdAndUserId(args.item_id, payload.userId);
+  if (!existing) return error(`Item "${args.item_id}" not found`);
+
+  const updated = itemRepo.update(args.item_id, {
+    question: args.question,
+    answer: args.answer,
+  });
+
+  if (!updated) return error(`Failed to update item "${args.item_id}"`);
+
+  if (args.tags !== undefined) {
+    const tagIds: string[] = [];
+    for (const tagName of args.tags) {
+      const existingTag = tagRepo.findByNameAndUserId(tagName, payload.userId);
+      if (existingTag) {
+        tagIds.push(existingTag.id);
+      } else {
+        const created = tagRepo.create({ userId: payload.userId, name: tagName });
+        tagIds.push(created.id);
+      }
+    }
+    tagRepo.setItemTags(updated.id, tagIds);
+  }
+
+  return success({
+    ...updated,
+    tags: tagRepo.getTagsForItem(updated.id),
+  });
+}
+
 export async function createItem(args: {
   authHeader?: string;
   question: string;
