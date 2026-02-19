@@ -77,14 +77,23 @@ echo -e "${GREEN}✓${NC} Bun is installed"
 # Check registry authentication
 echo "Checking registry authentication..."
 if [ ! -f "$AUTH_FILE" ] || ! grep -q "${REGISTRY}" "$AUTH_FILE" 2>/dev/null; then
-  echo -e "${RED}Error: Not logged in to ${REGISTRY}${NC}"
-  echo ""
-  echo "Please log in first:"
-  echo "  $CONTAINER_CMD login ${REGISTRY}"
-  echo ""
-  exit 1
+  if [ -z "${FORGEJO_TOKEN}" ]; then
+    echo -e "${RED}Error: Not logged in to ${REGISTRY} and FORGEJO_TOKEN is not set${NC}"
+    echo ""
+    echo "Set FORGEJO_TOKEN or log in manually:"
+    echo "  $CONTAINER_CMD login ${REGISTRY}"
+    echo ""
+    exit 1
+  fi
+  echo "Logging in to ${REGISTRY}..."
+  if ! echo "${FORGEJO_TOKEN}" | $CONTAINER_CMD login "${REGISTRY}" --username jan --password-stdin; then
+    echo -e "${RED}Error: Login to ${REGISTRY} failed${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}✓${NC} Logged in to ${REGISTRY}"
+else
+  echo -e "${GREEN}✓${NC} Registry authentication verified"
 fi
-echo -e "${GREEN}✓${NC} Registry authentication verified"
 
 echo ""
 
