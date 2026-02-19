@@ -155,7 +155,7 @@ The UI MUST adapt based on authentication status.
 
 ### Requirement: Markdown Rendering
 
-Item answers MUST render markdown safely.
+Item answers MUST render markdown safely. Code blocks in rendered markdown SHALL provide a copy-to-clipboard overlay on hover.
 
 #### Scenario: Render markdown in item view
 
@@ -175,6 +175,26 @@ Item answers MUST render markdown safely.
 - Sanitize HTML (prevent XSS)
 - Apply syntax highlighting to code blocks
 - Make external links open in new tab
+
+#### Scenario: Copy button appears on code block hover
+
+- **WHEN** user hovers over a fenced code block (`<pre>` element) in a rendered markdown answer
+- **THEN** a copy button SHALL appear in the top-right corner of the code block
+
+#### Scenario: Copy button copies code to clipboard
+
+- **WHEN** user clicks the copy button on a code block
+- **THEN** the system SHALL write the code block's text content to the clipboard using the Clipboard API
+
+#### Scenario: Copy confirmation feedback
+
+- **WHEN** clipboard write succeeds
+- **THEN** the copy button icon SHALL change to a checkmark for approximately 2 seconds before reverting
+
+#### Scenario: Copy button hidden when not hovering
+
+- **WHEN** user is not hovering over a code block
+- **THEN** the copy button SHALL NOT be visible
 
 #### Scenario: Sanitize potentially dangerous HTML
 
