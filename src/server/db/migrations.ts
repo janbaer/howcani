@@ -160,6 +160,44 @@ const MIGRATIONS: Migration[] = [
       ALTER TABLE users ADD COLUMN semantic_search_enabled INTEGER NOT NULL DEFAULT 0;
     `,
   },
+  {
+    version: 9,
+    name: 'migrate_items_fts_to_unicode61_tokenizer',
+    up: `
+      DROP TRIGGER IF EXISTS items_fts_insert;
+      DROP TRIGGER IF EXISTS items_fts_update;
+      DROP TRIGGER IF EXISTS items_fts_delete;
+      DROP TABLE IF EXISTS items_fts;
+
+      CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
+        question,
+        answer,
+        content=items,
+        content_rowid=rowid,
+        tokenize='unicode61 remove_diacritics 1'
+      );
+
+      CREATE TRIGGER IF NOT EXISTS items_fts_insert AFTER INSERT ON items BEGIN
+        INSERT INTO items_fts(rowid, question, answer)
+        VALUES (new.rowid, new.question, new.answer);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS items_fts_update AFTER UPDATE ON items BEGIN
+        INSERT INTO items_fts(items_fts, rowid, question, answer)
+        VALUES ('delete', old.rowid, old.question, old.answer);
+        INSERT INTO items_fts(rowid, question, answer)
+        VALUES (new.rowid, new.question, new.answer);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS items_fts_delete AFTER DELETE ON items BEGIN
+        INSERT INTO items_fts(items_fts, rowid, question, answer)
+        VALUES ('delete', old.rowid, old.question, old.answer);
+      END;
+
+      INSERT INTO items_fts(rowid, question, answer)
+      SELECT rowid, question, answer FROM items;
+    `,
+  },
 ];
 
 const VEC_ITEMS_DDL = `

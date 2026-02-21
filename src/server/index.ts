@@ -6,6 +6,9 @@ import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
 import { authRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
 
+declare const APP_VERSION: string | undefined;
+console.log(`[howcani] v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'dev'}`);
+
 runMigrations();
 startCron();
 

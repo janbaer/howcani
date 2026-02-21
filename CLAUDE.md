@@ -49,7 +49,7 @@ Domain (pure types/validation, no dependencies)
 Two modes, selected per-user via `semantic_search_enabled` flag:
 
 - **FTS5 only**: `searchOnly()` — BM25 ranked full-text search on `items_fts`
-- **Hybrid** (FTS5 + KNN + RRF): `searchHybrid()` — top-200 FTS5 results merged with top-20 KNN vector results using Reciprocal Rank Fusion (k=60). Embeddings are 1536-dim float32 vectors stored in `vec_items` (sqlite-vec virtual table) via OpenRouter's `text-embedding-3-small` model. Embeddings are generated fire-and-forget on create/update, and backfilled by a cron job every 5 minutes in batches of 20.
+- **Hybrid** (FTS5 + KNN + RRF): `searchHybrid()` — top-50 FTS5 results merged with top-50 KNN vector results using Reciprocal Rank Fusion (k=60). Embeddings are 1536-dim float32 vectors stored in `vec_items` (sqlite-vec virtual table) via OpenRouter's `text-embedding-3-small` model. Embeddings are generated fire-and-forget on create/update, and backfilled by a cron job every 5 minutes in batches of 20.
 
 ### MCP Server (`src/server/mcp/`)
 

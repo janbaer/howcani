@@ -1,3 +1,5 @@
+## MODIFIED Requirements
+
 ### Requirement: SQLite FTS5 Integration
 
 The system MUST use SQLite FTS5 for efficient full-text search.
@@ -112,60 +114,3 @@ The system MUST provide fast, relevant full-text search across questions and ans
 
 - **WHEN** searching for input containing FTS5 special characters like `AND`, `OR`, `"`, `*`
 - **THEN** the system SHALL escape special characters and treat them as literal text
-
-### Requirement: Tag Filtering
-
-The system MUST allow filtering items by one or more tags.
-
-#### Scenario: Filter by single tag
-
-- **WHEN** GET to `/api/john/items?tags=bun`
-- **THEN** the system SHALL return only items that have the "bun" tag, with full item details and all tags
-
-#### Scenario: Filter by multiple tags (AND operation)
-
-- **WHEN** GET to `/api/john/items?tags=bun,typescript`
-- **THEN** the system SHALL return only items that have both "bun" AND "typescript" tags, using GROUP BY/HAVING COUNT to verify all tags are present
-
-#### Scenario: Filter with no matching items
-
-- **WHEN** GET to `/api/john/items?tags=python` and no items have that tag
-- **THEN** the system SHALL return `{ items: [], total: 0 }` with status OK
-
-#### Scenario: Filter ignores nonexistent tag names
-
-- **WHEN** GET to `/api/john/items?tags=nonexistent`
-- **THEN** the system SHALL return empty results without error
-
-#### Scenario: Tag names matched case-insensitively
-
-- **WHEN** filtering by tag "Bun" and the stored tag is "bun"
-- **THEN** the system SHALL match tags case-insensitively using COLLATE NOCASE
-
-### Requirement: Combined Search and Filtering
-
-Users MUST be able to search and filter simultaneously.
-
-#### Scenario: Search text AND filter by tag
-
-- **WHEN** GET to `/api/john/items?search=deploy&tags=bun`
-- **THEN** the system SHALL return only items matching "deploy" in FTS5 AND having the "bun" tag
-
-#### Scenario: Multiple filters with pagination
-
-- **WHEN** GET to `/api/john/items?search=config&tags=bun,typescript&limit=20&offset=20`
-- **THEN** the system SHALL apply search filter, tag filters, and pagination together, returning the correct page of combined results with accurate total count
-
-### Requirement: Search Result Ranking
-
-Search results SHALL be ranked by relevance.
-
-#### Scenario: Match in question ranks higher than answer
-
-- **WHEN** searching for "bun deployment" with items matching in question vs answer
-- **THEN** the system SHALL use FTS5 BM25 ranking with question weighted higher than answer via `bm25(items_fts, 10.0, 1.0)`
-
-#### Scenario: Results without search use creation date ordering
-
-- **WHEN** listing items without a search term (tag filter only or no filters)
-- **THEN** the system SHALL order results by `created_at DESC` (most recent first)

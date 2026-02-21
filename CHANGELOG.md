@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.31 - 2026-02-21
+---
+
+- Improved search relevance by filtering German and English stop words and switching to AND logic for FTS5 queries
+- Added ASCII umlaut normalization (ae→a, oe→o, ue→u) to match unicode61 tokenizer diacritic handling
+- Migrated FTS5 index to unicode61 tokenizer with `remove_diacritics 1` for better umlaut and diacritic support
+- Rebalanced hybrid search from 200/20 to 50/50 FTS5/KNN candidates for equal weighting in RRF ranking
+- Added app version logging at startup, baked into the bundle at build time from package.json
+
 ## 3.0.29 - 2026-02-21
 ---
 

@@ -1,8 +1,56 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
-import { type CreateItemDTO, ItemRepository } from './item.repository';
+import { type CreateItemDTO, ItemRepository, sanitizeFtsQuery } from './item.repository';
 import { TagRepository } from './tag.repository';
 import { UserRepository } from './user.repository';
+
+describe('sanitizeFtsQuery', () => {
+  test('wraps single term with prefix wildcard', () => {
+    expect(sanitizeFtsQuery('docker')).toBe('"docker"*');
+  });
+
+  test('joins multiple content terms with AND (space)', () => {
+    expect(sanitizeFtsQuery('docker cleanup')).toBe('"docker"* "cleanup"*');
+  });
+
+  test('filters stop words from query', () => {
+    expect(sanitizeFtsQuery('Wie kann ich die Festplatte vergrossern')).toBe('"festplatte"* "vergrossern"*');
+  });
+
+  test('filters English stop words', () => {
+    expect(sanitizeFtsQuery('how to use docker')).toBe('"use"* "docker"*');
+  });
+
+  test('falls back to OR with all terms when all are stop words', () => {
+    expect(sanitizeFtsQuery('wie kann ich')).toBe('"wie"* OR "kann"* OR "ich"*');
+  });
+
+  test('returns empty-string token for blank input', () => {
+    expect(sanitizeFtsQuery('')).toBe('""');
+  });
+
+  test('strips FTS5 special characters', () => {
+    expect(sanitizeFtsQuery('AND "OR" NOT*')).toBe('"and"* "or"* "not"*');
+  });
+
+  test('normalizes ae→a to match unicode61-indexed umlauts', () => {
+    expect(sanitizeFtsQuery('nachtraeglich')).toBe('"nachtraglich"*');
+  });
+
+  test('normalizes oe→o to match unicode61-indexed umlauts', () => {
+    expect(sanitizeFtsQuery('vergroessern')).toBe('"vergrossern"*');
+  });
+
+  test('normalizes ue→u to match unicode61-indexed umlauts', () => {
+    expect(sanitizeFtsQuery('Uebersicht')).toBe('"ubersicht"*');
+  });
+
+  test('normalizes full ASCII-umlaut query to match indexed forms', () => {
+    expect(sanitizeFtsQuery('nachtraeglich Festplatte vergroessern')).toBe(
+      '"nachtraglich"* "festplatte"* "vergrossern"*',
+    );
+  });
+});
 
 describe('ItemRepository Integration Tests', () => {
   let itemRepo: ItemRepository;

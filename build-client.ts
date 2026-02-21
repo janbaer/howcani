@@ -6,6 +6,8 @@ import { SveltePlugin } from 'bun-plugin-svelte';
 const outdir = resolve('./dist');
 const isDev = process.env.NODE_ENV !== 'production';
 
+const pkg = await Bun.file('./package.json').json();
+
 const result = await Bun.build({
   entrypoints: ['./src/server/index.ts'],
   outdir,
@@ -14,6 +16,9 @@ const result = await Bun.build({
   minify: !isDev,
   sourcemap: isDev ? 'external' : 'none',
   publicPath: '/', // Use absolute paths for assets to fix nested route issues
+  define: {
+    'APP_VERSION': JSON.stringify(pkg.version),
+  },
   plugins: [
     SveltePlugin({
       forceSide: 'client',

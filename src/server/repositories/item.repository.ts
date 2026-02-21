@@ -4,14 +4,106 @@ import { BaseRepository } from './base.repository';
 
 export type { Item };
 
+const STOP_WORDS = new Set([
+  // Deutsch
+  'wie',
+  'kann',
+  'ich',
+  'du',
+  'er',
+  'sie',
+  'es',
+  'wir',
+  'ihr',
+  'man',
+  'der',
+  'die',
+  'das',
+  'dem',
+  'den',
+  'des',
+  'ein',
+  'eine',
+  'einer',
+  'ist',
+  'sind',
+  'war',
+  'waren',
+  'wird',
+  'werden',
+  'hat',
+  'haben',
+  'in',
+  'an',
+  'auf',
+  'bei',
+  'für',
+  'mit',
+  'nach',
+  'von',
+  'zu',
+  'über',
+  'unter',
+  'am',
+  'im',
+  'um',
+  'als',
+  'auch',
+  'noch',
+  'schon',
+  'nur',
+  // Englisch
+  'how',
+  'can',
+  'i',
+  'you',
+  'what',
+  'when',
+  'where',
+  'who',
+  'why',
+  'the',
+  'a',
+  'an',
+  'is',
+  'are',
+  'was',
+  'were',
+  'will',
+  'be',
+  'to',
+  'do',
+  'my',
+  'your',
+  'this',
+  'that',
+  'it',
+  'in',
+  'on',
+  'at',
+  'for',
+]);
+
+// Normalize ASCII umlaut transliterations (ae→a, oe→o, ue→u) to match
+// what unicode61 remove_diacritics produces from real umlauts (ä→a, ö→o, ü→u).
+// Trade-off: words like "Israel" (ae→a = "Isral") will not match their
+// correct form. Acceptable for a German-primary personal knowledge base.
+function normalizeQueryTerm(term: string): string {
+  return term.toLowerCase().replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u');
+}
+
 export function sanitizeFtsQuery(input: string): string {
   const escaped = input
     .replace(/["\-*()^~:]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   if (escaped === '') return '""';
-  const terms = escaped.split(' ').filter(Boolean);
-  return terms.map((term) => `"${term}"*`).join(' OR ');
+  const allTerms = escaped.split(' ').filter(Boolean);
+  const terms = allTerms.filter((t) => !STOP_WORDS.has(t.toLowerCase()));
+  if (terms.length === 0) {
+    return allTerms.map((term) => `"${normalizeQueryTerm(term)}"*`).join(' OR ');
+  }
+  return terms.map((term) => `"${normalizeQueryTerm(term)}"*`).join(' ');
 }
 
 export interface CreateItemDTO {
@@ -147,7 +239,7 @@ export class ItemRepository extends BaseRepository<Item> {
   ): PaginatedResult<Item> {
     const RRF_K = 60;
 
-    // FTS5: fetch top 200 ranked results
+    // FTS5: fetch top 50 ranked results
     const sanitized = sanitizeFtsQuery(search);
     const ftsRows = db
       .query<{ id: string }, [string, string]>(
@@ -155,11 +247,11 @@ export class ItemRepository extends BaseRepository<Item> {
          JOIN items_fts ON items.rowid = items_fts.rowid
          WHERE items.user_id = ? AND items_fts MATCH ?
          ORDER BY bm25(items_fts, 10.0, 1.0)
-         LIMIT 200`,
+         LIMIT 50`,
       )
       .all(userId, sanitized);
 
-    // KNN: fetch top 20 by vector similarity
+    // KNN: fetch top 50 by vector similarity
     const vecRows = db
       .query<{ item_id: string }, [string, Uint8Array, number]>(
         `SELECT vec_items.item_id FROM vec_items
@@ -168,7 +260,7 @@ export class ItemRepository extends BaseRepository<Item> {
            AND vec_items.embedding MATCH ?
            AND k = ?`,
       )
-      .all(userId, queryVector as unknown as Uint8Array, 20);
+      .all(userId, queryVector as unknown as Uint8Array, 50);
 
     // RRF merge
     const scores = new Map<string, number>();
