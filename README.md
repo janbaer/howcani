@@ -40,38 +40,6 @@ When `OPENROUTER_API_KEY` is set, the application:
 
 Users can toggle semantic search per-account in Settings.
 
-## Migrating Data from v2 (GitHub Issues)
-
-Migration runs in two steps so the export is portable and repeatable across databases.
-
-### Step 1: Export from GitHub
-
-```bash
-bun run export:github --output ./data/issues.json
-bun run export:github --output ./data/issues.json --repo owner/repo
-GITHUB_TOKEN=ghp_xxxxx bun run export:github --output ./data/issues.json
-```
-
-Without a token, GitHub limits requests to 60/hour. With a token, the limit is 5000/hour.
-
-### Step 2: Import to database
-
-```bash
-# Dry run to validate
-bun run import:json --user john --file ./data/issues.json --dry-run
-
-# Import
-bun run import:json --user john --file ./data/issues.json
-
-# Update existing items instead of skipping them
-bun run import:json --user john --file ./data/issues.json --force
-
-# Delete all existing items and replace with JSON data
-bun run import:json --user john --file ./data/issues.json --force-reimport --yes
-```
-
-Import is idempotent — duplicates are detected by normalized title. Use `--force-reimport` to fix incorrect timestamps from previous imports.
-
 ## Docker Deployment
 
 ### Building and publishing
