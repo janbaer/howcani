@@ -1,7 +1,8 @@
 import { runTransaction } from '../db/database';
 import { validateCreateItemData, validateUpdateItemData } from '../domain/item';
 import type { Tag } from '../domain/tag';
-import { type Item, itemRepository } from '../repositories';
+import { type Item, itemRepository, type PaginatedResult } from '../repositories';
+import { embeddingService } from './embedding.service';
 import type { TagService } from './tag.service';
 import { userService } from './user.service';
 
@@ -77,6 +78,11 @@ export class ItemService {
       return { ...item, tags: this.tagService.findTagsForItem(item.id) };
     });
 
+    embeddingService
+      .embedText(`${itemWithTags.question}\n${itemWithTags.answer}`)
+      .then((v) => v && embeddingService.upsertEmbedding(itemWithTags.id, v))
+      .catch((err) => console.warn('[embedding] create failed:', err));
+
     return { success: true, data: itemWithTags };
   }
 
@@ -109,6 +115,11 @@ export class ItemService {
       return { ...item, tags: this.tagService.findTagsForItem(itemId) };
     });
 
+    embeddingService
+      .embedText(`${itemWithTags.question}\n${itemWithTags.answer}`)
+      .then((v) => v && embeddingService.upsertEmbedding(itemWithTags.id, v))
+      .catch((err) => console.warn('[embedding] update failed:', err));
+
     return { success: true, data: itemWithTags };
   }
 
@@ -119,6 +130,7 @@ export class ItemService {
     }
 
     itemRepository.delete(itemId);
+    embeddingService.deleteEmbedding(itemId);
     return { success: true, data: { deleted: true } };
   }
 
@@ -139,11 +151,11 @@ export class ItemService {
     };
   }
 
-  listItems(
+  async listItems(
     username: string,
     pagination: { limit?: number; offset?: number } = {},
     filters: SearchFilters = {},
-  ): Result<PaginatedItemsResult> {
+  ): Promise<Result<PaginatedItemsResult>> {
     const user = userService.findByUsername(username);
     if (!user) {
       return createError('USER_NOT_FOUND', 'User not found');
@@ -152,9 +164,24 @@ export class ItemService {
     const { limit = 50, offset = 0 } = pagination;
     const hasFilters = (filters.search && filters.search.trim() !== '') || (filters.tags && filters.tags.length > 0);
 
-    const result = hasFilters
-      ? itemRepository.searchItems(user.id, { limit, offset, search: filters.search, tags: filters.tags })
-      : itemRepository.findByUserId(user.id, { limit, offset });
+    let result: PaginatedResult<Item>;
+    if (hasFilters) {
+      const useHybrid = user.semantic_search_enabled === 1;
+      let queryVector: Float32Array | null = null;
+      if (useHybrid && filters.search) {
+        queryVector = await embeddingService.embedText(filters.search);
+      }
+      result = itemRepository.searchItems(user.id, {
+        limit,
+        offset,
+        search: filters.search,
+        tags: filters.tags,
+        useHybrid: useHybrid && queryVector !== null,
+        queryVector,
+      });
+    } else {
+      result = itemRepository.findByUserId(user.id, { limit, offset });
+    }
 
     const itemsWithTags = result.items.map((item) => ({
       ...item,

@@ -3,6 +3,7 @@ import { extractBearerToken, verifyToken } from '../auth/jwt.ts';
 import { ItemRepository } from '../repositories/item.repository.ts';
 import { TagRepository } from '../repositories/tag.repository.ts';
 import { UserRepository } from '../repositories/user.repository.ts';
+import { embeddingService } from '../services/embedding.service.ts';
 
 const userRepo = new UserRepository();
 const itemRepo = new ItemRepository();
@@ -16,10 +17,10 @@ function error(message: string): CallToolResult {
   return { content: [{ type: 'text', text: message }], isError: true };
 }
 
-function resolveUser(username: string): { userId: string } | CallToolResult {
+function resolveUser(username: string): { userId: string; semanticSearchEnabled: boolean } | CallToolResult {
   const user = userRepo.findByUsername(username);
   if (!user) return error(`User "${username}" not found`);
-  return { userId: user.id };
+  return { userId: user.id, semanticSearchEnabled: user.semantic_search_enabled === 1 };
 }
 
 function attachTags(items: { id: string }[]) {
@@ -29,7 +30,12 @@ function attachTags(items: { id: string }[]) {
   }));
 }
 
-export function searchItems(args: { username: string; query?: string; tags?: string; limit?: number }): CallToolResult {
+export async function searchItems(args: {
+  username: string;
+  query?: string;
+  tags?: string;
+  limit?: number;
+}): Promise<CallToolResult> {
   const resolved = resolveUser(args.username);
   if ('isError' in resolved) return resolved;
 
@@ -40,10 +46,17 @@ export function searchItems(args: { username: string; query?: string; tags?: str
         .filter(Boolean)
     : undefined;
 
+  let queryVector: Float32Array | null = null;
+  if (resolved.semanticSearchEnabled && args.query) {
+    queryVector = await embeddingService.embedText(args.query);
+  }
+
   const result = itemRepo.searchItems(resolved.userId, {
     search: args.query,
     tags: tagList,
     limit: Math.min(args.limit ?? 20, 100),
+    useHybrid: resolved.semanticSearchEnabled,
+    queryVector,
   });
 
   return success({

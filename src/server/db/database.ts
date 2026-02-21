@@ -1,8 +1,14 @@
 import { Database } from 'bun:sqlite';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { load } from 'sqlite-vec';
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
+
+let sqliteVecAvailable = false;
+export function isSqliteVecAvailable(): boolean {
+  return sqliteVecAvailable;
+}
 
 function getDatabasePath(): string {
   switch (NODE_ENV) {
@@ -26,6 +32,13 @@ function initializeDatabase(): Database {
   const database = new Database(dbPath, { create: true, strict: true });
   database.run('PRAGMA journal_mode = WAL');
   database.run('PRAGMA foreign_keys = ON');
+
+  try {
+    load(database);
+    sqliteVecAvailable = true;
+  } catch (err) {
+    console.warn('[db] Failed to load sqlite-vec extension — semantic search unavailable:', err);
+  }
 
   console.log(`[db] Connected to ${dbPath} (env: ${NODE_ENV})`);
 

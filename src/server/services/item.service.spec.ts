@@ -82,6 +82,16 @@ mock.module('./tag.service', () => ({
   tagService: {},
 }));
 
+const mockEmbeddingService = {
+  embedText: mock(async (_text: string) => new Float32Array(1536)),
+  upsertEmbedding: mock((_itemId: string, _vector: Float32Array) => {}),
+  deleteEmbedding: mock((_itemId: string) => {}),
+};
+
+mock.module('./embedding.service', () => ({
+  embeddingService: mockEmbeddingService,
+}));
+
 mock.module('../db/database', () => ({
   runTransaction: (fn: () => unknown) => fn(),
 }));
@@ -362,7 +372,7 @@ describe('ItemService', () => {
   });
 
   describe('listItems', () => {
-    test('returns paginated items with tags and filters', () => {
+    test('returns paginated items with tags and filters', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
@@ -370,7 +380,7 @@ describe('ItemService', () => {
       itemService.createItem({ question: 'Q1', tags: ['bun'] });
       itemService.createItem({ question: 'Q2' });
 
-      const result = itemService.listItems('john');
+      const result = await itemService.listItems('john');
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -380,12 +390,12 @@ describe('ItemService', () => {
       expect(result.data.filters).toEqual({ search: null, tags: null });
     });
 
-    test('returns user not found error for non-existent user', () => {
+    test('returns user not found error for non-existent user', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
-      const result = itemService.listItems('nonexistent');
+      const result = await itemService.listItems('nonexistent');
 
       expect(result.success).toBe(false);
       if (result.success) return;
@@ -393,7 +403,7 @@ describe('ItemService', () => {
       expect(result.error.code).toBe('USER_NOT_FOUND');
     });
 
-    test('respects pagination options', () => {
+    test('respects pagination options', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
@@ -402,7 +412,7 @@ describe('ItemService', () => {
         itemService.createItem({ question: `Q${i}` });
       }
 
-      const result = itemService.listItems('john', { limit: 2, offset: 1 });
+      const result = await itemService.listItems('john', { limit: 2, offset: 1 });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -411,14 +421,14 @@ describe('ItemService', () => {
       expect(result.data.total).toBe(5);
     });
 
-    test('passes search filter and returns it in response', () => {
+    test('passes search filter and returns it in response', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
       itemService.createItem({ question: 'Q1' });
 
-      const result = itemService.listItems('john', {}, { search: 'Q1' });
+      const result = await itemService.listItems('john', {}, { search: 'Q1' });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -427,14 +437,14 @@ describe('ItemService', () => {
       expect(result.data.filters.tags).toBeNull();
     });
 
-    test('passes tags filter and returns it in response', () => {
+    test('passes tags filter and returns it in response', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
       itemService.createItem({ question: 'Q1' });
 
-      const result = itemService.listItems('john', {}, { tags: ['bun', 'typescript'] });
+      const result = await itemService.listItems('john', {}, { tags: ['bun', 'typescript'] });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -443,14 +453,14 @@ describe('ItemService', () => {
       expect(result.data.filters.tags).toEqual(['bun', 'typescript']);
     });
 
-    test('empty search string results in null filter', () => {
+    test('empty search string results in null filter', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
       itemService.createItem({ question: 'Q1' });
 
-      const result = itemService.listItems('john', {}, { search: '  ' });
+      const result = await itemService.listItems('john', {}, { search: '  ' });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -458,14 +468,14 @@ describe('ItemService', () => {
       expect(result.data.filters.search).toBeNull();
     });
 
-    test('empty tags array results in null filter', () => {
+    test('empty tags array results in null filter', async () => {
       const user = createTestUser('john');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
       itemService.createItem({ question: 'Q1' });
 
-      const result = itemService.listItems('john', {}, { tags: [] });
+      const result = await itemService.listItems('john', {}, { tags: [] });
 
       expect(result.success).toBe(true);
       if (!result.success) return;
@@ -492,6 +502,51 @@ describe('ItemService', () => {
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
 
       expect(itemService.itemExists('nonexistent-id')).toBe(false);
+    });
+  });
+
+  describe('embedding integration', () => {
+    test('createItem triggers embedding generation', async () => {
+      mockEmbeddingService.embedText.mockClear();
+      const user = createTestUser('embed-user');
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      itemService.createItem({ question: 'How to embed?', answer: 'Use vectors.' });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockEmbeddingService.embedText).toHaveBeenCalledWith('How to embed?\nUse vectors.');
+    });
+
+    test('updateItem triggers embedding regeneration', async () => {
+      mockEmbeddingService.embedText.mockClear();
+      const user = createTestUser('embed-user-2');
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const created = itemService.createItem({ question: 'Original', answer: 'Old answer' });
+      if (!created.success) throw new Error('create failed');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      mockEmbeddingService.embedText.mockClear();
+      itemService.updateItem(created.data.id, { question: 'Updated', answer: 'New answer' });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockEmbeddingService.embedText).toHaveBeenCalledWith('Updated\nNew answer');
+    });
+
+    test('deleteItem triggers embedding deletion', () => {
+      mockEmbeddingService.deleteEmbedding.mockClear();
+      const user = createTestUser('embed-user-3');
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const created = itemService.createItem({ question: 'To delete', answer: '' });
+      if (!created.success) throw new Error('create failed');
+
+      itemService.deleteItem(created.data.id);
+
+      expect(mockEmbeddingService.deleteEmbedding).toHaveBeenCalledWith(created.data.id);
     });
   });
 });

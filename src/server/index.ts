@@ -1,11 +1,13 @@
 import { resolve } from 'node:path';
 import { Elysia } from 'elysia';
 import index from '../index.html';
+import { startCron } from './cron';
 import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
-import { authRoutes, itemRoutes, tagRoutes, userRoutes } from './routes';
+import { authRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
 
 runMigrations();
+startCron();
 
 const api = new Elysia()
   .onError(({ code, set }) => {
@@ -20,6 +22,7 @@ const api = new Elysia()
       .use(userRoutes)
       .use(itemRoutes)
       .use(tagRoutes)
+      .use(settingsRoutes)
       .get('/health', () => ({
         status: 'ok',
         timestamp: new Date().toISOString(),
@@ -35,6 +38,7 @@ export default {
     '/': index,
     '/login': index,
     '/register': index,
+    '/settings': index,
     '/:username/items': index,
     '/:username/items/:id': index,
   },

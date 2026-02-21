@@ -7,7 +7,7 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   .use(authPlugin)
   .get(
     '/',
-    ({ params, query, set }) => {
+    async ({ params, query, set }) => {
       const parsedLimit = query.limit ? parseInt(query.limit, 10) : 50;
       const parsedOffset = query.offset ? parseInt(query.offset, 10) : 0;
       const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 50, 1), 100);
@@ -21,7 +21,7 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
             .filter(Boolean)
         : undefined;
 
-      const result = itemService.listItems(params.username, { limit, offset }, { search, tags });
+      const result = await itemService.listItems(params.username, { limit, offset }, { search, tags });
 
       if (!result.success) {
         if (result.error.code === 'USER_NOT_FOUND') {

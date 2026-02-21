@@ -201,6 +201,25 @@ export interface TagUpdateResponse {
   tag: Tag;
 }
 
+// --- Settings types ---
+
+export interface Settings {
+  semanticSearchEnabled: boolean;
+}
+
+export const settings = {
+  async get(): Promise<ApiResponse<Settings>> {
+    return request<Settings>('/settings');
+  },
+
+  async update(patch: Partial<Settings>): Promise<ApiResponse<Settings>> {
+    return request<Settings>('/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  },
+};
+
 export const tags = {
   async list(username: string): Promise<ApiResponse<TagListResponse>> {
     return request<TagListResponse>(`/${username}/tags`);

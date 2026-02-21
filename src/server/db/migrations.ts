@@ -1,4 +1,4 @@
-import { db } from './database';
+import { db, isSqliteVecAvailable } from './database';
 
 interface Migration {
   version: number;
@@ -131,7 +131,43 @@ const MIGRATIONS: Migration[] = [
       SELECT rowid, question, answer FROM items;
     `,
   },
+  {
+    version: 6,
+    name: 'create_item_embeddings_table',
+    up: `
+      CREATE TABLE IF NOT EXISTS item_embeddings (
+        item_id TEXT PRIMARY KEY REFERENCES items(id) ON DELETE CASCADE,
+        embedding BLOB NOT NULL,
+        model TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+    `,
+  },
+  {
+    version: 7,
+    name: 'create_vec_items_virtual_table',
+    up: `
+      CREATE VIRTUAL TABLE IF NOT EXISTS vec_items USING vec0(
+        item_id TEXT PRIMARY KEY,
+        embedding float[1536]
+      );
+    `,
+  },
+  {
+    version: 8,
+    name: 'add_semantic_search_enabled_to_users',
+    up: `
+      ALTER TABLE users ADD COLUMN semantic_search_enabled INTEGER NOT NULL DEFAULT 0;
+    `,
+  },
 ];
+
+const VEC_ITEMS_DDL = `
+  CREATE VIRTUAL TABLE IF NOT EXISTS vec_items USING vec0(
+    item_id TEXT PRIMARY KEY,
+    embedding float[1536]
+  )
+`;
 
 export function runMigrations(): void {
   const currentVersion = getCurrentVersion();
@@ -140,6 +176,11 @@ export function runMigrations(): void {
 
   for (const migration of MIGRATIONS) {
     if (migration.version > currentVersion) {
+      if (migration.name === 'create_vec_items_virtual_table' && !isSqliteVecAvailable()) {
+        console.warn('[db] Skipping migration 7: sqlite-vec extension not available');
+        continue;
+      }
+
       console.log(`[db] Running migration ${migration.version}: ${migration.name}`);
 
       db.transaction(() => {
@@ -148,6 +189,16 @@ export function runMigrations(): void {
       })();
 
       console.log(`[db] Migration ${migration.version} complete`);
+    }
+  }
+
+  // Recovery: if the extension is available but vec_items is missing (inconsistent state),
+  // create it now regardless of the recorded schema version.
+  if (isSqliteVecAvailable()) {
+    try {
+      db.exec(VEC_ITEMS_DDL);
+    } catch (err) {
+      console.warn('[db] Could not ensure vec_items table exists:', err);
     }
   }
 

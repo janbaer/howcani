@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.29 - 2026-02-21
+---
+
+- Added vector-based semantic search with hybrid FTS5 + KNN ranking using Reciprocal Rank Fusion (RRF)
+- Added per-user opt-in toggle for semantic search in the Settings page
+- Added cron job to backfill missing or stale embeddings every 5 minutes
+- Fixed stale embedding detection to recover failed update embeddings during cron backfill
+- Fixed Docker image to include sqlite-vec native extension (`vec0.so`) in the runtime stage
+- Updated `docker-compose.yml` to remove deprecated `version` field and add semantic search vars to `.env.example`
+
 ## 3.0.27 - 2026-02-19
 ---
 

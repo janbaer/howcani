@@ -36,6 +36,9 @@ WORKDIR /app
 COPY --from=builder /build/dist ./
 COPY --from=builder /build/public ./public
 
+# Copy sqlite-vec native extension (required for semantic search)
+COPY --from=builder /build/node_modules/sqlite-vec-linux-x64/vec0.so /app/src/sqlite-vec-linux-x64/vec0.so
+
 # Set default environment variables
 ENV NODE_ENV=production
 ENV PORT=3000

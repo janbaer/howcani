@@ -8,11 +8,13 @@ import ItemList from './pages/ItemList.svelte';
 import Login from './pages/Login.svelte';
 import NotFound from './pages/NotFound.svelte';
 import Register from './pages/Register.svelte';
+import Settings from './pages/Settings.svelte';
 
 setRoutes([
   { pattern: '/', component: Home },
   { pattern: '/login', component: Login },
   { pattern: '/register', component: Register },
+  { pattern: '/settings', component: Settings },
   { pattern: '/:username/items', component: ItemList },
   { pattern: '/:username/items/:id', component: ItemDetail },
 ]);

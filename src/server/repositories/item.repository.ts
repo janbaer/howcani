@@ -33,6 +33,8 @@ export interface PaginationOptions {
 export interface SearchOptions extends PaginationOptions {
   search?: string;
   tags?: string[];
+  useHybrid?: boolean;
+  queryVector?: Float32Array | null;
 }
 
 export interface PaginatedResult<T> {
@@ -111,10 +113,14 @@ export class ItemRepository extends BaseRepository<Item> {
   }
 
   searchItems(userId: string, options: SearchOptions = {}): PaginatedResult<Item> {
-    const { limit = 50, offset = 0, search, tags } = options;
+    const { limit = 50, offset = 0, search, tags, useHybrid, queryVector } = options;
     const normalizedTags = this.normalizeTagFilters(tags);
     const hasSearch = search !== undefined && search.trim() !== '';
     const hasTags = normalizedTags !== undefined && normalizedTags.length > 0;
+
+    if (useHybrid && hasSearch && queryVector) {
+      return this.searchHybrid(userId, search.trim(), normalizedTags, limit, offset, queryVector);
+    }
 
     if (!hasSearch && !hasTags) {
       return this.findByUserId(userId, { limit, offset });
@@ -129,6 +135,85 @@ export class ItemRepository extends BaseRepository<Item> {
     }
 
     return this.filterByTags(userId, normalizedTags as string[], limit, offset);
+  }
+
+  private searchHybrid(
+    userId: string,
+    search: string,
+    tags: string[] | undefined,
+    limit: number,
+    offset: number,
+    queryVector: Float32Array,
+  ): PaginatedResult<Item> {
+    const RRF_K = 60;
+
+    // FTS5: fetch top 200 ranked results
+    const sanitized = sanitizeFtsQuery(search);
+    const ftsRows = db
+      .query<{ id: string }, [string, string]>(
+        `SELECT items.id FROM items
+         JOIN items_fts ON items.rowid = items_fts.rowid
+         WHERE items.user_id = ? AND items_fts MATCH ?
+         ORDER BY bm25(items_fts, 10.0, 1.0)
+         LIMIT 200`,
+      )
+      .all(userId, sanitized);
+
+    // KNN: fetch top 20 by vector similarity
+    const vecRows = db
+      .query<{ item_id: string }, [string, Uint8Array, number]>(
+        `SELECT vec_items.item_id FROM vec_items
+         JOIN items ON vec_items.item_id = items.id
+         WHERE items.user_id = ?
+           AND vec_items.embedding MATCH ?
+           AND k = ?`,
+      )
+      .all(userId, queryVector as unknown as Uint8Array, 20);
+
+    // RRF merge
+    const scores = new Map<string, number>();
+    for (const [rank, row] of ftsRows.entries()) {
+      scores.set(row.id, (scores.get(row.id) ?? 0) + 1 / (RRF_K + rank + 1));
+    }
+    for (const [rank, row] of vecRows.entries()) {
+      scores.set(row.item_id, (scores.get(row.item_id) ?? 0) + 1 / (RRF_K + rank + 1));
+    }
+
+    let allIds = [...scores.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+
+    // Tag post-filter
+    if (tags && tags.length > 0) {
+      const normalizedTagSet = new Set(tags.map((t) => t.toLowerCase()));
+      const taggedItemIds = new Set(
+        db
+          .query<{ item_id: string }, string[]>(
+            `SELECT it.item_id FROM item_tags it
+             JOIN tags t ON it.tag_id = t.id
+             WHERE t.name COLLATE NOCASE IN (${tags.map(() => '?').join(', ')})
+             GROUP BY it.item_id
+             HAVING COUNT(DISTINCT LOWER(t.name)) = ?`,
+          )
+          .all(...tags, normalizedTagSet.size)
+          .map((r) => r.item_id),
+      );
+      allIds = allIds.filter((id) => taggedItemIds.has(id));
+    }
+
+    const total = allIds.length;
+    const pageIds = allIds.slice(offset, offset + limit);
+
+    if (pageIds.length === 0) {
+      return { items: [], total };
+    }
+
+    const placeholders = pageIds.map(() => '?').join(', ');
+    const rows = db.query<Item, string[]>(`SELECT * FROM items WHERE id IN (${placeholders})`).all(...pageIds);
+
+    // Preserve RRF order
+    const rowMap = new Map(rows.map((r) => [r.id, r]));
+    const items = pageIds.map((id) => rowMap.get(id)).filter(Boolean) as Item[];
+
+    return { items, total };
   }
 
   private normalizeTagFilters(tags?: string[]): string[] | undefined {

@@ -1,4 +1,5 @@
 export { BaseRepository } from './base.repository';
+export { EmbeddingRepository, embeddingRepository } from './embedding.repository';
 export type {
   CreateItemDTO,
   Item,

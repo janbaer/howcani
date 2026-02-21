@@ -6,6 +6,7 @@ export interface User {
   username: string;
   email: string;
   password_hash: string;
+  semantic_search_enabled: number;
   created_at: string;
   updated_at: string;
 }
@@ -84,6 +85,14 @@ export class UserRepository extends BaseRepository<User> {
 
   usernameExists(username: string): boolean {
     return this.findByUsername(username) !== null;
+  }
+
+  updateSemanticSearch(id: string, enabled: boolean): void {
+    db.run(`UPDATE users SET semantic_search_enabled = ?, updated_at = ? WHERE id = ?`, [
+      enabled ? 1 : 0,
+      this.now(),
+      id,
+    ]);
   }
 
   updatePassword(id: string, passwordHash: string): boolean {

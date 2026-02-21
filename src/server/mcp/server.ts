@@ -22,7 +22,7 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       tags: z.string().optional().describe('Comma-separated tag names to filter by'),
       limit: z.number().min(1).max(100).optional().describe('Max results to return (default 20, max 100)'),
     },
-    (args) => searchItems(args),
+    async (args) => searchItems(args),
   );
 
   server.tool(

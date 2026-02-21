@@ -556,4 +556,80 @@ describe('ItemRepository Integration Tests', () => {
       });
     });
   });
+
+  describe('searchItems with useHybrid', () => {
+    let itemAId: string;
+    let itemBId: string;
+    let hybridTagRepo: TagRepository;
+
+    beforeEach(() => {
+      hybridTagRepo = new TagRepository();
+      // itemA ranks higher in FTS5 (question match), lower by vector
+      const itemA = itemRepo.create({ userId: testUserId, question: 'Deploy with Bun', answer: '' });
+      itemAId = itemA.id;
+      // itemB ranks lower in FTS5 (answer match), higher by vector
+      const itemB = itemRepo.create({ userId: testUserId, question: 'Something else', answer: 'Deploy your app' });
+      itemBId = itemB.id;
+
+      // Insert pre-computed embeddings directly (no API call)
+      const { db } = require('../db/database');
+      const vectorA = new Float32Array(1536).fill(0.1);
+      const vectorB = new Float32Array(1536).fill(0.9);
+      db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+        itemAId,
+        vectorA,
+        'test-model',
+        new Date().toISOString(),
+      ]);
+      db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+        itemBId,
+        vectorB,
+        'test-model',
+        new Date().toISOString(),
+      ]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [itemAId, vectorA]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [itemBId, vectorB]);
+    });
+
+    test('returns results when hybrid search is enabled', () => {
+      const queryVector = new Float32Array(1536).fill(0.9); // closer to itemB
+
+      const result = itemRepo.searchItems(testUserId, { search: 'deploy', useHybrid: true, queryVector });
+
+      expect(result.items.length).toBeGreaterThanOrEqual(1);
+      expect(result.total).toBeGreaterThanOrEqual(1);
+    });
+
+    test('falls back to FTS5 when no query vector provided', () => {
+      const result = itemRepo.searchItems(testUserId, { search: 'deploy', useHybrid: true, queryVector: null });
+
+      // should still return FTS5 results
+      expect(result.items.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('hybrid result merges both FTS5 and vector matches', () => {
+      const queryVector = new Float32Array(1536).fill(0.9); // closer to itemB
+      const result = itemRepo.searchItems(testUserId, { search: 'deploy', useHybrid: true, queryVector });
+
+      const ids = result.items.map((i) => i.id);
+      // both items match "deploy" (itemA in question, itemB in answer)
+      expect(ids).toContain(itemAId);
+      expect(ids).toContain(itemBId);
+    });
+
+    test('tag filtering works with hybrid search', () => {
+      const tag = hybridTagRepo.create({ userId: testUserId, name: 'bun', color: '0e8a16' });
+      hybridTagRepo.setItemTags(itemAId, [tag.id]);
+
+      const queryVector = new Float32Array(1536).fill(0.5);
+      const result = itemRepo.searchItems(testUserId, {
+        search: 'deploy',
+        useHybrid: true,
+        queryVector,
+        tags: ['bun'],
+      });
+
+      expect(result.items.every((i) => i.id === itemAId)).toBe(true);
+    });
+  });
 });

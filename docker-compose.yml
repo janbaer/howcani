@@ -1,87 +1,21 @@
-version: '3.8'
-
 services:
   howcani:
-    # Image from Forgejo registry
-    # To use a specific version, change 'latest' to the version tag (e.g., '3.0.1')
     image: forgejo.home.janbaer.de/jan/howcani:latest
-
     container_name: howcani
-
-    # Load environment variables from .env file
-    # Copy .env.example to .env and customize values before first run
     env_file: .env
-
-    # Environment variables
-    # All variables can be customized via .env file or shell environment
     environment:
-      # Application port (default: 3000)
-      # Configurable via HOWCANI_PORT environment variable
       PORT: ${HOWCANI_PORT:-3000}
-
-      # Database file path inside container
-      # Data is persisted via volume mount to /data
       DATABASE_URL: /data/howcani.db
-
-      # JWT signing secret (required, no default)
-      # Generate with: openssl rand -base64 32
-      HOWCANI_JWT_SECRET: ${HOWCANI_JWT_SECRET}
-
-      # Node environment (production recommended for deployment)
       NODE_ENV: production
-
-    # Run as specified user and group for proper file permissions
-    # Configurable via HOWCANI_UID and HOWCANI_GID (default: 1000:1000)
-    # Ensure the data directory on host is owned by this user:group
     user: ${HOWCANI_UID:-1000}:${HOWCANI_GID:-1000}
-
-    # Volume mount for data persistence
-    # Configurable via HOWCANI_DATA_DIR (default: ./data)
-    # Create directory before first run: mkdir -p ./data && chown $UID:$GID ./data
     volumes:
       - ${HOWCANI_DATA_DIR:-./data}:/data
-
-    # Port mapping
-    # Maps host port to container port (both configurable via HOWCANI_PORT)
     ports:
       - ${HOWCANI_PORT:-3000}:${HOWCANI_PORT:-3000}
-
-    # Restart policy: always restart unless explicitly stopped
     restart: unless-stopped
-
-    # Health check to monitor application status
-    # Checks if the application responds to HTTP requests
     healthcheck:
       test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 3000)).then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
-# Configuration notes:
-#
-# Environment Variables (customize via .env file or shell):
-#   HOWCANI_PORT      - Application port (default: 3000)
-#   HOWCANI_DATA_DIR  - Host directory for data persistence (default: ./data)
-#   HOWCANI_UID       - User ID for container process (default: 1000)
-#   HOWCANI_GID       - Group ID for container process (default: 1000)
-#
-# Example .env file:
-#   HOWCANI_PORT=8080
-#   HOWCANI_DATA_DIR=/var/lib/howcani/data
-#   HOWCANI_UID=1001
-#   HOWCANI_GID=1001
-#
-# Commands:
-#   Start:    docker-compose up -d
-#   Stop:     docker-compose down
-#   Logs:     docker-compose logs -f
-#   Status:   docker-compose ps
-#   Pull:     docker-compose pull
-#
-# First-time setup:
-#   1. Create data directory: mkdir -p ./data
-#   2. Set permissions: chown $UID:$GID ./data
-#   3. Pull image: docker-compose pull
-#   4. Start service: docker-compose up -d
-#   5. Check status: docker-compose ps
