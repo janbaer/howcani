@@ -144,6 +144,17 @@ export async function updateItem(args: {
   });
 }
 
+export function getRelatedItems(args: { username: string; item_id: string }): CallToolResult {
+  const resolved = resolveUser(args.username);
+  if ('isError' in resolved) return resolved;
+
+  const item = itemRepo.findByIdAndUserId(args.item_id, resolved.userId);
+  if (!item) return error(`Item "${args.item_id}" not found`);
+
+  const related = itemRepo.findRelated(args.item_id, resolved.userId);
+  return success({ items: attachTags(related) });
+}
+
 export async function createItem(args: {
   authHeader?: string;
   question: string;

@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.33 - 2026-02-23
+---
+
+- Added `get_related_items` MCP tool that returns up to 5 semantically similar items for a given item ID via KNN vector search, consistent with the web UI related items panel
+
 ## 3.0.32 - 2026-02-23
 ---
 

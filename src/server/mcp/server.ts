@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import pkg from '../../../package.json';
-import { createItem, getItem, listItems, listTags, searchItems, updateItem } from './tools.ts';
+import { createItem, getItem, getRelatedItems, listItems, listTags, searchItems, updateItem } from './tools.ts';
 
 interface McpServerOptions {
   authHeader?: string;
@@ -53,6 +53,16 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       username: z.string().describe('Username whose tags to list'),
     },
     (args) => listTags(args),
+  );
+
+  server.tool(
+    'get_related_items',
+    'Get semantically similar items for a given item using KNN vector search',
+    {
+      username: z.string().describe('Username who owns the item'),
+      item_id: z.string().describe('The item ID to find related items for'),
+    },
+    (args) => getRelatedItems(args),
   );
 
   server.tool(
