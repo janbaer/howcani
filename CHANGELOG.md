@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.32 - 2026-02-23
+---
+
+- Added "Related items" panel to the item detail page, showing up to 5 semantically similar items via KNN vector search
+- Panel is collapsed by default and lazy-loads results on first expand, with no duplicate API calls on re-expand
+- Added public `GET /api/:username/items/:id/related` endpoint returning similar items using cosine distance on stored embeddings
+- Panel resets state correctly when navigating between items, preventing stale results from a previous item
+
 ## 3.0.31 - 2026-02-21
 ---
 

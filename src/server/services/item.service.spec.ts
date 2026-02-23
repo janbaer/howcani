@@ -67,6 +67,9 @@ const mockItemRepository = {
       };
     },
   ),
+  findRelated: mock((itemId: string, userId: string) => {
+    return Array.from(testItems.values()).filter((i) => i.user_id === userId && i.id !== itemId);
+  }),
 };
 
 mock.module('../repositories', () => ({
@@ -547,6 +550,48 @@ describe('ItemService', () => {
       itemService.deleteItem(created.data.id);
 
       expect(mockEmbeddingService.deleteEmbedding).toHaveBeenCalledWith(created.data.id);
+    });
+  });
+
+  describe('getRelatedItems', () => {
+    test('returns related items for valid item', () => {
+      const user = createTestUser('related-user-1');
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const item = itemService.createItem({ question: 'Source item', answer: '' });
+      if (!item.success) throw new Error('create failed');
+
+      const other = itemService.createItem({ question: 'Other item', answer: '' });
+      if (!other.success) throw new Error('create failed');
+
+      const result = itemService.getRelatedItems(item.data.id, 'related-user-1');
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(Array.isArray(result.data)).toBe(true);
+    });
+
+    test('returns USER_NOT_FOUND when username does not exist', () => {
+      const user = createTestUser('related-user-2');
+      const itemService = new ItemService(user.id, createMockTagService(user.id) as unknown as TagService);
+
+      const result = itemService.getRelatedItems('some-id', 'nonexistent-user');
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('USER_NOT_FOUND');
+    });
+
+    test('returns NOT_FOUND when item does not exist', () => {
+      const user = createTestUser('related-user-3');
+      const itemService = new ItemService(user.id, createMockTagService(user.id) as unknown as TagService);
+
+      const result = itemService.getRelatedItems('nonexistent-id', 'related-user-3');
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('NOT_FOUND');
     });
   });
 });

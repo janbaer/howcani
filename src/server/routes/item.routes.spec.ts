@@ -111,6 +111,23 @@ const mockSessionItemService = {
     }
     return createSuccessResult(item);
   }),
+  getRelatedItems: mock(
+    (
+      itemId: string,
+      username: string,
+    ): { success: true; data: ItemWithTags[] } | { success: false; error: ItemError } => {
+      const user = testUsers.get(username);
+      if (!user) {
+        return createErrorResult('USER_NOT_FOUND', 'User not found');
+      }
+      const item = testItems.get(itemId);
+      if (!item || item.user_id !== user.id) {
+        return createErrorResult('NOT_FOUND', 'Item not found');
+      }
+      const related = Array.from(testItems.values()).filter((i) => i.user_id === user.id && i.id !== itemId);
+      return { success: true, data: related };
+    },
+  ),
   listItems: mock(
     (
       username: string,
@@ -1019,6 +1036,82 @@ describe('Item Routes', () => {
       expect(data.filters).toBeDefined();
       expect(data.filters.search).toBeNull();
       expect(data.filters.tags).toBeNull();
+    });
+  });
+
+  describe('GET /api/:username/items/:id/related - Related Items', () => {
+    test('returns 200 with related items array', async () => {
+      const { token } = await registerAndLogin('john', 'john@example.com');
+
+      const createRes = await app.handle(
+        new Request('http://localhost/api/john/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader(token) },
+          body: JSON.stringify({ question: 'Source item', answer: '' }),
+        }),
+      );
+      const created = await createRes.json();
+      const itemId = created.item.id;
+
+      await app.handle(
+        new Request('http://localhost/api/john/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader(token) },
+          body: JSON.stringify({ question: 'Other item', answer: '' }),
+        }),
+      );
+
+      const res = await app.handle(new Request(`http://localhost/api/john/items/${itemId}/related`));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(Array.isArray(data.items)).toBe(true);
+    });
+
+    test('returns 200 with empty array when no related items', async () => {
+      const { token } = await registerAndLogin('john2', 'john2@example.com');
+
+      const createRes = await app.handle(
+        new Request('http://localhost/api/john2/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader(token) },
+          body: JSON.stringify({ question: 'Only item', answer: '' }),
+        }),
+      );
+      const created = await createRes.json();
+      const itemId = created.item.id;
+
+      const res = await app.handle(new Request(`http://localhost/api/john2/items/${itemId}/related`));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(data.items).toEqual([]);
+    });
+
+    test('returns 404 for non-existent item', async () => {
+      await registerAndLogin('john3', 'john3@example.com');
+
+      const res = await app.handle(new Request('http://localhost/api/john3/items/nonexistent/related'));
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    });
+
+    test('returns 200 without authentication (public endpoint)', async () => {
+      const { token } = await registerAndLogin('john4', 'john4@example.com');
+
+      const createRes = await app.handle(
+        new Request('http://localhost/api/john4/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader(token) },
+          body: JSON.stringify({ question: 'Public item', answer: '' }),
+        }),
+      );
+      const created = await createRes.json();
+      const itemId = created.item.id;
+
+      const res = await app.handle(new Request(`http://localhost/api/john4/items/${itemId}/related`));
+
+      expect(res.status).toBe(StatusCodes.OK);
     });
   });
 });

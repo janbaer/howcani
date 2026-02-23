@@ -680,4 +680,78 @@ describe('ItemRepository Integration Tests', () => {
       expect(result.items.every((i) => i.id === itemAId)).toBe(true);
     });
   });
+
+  describe('findRelated', () => {
+    let sourceItemId: string;
+    let similarItemId: string;
+    let differentItemId: string;
+
+    beforeEach(() => {
+      const source = itemRepo.create({ userId: testUserId, question: 'Source item', answer: '' });
+      sourceItemId = source.id;
+      const similar = itemRepo.create({ userId: testUserId, question: 'Very similar item', answer: '' });
+      similarItemId = similar.id;
+      const different = itemRepo.create({ userId: testUserId, question: 'Completely different topic', answer: '' });
+      differentItemId = different.id;
+
+      const { db } = require('../db/database');
+      const vectorSource = new Float32Array(1536).fill(0.5);
+      const vectorSimilar = new Float32Array(1536).fill(0.51);
+      const vectorDifferent = new Float32Array(1536).fill(0.0);
+
+      for (const [id, vec] of [
+        [sourceItemId, vectorSource],
+        [similarItemId, vectorSimilar],
+        [differentItemId, vectorDifferent],
+      ] as [string, Float32Array][]) {
+        db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+          id,
+          vec,
+          'test-model',
+          new Date().toISOString(),
+        ]);
+        db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [id, vec]);
+      }
+    });
+
+    test('returns similar items excluding the source item', () => {
+      const results = itemRepo.findRelated(sourceItemId, testUserId);
+
+      const ids = results.map((i) => i.id);
+      expect(ids).not.toContain(sourceItemId);
+      expect(ids.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('respects limit parameter', () => {
+      const results = itemRepo.findRelated(sourceItemId, testUserId, 1);
+      expect(results.length).toBeLessThanOrEqual(1);
+    });
+
+    test('returns empty array when item has no embedding', () => {
+      const noEmbeddingItem = itemRepo.create({ userId: testUserId, question: 'No embedding', answer: '' });
+      const results = itemRepo.findRelated(noEmbeddingItem.id, testUserId);
+      expect(results).toEqual([]);
+    });
+
+    test('does not return items from other users', () => {
+      const otherUser = new UserRepository().create({
+        username: 'other',
+        email: 'other@example.com',
+        passwordHash: 'hash',
+      });
+      const otherItem = itemRepo.create({ userId: otherUser.id, question: 'Other user item', answer: '' });
+      const { db } = require('../db/database');
+      const vec = new Float32Array(1536).fill(0.5);
+      db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+        otherItem.id,
+        vec,
+        'test-model',
+        new Date().toISOString(),
+      ]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [otherItem.id, vec]);
+
+      const results = itemRepo.findRelated(sourceItemId, testUserId);
+      expect(results.map((i) => i.id)).not.toContain(otherItem.id);
+    });
+  });
 });

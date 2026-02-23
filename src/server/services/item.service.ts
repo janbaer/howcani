@@ -201,6 +201,24 @@ export class ItemService {
     };
   }
 
+  getRelatedItems(itemId: string, username: string): Result<ItemWithTags[]> {
+    const user = userService.findByUsername(username);
+    if (!user) {
+      return createError('USER_NOT_FOUND', 'User not found');
+    }
+
+    const item = itemRepository.findByIdAndUserId(itemId, user.id);
+    if (!item) {
+      return createError('NOT_FOUND', 'Item not found');
+    }
+
+    const related = itemRepository.findRelated(itemId, user.id);
+    return {
+      success: true,
+      data: related.map((r) => ({ ...r, tags: this.tagService.findTagsForItem(r.id) })),
+    };
+  }
+
   itemExists(itemId: string): boolean {
     return itemRepository.findByIdAndUserId(itemId, this.userId) !== null;
   }

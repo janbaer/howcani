@@ -2,6 +2,7 @@
 import ItemDeleteConfirmModal from '../components/ItemDeleteConfirmModal.svelte';
 import ItemFormModal from '../components/ItemFormModal.svelte';
 import MarkdownRenderer from '../components/MarkdownRenderer.svelte';
+import RelatedItemsPanel from '../components/RelatedItemsPanel.svelte';
 import TagBadge from '../components/TagBadge.svelte';
 import { getAuthState } from '../lib/auth.svelte';
 import { formatDate, formatTimestamp, type ItemUpdateData } from '../lib/items.svelte';
@@ -151,6 +152,8 @@ $effect(() => {
         <p class="text-muted-foreground italic text-sm">No answer yet.</p>
       {/if}
     </article>
+
+    <RelatedItemsPanel {username} itemId={store.item.id} />
   {/if}
 </div>
 

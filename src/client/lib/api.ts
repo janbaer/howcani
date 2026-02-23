@@ -180,6 +180,10 @@ export const items = {
       method: 'DELETE',
     });
   },
+
+  async getRelated(username: string, id: string): Promise<ApiResponse<{ items: Item[] }>> {
+    return request<{ items: Item[] }>(`/${username}/items/${id}/related`);
+  },
 };
 
 // --- Tag types ---

@@ -51,6 +51,29 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
     },
   )
   .get(
+    '/:id/related',
+    ({ params, set }) => {
+      const result = itemService.getRelatedItems(params.id, params.username);
+
+      if (!result.success) {
+        if (result.error.code === 'NOT_FOUND' || result.error.code === 'USER_NOT_FOUND') {
+          set.status = StatusCodes.NOT_FOUND;
+          return { error: { message: result.error.message, code: 'NOT_FOUND' } };
+        }
+        set.status = StatusCodes.INTERNAL_SERVER_ERROR;
+        return { error: { message: result.error.message, code: result.error.code } };
+      }
+
+      return { items: result.data };
+    },
+    {
+      params: t.Object({
+        username: t.String(),
+        id: t.String(),
+      }),
+    },
+  )
+  .get(
     '/:id',
     ({ params, set }) => {
       const result = itemService.getItem(params.id, params.username);

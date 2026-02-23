@@ -1,4 +1,4 @@
-import { db } from '../db/database';
+import { db, isSqliteVecAvailable } from '../db/database';
 import type { Item } from '../domain/item';
 import { BaseRepository } from './base.repository';
 
@@ -435,6 +435,48 @@ export class ItemRepository extends BaseRepository<Item> {
       .all(userId, sanitized, ...tags, tags.length, limit, offset);
 
     return { items, total };
+  }
+
+  findRelated(itemId: string, userId: string, limit = 5): Item[] {
+    if (!isSqliteVecAvailable()) {
+      return [];
+    }
+
+    const row = db
+      .query<{ embedding: Uint8Array }, [string]>('SELECT embedding FROM item_embeddings WHERE item_id = ?')
+      .get(itemId);
+
+    if (!row) {
+      return [];
+    }
+
+    const rawBytes = row.embedding;
+    const vector = new Float32Array(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength / 4);
+
+    const vecRows = db
+      .query<{ item_id: string }, [string, Uint8Array, number]>(
+        `SELECT vec_items.item_id FROM vec_items
+         JOIN items ON vec_items.item_id = items.id
+         WHERE items.user_id = ?
+           AND vec_items.embedding MATCH ?
+           AND k = ?`,
+      )
+      .all(userId, vector as unknown as Uint8Array, limit + 1);
+
+    const relatedIds = vecRows
+      .map((r) => r.item_id)
+      .filter((id) => id !== itemId)
+      .slice(0, limit);
+
+    if (relatedIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = relatedIds.map(() => '?').join(', ');
+    const rows = db.query<Item, string[]>(`SELECT * FROM items WHERE id IN (${placeholders})`).all(...relatedIds);
+
+    const rowMap = new Map(rows.map((r) => [r.id, r]));
+    return relatedIds.map((id) => rowMap.get(id)).filter(Boolean) as Item[];
   }
 
   countByUserId(userId: string): number {
