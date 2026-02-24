@@ -9,6 +9,16 @@ interface Props {
 
 const { username, itemId }: Props = $props();
 
+function badgeClass(relevance: number): string {
+  if (relevance >= 80) {
+    return 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400';
+  }
+  if (relevance >= 60) {
+    return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
+  }
+  return 'bg-muted text-muted-foreground';
+}
+
 let loading = $state(true);
 let relatedItems = $state<Item[]>([]);
 
@@ -44,16 +54,23 @@ $effect(() => {
       <p class="text-sm text-muted-foreground italic">No related items found.</p>
     {:else}
       <ul class="space-y-2">
-        {#each relatedItems as item}
+        {#each relatedItems as item (item.id)}
           <li class="flex gap-1.5 text-sm">
             <span class="shrink-0 text-muted-foreground">-</span>
-            <a
-              href="/{username}/items/{item.id}"
-              use:link
-              class="text-foreground hover:text-primary transition-colors font-mono leading-snug"
-            >
-              {item.question}
-            </a>
+            <span class="flex flex-wrap items-baseline gap-x-1.5 leading-snug">
+              <a
+                href="/{username}/items/{item.id}"
+                use:link
+                class="text-foreground hover:text-primary transition-colors font-mono"
+              >
+                {item.question}
+              </a>
+              {#if item.relevance !== undefined}
+                <span class="shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium {badgeClass(item.relevance)}">
+                  {item.relevance}%
+                </span>
+              {/if}
+            </span>
           </li>
         {/each}
       </ul>

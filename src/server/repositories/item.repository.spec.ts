@@ -717,9 +717,18 @@ describe('ItemRepository Integration Tests', () => {
     test('returns similar items excluding the source item', () => {
       const results = itemRepo.findRelated(sourceItemId, testUserId);
 
-      const ids = results.map((i) => i.id);
+      const ids = results.map((r) => r.item.id);
       expect(ids).not.toContain(sourceItemId);
       expect(ids.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('returns distance value for each result', () => {
+      const results = itemRepo.findRelated(sourceItemId, testUserId);
+      expect(results.length).toBeGreaterThanOrEqual(1);
+      for (const r of results) {
+        expect(typeof r.distance).toBe('number');
+        expect(r.distance).toBeGreaterThanOrEqual(0);
+      }
     });
 
     test('respects limit parameter', () => {
@@ -751,7 +760,7 @@ describe('ItemRepository Integration Tests', () => {
       db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [otherItem.id, vec]);
 
       const results = itemRepo.findRelated(sourceItemId, testUserId);
-      expect(results.map((i) => i.id)).not.toContain(otherItem.id);
+      expect(results.map((r) => r.item.id)).not.toContain(otherItem.id);
     });
   });
 });

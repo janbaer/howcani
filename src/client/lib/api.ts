@@ -107,6 +107,7 @@ export interface Item {
   tags: Tag[];
   created_at: string;
   updated_at: string;
+  relevance?: number;
 }
 
 export interface ItemListResponse {

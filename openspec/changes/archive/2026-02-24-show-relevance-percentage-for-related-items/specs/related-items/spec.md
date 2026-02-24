@@ -1,3 +1,5 @@
+## MODIFIED Requirements
+
 ### Requirement: Fetch related items via API
 
 The system SHALL provide a public endpoint to retrieve semantically similar items for a given item, using KNN vector search on stored embeddings. Each item in the response SHALL include a `relevance` field — an integer percentage (0–100) representing cosine similarity to the queried item.
@@ -10,11 +12,6 @@ The system SHALL provide a public endpoint to retrieve semantically similar item
 #### Scenario: Returns empty array when item has no embedding
 
 - **WHEN** GET `/api/:username/items/:id/related` is called for an item without a stored embedding
-- **THEN** the system returns HTTP 200 with an empty array
-
-#### Scenario: Returns empty array when sqlite-vec is unavailable
-
-- **WHEN** GET `/api/:username/items/:id/related` is called and sqlite-vec extension is not loaded
 - **THEN** the system returns HTTP 200 with an empty array
 
 #### Scenario: Returns 404 for non-existent item

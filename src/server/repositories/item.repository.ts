@@ -437,7 +437,7 @@ export class ItemRepository extends BaseRepository<Item> {
     return { items, total };
   }
 
-  findRelated(itemId: string, userId: string, limit = 5): Item[] {
+  findRelated(itemId: string, userId: string, limit = 5): Array<{ item: Item; distance: number }> {
     if (!isSqliteVecAvailable()) {
       return [];
     }
@@ -454,8 +454,8 @@ export class ItemRepository extends BaseRepository<Item> {
     const vector = new Float32Array(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength / 4);
 
     const vecRows = db
-      .query<{ item_id: string }, [string, Uint8Array, number]>(
-        `SELECT vec_items.item_id FROM vec_items
+      .query<{ item_id: string; distance: number }, [string, Uint8Array, number]>(
+        `SELECT vec_items.item_id, vec_items.distance FROM vec_items
          JOIN items ON vec_items.item_id = items.id
          WHERE items.user_id = ?
            AND vec_items.embedding MATCH ?
@@ -463,20 +463,23 @@ export class ItemRepository extends BaseRepository<Item> {
       )
       .all(userId, vector as unknown as Uint8Array, limit + 1);
 
-    const relatedIds = vecRows
-      .map((r) => r.item_id)
-      .filter((id) => id !== itemId)
-      .slice(0, limit);
+    const relatedRows = vecRows.filter((r) => r.item_id !== itemId).slice(0, limit);
 
-    if (relatedIds.length === 0) {
+    if (relatedRows.length === 0) {
       return [];
     }
 
+    const relatedIds = relatedRows.map((r) => r.item_id);
     const placeholders = relatedIds.map(() => '?').join(', ');
-    const rows = db.query<Item, string[]>(`SELECT * FROM items WHERE id IN (${placeholders})`).all(...relatedIds);
+    const items = db.query<Item, string[]>(`SELECT * FROM items WHERE id IN (${placeholders})`).all(...relatedIds);
 
-    const rowMap = new Map(rows.map((r) => [r.id, r]));
-    return relatedIds.map((id) => rowMap.get(id)).filter(Boolean) as Item[];
+    const itemMap = new Map(items.map((i) => [i.id, i]));
+    return relatedRows
+      .map((r) => {
+        const item = itemMap.get(r.item_id);
+        return item ? { item, distance: r.distance } : null;
+      })
+      .filter(Boolean) as Array<{ item: Item; distance: number }>;
   }
 
   countByUserId(userId: string): number {

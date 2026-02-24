@@ -67,9 +67,7 @@ const mockItemRepository = {
       };
     },
   ),
-  findRelated: mock((itemId: string, userId: string) => {
-    return Array.from(testItems.values()).filter((i) => i.user_id === userId && i.id !== itemId);
-  }),
+  findRelated: mock((_itemId: string, _userId: string) => []),
 };
 
 mock.module('../repositories', () => ({

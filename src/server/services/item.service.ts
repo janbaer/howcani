@@ -201,7 +201,7 @@ export class ItemService {
     };
   }
 
-  getRelatedItems(itemId: string, username: string): Result<ItemWithTags[]> {
+  getRelatedItems(itemId: string, username: string): Result<Array<ItemWithTags & { relevance: number }>> {
     const user = userService.findByUsername(username);
     if (!user) {
       return createError('USER_NOT_FOUND', 'User not found');
@@ -213,9 +213,15 @@ export class ItemService {
     }
 
     const related = itemRepository.findRelated(itemId, user.id);
+    const rawScores = related.map(({ distance }) => Math.round((1 - distance ** 2 / 2) * 100));
+    const topScore = rawScores[0] ?? 100;
     return {
       success: true,
-      data: related.map((r) => ({ ...r, tags: this.tagService.findTagsForItem(r.id) })),
+      data: related.map(({ item: r }, i) => ({
+        ...r,
+        tags: this.tagService.findTagsForItem(r.id),
+        relevance: Math.round((rawScores[i] / topScore) * 100),
+      })),
     };
   }
 

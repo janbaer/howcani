@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.37 - 2026-02-24
+---
+
+- Related items now display relevance scores as colored pill badges — green for strong matches (≥ 80%), amber for medium (≥ 60%), grey for weak
+- Relevance scores are normalized relative to the top result, so the closest match always shows 100% and others scale proportionally
+- Refactored badge color logic into a `badgeClass` function for cleaner Svelte template code
+
 ## 3.0.36 - 2026-02-24
 ---
 
