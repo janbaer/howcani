@@ -91,10 +91,14 @@ export function navigate(path: string) {
   const newQuery = parseQuery(search ? `?${search}` : '');
 
   if (newPath !== _currentPath || JSON.stringify(newQuery) !== JSON.stringify(_currentQuery)) {
+    const pathChanged = newPath !== _currentPath;
     history.pushState(null, '', path);
     _currentPath = newPath;
     _currentQuery = newQuery;
     notifyListeners();
+    if (pathChanged) {
+      window.scrollTo(0, 0);
+    }
   }
 }
 

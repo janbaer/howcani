@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.36 - 2026-02-24
+---
+
+- Redesigned item detail page with a two-column grid layout — article on the left, related items sidebar on the right (collapses to single column on mobile)
+- Related items panel now auto-loads on mount instead of requiring a toggle click; removed the accordion pattern
+- Article card uses adaptive height: sizes to content for short answers, caps at viewport height with an internal scrollbar for long content
+- Article metadata (title, tags, dates, actions) stays fixed while only the answer content scrolls on desktop
+- Back button on item detail page is now sticky on mobile, remaining visible while scrolling
+- Tag chips on the item list page are now sticky on mobile, staying pinned below the search bar while scrolling
+
 ## 3.0.33 - 2026-02-23
 ---
 

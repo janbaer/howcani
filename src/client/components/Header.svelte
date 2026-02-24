@@ -12,7 +12,7 @@ let searchQuery = $state('');
 let searchTimeout = $state<ReturnType<typeof setTimeout> | null>(null);
 
 const currentPath = $derived(getCurrentPath());
-const isItemsPage = $derived(currentPath.includes('/items') && !currentPath.match(/\/items\/\d+$/));
+const isItemsPage = $derived(currentPath.includes('/items') && !currentPath.match(/\/items\/.+$/));
 
 // Sync search from URL
 $effect(() => {

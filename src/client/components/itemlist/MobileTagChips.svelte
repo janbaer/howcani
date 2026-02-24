@@ -10,7 +10,7 @@ interface Props {
 const { tags, selectedTags, onToggleTag }: Props = $props();
 </script>
 
-<div class="lg:hidden mb-4 -mx-4 px-4">
+<div class="lg:hidden mb-2 -mx-4 px-4 sticky top-[119px] z-10 bg-background pb-2 -mt-6">
   <div class="flex gap-2 overflow-x-auto tags-scroll pb-1">
     {#each tags as tag}
       {@const isSelected = selectedTags.includes(tag.name)}
