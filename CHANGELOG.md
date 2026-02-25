@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.39 - 2026-02-25
+---
+
+- Fixed Docker image `Created` timestamp showing "46 years ago" by unsetting `SOURCE_DATE_EPOCH` and passing `--timestamp` explicitly to the build command
+
 ## 3.0.37 - 2026-02-24
 ---
 

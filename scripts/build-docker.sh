@@ -125,7 +125,7 @@ echo ""
 # Step 3: Build container image
 echo "🐳 Building container image (Bun ${BUN_VERSION})..."
 VERSION_TAG="${FULL_IMAGE}:${VERSION}"
-if ! $CONTAINER_CMD build --build-arg BUN_VERSION="${BUN_VERSION}" -t "${VERSION_TAG}" .; then
+if ! env -u SOURCE_DATE_EPOCH $CONTAINER_CMD build --build-arg BUN_VERSION="${BUN_VERSION}" --timestamp "$(date +%s)" -t "${VERSION_TAG}" .; then
   echo -e "${RED}Error: Container build failed${NC}"
   exit 1
 fi
