@@ -43,25 +43,25 @@ async function handleSubmit(e: Event) {
 </script>
 
 <div class="max-w-md w-full mx-auto py-8">
-  <div class="rounded-xl border border-border bg-card p-6 md:p-8">
-    <h2 class="mb-6 font-mono text-xl font-bold text-card-foreground">Create Account</h2>
+  <div class="card p-6 md:p-8">
+    <h2 class="auth-title">Create Account</h2>
 
     {#if authState.error || validationError}
-      <div class="mb-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
+      <div class="mb-4 alert-error">
         {authState.error || validationError}
       </div>
     {/if}
 
     <form onsubmit={handleSubmit} class="space-y-4">
     <div>
-      <label for="reg-username" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
+      <label for="reg-username" class="auth-label">
         Username
       </label>
       <input
         type="text"
         id="reg-username"
         bind:value={username}
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="input"
         placeholder="Choose a username"
         required
         minlength="3"
@@ -70,28 +70,28 @@ async function handleSubmit(e: Event) {
     </div>
 
     <div>
-      <label for="reg-email" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
+      <label for="reg-email" class="auth-label">
         Email
       </label>
       <input
         type="email"
         id="reg-email"
         bind:value={email}
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="input"
         placeholder="your@email.com"
         required
       />
     </div>
 
     <div>
-      <label for="reg-password" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
+      <label for="reg-password" class="auth-label">
         Password
       </label>
       <input
         type="password"
         id="reg-password"
         bind:value={password}
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="input"
         placeholder="At least 8 characters"
         required
         minlength="8"
@@ -99,14 +99,14 @@ async function handleSubmit(e: Event) {
     </div>
 
     <div>
-      <label for="reg-confirm" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
+      <label for="reg-confirm" class="auth-label">
         Confirm Password
       </label>
       <input
         type="password"
         id="reg-confirm"
         bind:value={confirmPassword}
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="input"
         placeholder="Repeat your password"
         required
       />
@@ -115,15 +115,15 @@ async function handleSubmit(e: Event) {
     <button
       type="submit"
       disabled={isSubmitting || !username || !email || !password || !confirmPassword}
-      class="w-full font-mono text-sm rounded-md bg-primary px-4 py-2.5 text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+      class="btn-primary w-full py-2.5"
     >
       {isSubmitting ? "Creating account..." : "Create Account"}
     </button>
   </form>
 
-    <div class="mt-6 text-center text-sm text-muted-foreground">
+    <div class="auth-footer">
       Already have an account?
-      <a href="/login" use:link onclick={() => clearError()} class="ml-1 text-primary hover:underline font-medium">
+      <a href="/login" use:link onclick={() => clearError()} class="auth-link ml-1">
         Login
       </a>
     </div>

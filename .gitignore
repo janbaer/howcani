@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 build/
+src/styles/main.css
 dist/
 .svelte-kit/
 .output/
@@ -53,3 +54,4 @@ vite.config.ts.timestamp-*
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+screenshots

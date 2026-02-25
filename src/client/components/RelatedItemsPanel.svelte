@@ -11,12 +11,12 @@ const { username, itemId }: Props = $props();
 
 function badgeClass(relevance: number): string {
   if (relevance >= 80) {
-    return 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400';
+    return 'border border-green-500 text-green-600 dark:border-green-400 dark:text-green-400';
   }
   if (relevance >= 60) {
-    return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
+    return 'border border-amber-500 text-amber-600 dark:border-amber-400 dark:text-amber-400';
   }
-  return 'bg-muted text-muted-foreground';
+  return 'border border-muted-foreground/40 text-muted-foreground';
 }
 
 let loading = $state(true);
@@ -38,7 +38,7 @@ $effect(() => {
 });
 </script>
 
-<div class="self-start rounded-xl border border-border bg-card">
+<div class="card self-start">
   <div class="px-5 py-3.5 border-b border-border">
     <h2 class="text-sm font-medium text-muted-foreground">Related items</h2>
   </div>

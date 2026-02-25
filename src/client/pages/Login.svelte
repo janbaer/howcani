@@ -25,39 +25,39 @@ async function handleSubmit(e: Event) {
 </script>
 
 <div class="max-w-md w-full mx-auto py-8">
-  <div class="rounded-xl border border-border bg-card p-6 md:p-8">
-    <h2 class="mb-6 font-mono text-xl font-bold text-card-foreground">Login</h2>
+  <div class="card p-6 md:p-8">
+    <h2 class="auth-title">Login</h2>
 
     {#if authState.error}
-      <div class="mb-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-400">
+      <div class="mb-4 alert-error">
         {authState.error}
       </div>
     {/if}
 
     <form onsubmit={handleSubmit} class="space-y-4">
     <div>
-      <label for="username" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
+      <label for="username" class="auth-label">
         Username
       </label>
       <input
         type="text"
         id="username"
         bind:value={username}
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="input"
         placeholder="Enter your username"
         required
       />
     </div>
 
     <div>
-      <label for="password" class="block font-mono text-xs font-medium text-muted-foreground mb-1.5">
+      <label for="password" class="auth-label">
         Password
       </label>
       <input
         type="password"
         id="password"
         bind:value={password}
-        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="input"
         placeholder="Enter your password"
         required
       />
@@ -66,15 +66,15 @@ async function handleSubmit(e: Event) {
     <button
       type="submit"
       disabled={isSubmitting || !username || !password}
-      class="w-full font-mono text-sm rounded-md bg-primary px-4 py-2.5 text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+      class="btn-primary w-full py-2.5"
     >
       {isSubmitting ? "Logging in..." : "Login"}
     </button>
   </form>
 
-    <div class="mt-6 text-center text-sm text-muted-foreground">
+    <div class="auth-footer">
       Don't have an account?
-      <a href="/register" use:link onclick={() => clearError()} class="ml-1 text-primary hover:underline font-medium">
+      <a href="/register" use:link onclick={() => clearError()} class="auth-link ml-1">
         Create one
       </a>
     </div>

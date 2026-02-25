@@ -2,6 +2,17 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.41 - 2026-02-25
+---
+
+- Fixed `TagDeleteConfirmModal` cancel button being disabled and delete spinner showing on re-open — `loading` state was not reset when the modal opened
+- Replaced Tailwind CDN with a build-time CSS pipeline using `@tailwindcss/cli`; theme config moved from inline script to `@theme` in `src/styles/app.css`
+- Introduced semantic component classes (`.card`, `.btn-*`, `.input`, `.dialog`, `.dialog-title`, and more) via `@apply` in `src/styles/app.css`, replacing dense inline utility strings across all Svelte components
+- Extracted 9 additional repeated utility patterns into semantic classes: `.dialog-subtitle`, `.modal-cancel`, `.modal-submit`, `.modal-delete`, `.dropdown-item`, `.auth-label`, `.auth-title`, `.auth-footer`, `.auth-link`
+- Fixed modal dialog centering lost after Tailwind v4 preflight reset (`m-auto` added to `.dialog`)
+- Fixed `.modal-cancel` missing disabled state styles (`disabled:opacity-50 disabled:cursor-not-allowed`)
+- Changed relevance badge style to outlined (colored border, transparent fill) for a more subtle appearance
+
 ## 3.0.39 - 2026-02-25
 ---
 

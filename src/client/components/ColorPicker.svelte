@@ -70,7 +70,7 @@ function handleCustomInput(e: Event) {
 <div class="space-y-4">
   <!-- Preset color grid -->
   <div>
-    <label class="block font-mono text-xs text-muted-foreground mb-2">Preset Colors</label>
+    <label class="form-label">Preset Colors</label>
     <div class="grid grid-cols-8 gap-2">
       {#each PRESET_COLORS as color}
         <button
@@ -94,7 +94,7 @@ function handleCustomInput(e: Event) {
 
   <!-- Custom hex input -->
   <div>
-    <label for="custom-color" class="block font-mono text-xs text-muted-foreground mb-2">
+    <label for="custom-color" class="form-label">
       Custom Hex Color
     </label>
     <div class="flex gap-2 items-start">

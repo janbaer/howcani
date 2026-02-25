@@ -18,6 +18,7 @@ let error = $state('');
 // Open/close modal when tag prop changes
 $effect(() => {
   if (tag) {
+    loading = false;
     error = '';
     dialogElement?.showModal();
     // Focus cancel button (safer default)
@@ -51,15 +52,15 @@ function handleCancel() {
 
 <dialog
   bind:this={dialogElement}
-  class="rounded-xl border border-border bg-card p-0 shadow-2xl backdrop:bg-black/50 max-w-md w-full"
+  class="dialog max-w-md w-full"
   onclose={handleCancel}
 >
   {#if tag}
     <div class="p-6">
       <!-- Header -->
       <div class="mb-6">
-        <h2 class="font-mono text-lg font-bold text-card-foreground">Delete Tag</h2>
-        <p class="mt-1 font-mono text-sm text-muted-foreground">
+        <h2 class="dialog-title">Delete Tag</h2>
+        <p class="dialog-subtitle">
           Delete tag '<span class="font-semibold text-foreground">{tag.name}</span>'?
         </p>
       </div>
@@ -89,7 +90,7 @@ function handleCancel() {
 
       <!-- Error Message -->
       {#if error}
-        <div class="mb-6 rounded-lg bg-red-500/10 border border-red-500/20 p-3">
+        <div class="form-error mb-6">
           <p class="font-mono text-xs text-red-500">{error}</p>
         </div>
       {/if}
@@ -100,13 +101,13 @@ function handleCancel() {
       </p>
 
       <!-- Actions -->
-      <div class="flex justify-end gap-3">
+      <div class="modal-actions mt-0">
         <button
           bind:this={cancelButton}
           type="button"
           onclick={handleCancel}
           disabled={loading}
-          class="rounded-lg px-4 py-2 font-mono text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="modal-cancel"
         >
           Cancel
         </button>
@@ -114,7 +115,7 @@ function handleCancel() {
           type="button"
           onclick={handleDelete}
           disabled={loading}
-          class="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 font-mono text-sm font-medium text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="modal-delete"
         >
           {#if loading}
             <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">

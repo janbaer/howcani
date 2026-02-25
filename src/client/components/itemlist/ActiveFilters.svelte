@@ -13,7 +13,7 @@ const { selectedTags, onToggleTag }: Props = $props();
     {#each selectedTags as tagName}
       <button
         onclick={() => onToggleTag(tagName)}
-        class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs text-primary hover:bg-primary/20 transition-colors"
+        class="tag-chip py-0.5 hover:bg-primary/20 transition-colors"
       >
         {tagName}
         <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

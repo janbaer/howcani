@@ -113,7 +113,7 @@ $effect(() => {
     {#if store.loading && store.items.length === 0}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {#each Array(4) as _}
-          <div class="rounded-xl border border-border bg-card p-5">
+          <div class="card p-5">
             <div class="skeleton h-5 w-3/4 mb-3"></div>
             <div class="skeleton h-16 w-full rounded-md mb-3"></div>
             <div class="flex gap-2">
@@ -154,7 +154,7 @@ $effect(() => {
         {#if isOwner && !searchQuery && store.selectedTags.length === 0}
           <button
             onclick={openCreateModal}
-            class="font-mono text-sm rounded-lg bg-primary px-6 py-2.5 text-primary-foreground hover:opacity-90 transition-opacity"
+            class="btn-primary px-6 py-2.5"
           >
             Add your first question
           </button>

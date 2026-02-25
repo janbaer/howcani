@@ -6,6 +6,7 @@
     <title>HowCanI</title>
     <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#3f8375" />
+    <link rel="stylesheet" href="./styles/main.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -19,33 +20,6 @@
         m.href = "/app.webmanifest";
         document.head.appendChild(m);
       })();
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'sans-serif'],
-              mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-            },
-            colors: {
-              background: "hsl(var(--background))",
-              foreground: "hsl(var(--foreground))",
-              primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
-              secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
-              muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
-              card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
-              accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
-              border: "hsl(var(--border))",
-              input: "hsl(var(--input))",
-              ring: "hsl(var(--ring))",
-              sidebar: { DEFAULT: "hsl(var(--sidebar))", foreground: "hsl(var(--sidebar-foreground))" },
-            },
-          },
-        },
-      };
     </script>
     <style>
       :root {

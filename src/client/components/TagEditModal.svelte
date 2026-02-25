@@ -93,15 +93,15 @@ function handleKeydown(e: KeyboardEvent) {
 
 <dialog
   bind:this={dialogElement}
-  class="rounded-xl border border-border bg-card p-0 shadow-2xl backdrop:bg-black/50 max-w-md w-full"
+  class="dialog max-w-md w-full"
   onclose={handleCancel}
 >
   {#if tag}
     <div class="p-6">
       <!-- Header -->
       <div class="mb-6">
-        <h2 class="font-mono text-lg font-bold text-card-foreground">Edit Tag</h2>
-        <p class="mt-1 font-mono text-xs text-muted-foreground">
+        <h2 class="dialog-title">Edit Tag</h2>
+        <p class="dialog-subtitle">
           Update the tag name and color
         </p>
       </div>
@@ -110,7 +110,7 @@ function handleKeydown(e: KeyboardEvent) {
       <div class="space-y-5">
         <!-- Tag Name Input -->
         <div>
-          <label for="tag-name" class="block font-mono text-xs text-muted-foreground mb-2">
+          <label for="tag-name" class="form-label">
             Tag Name *
           </label>
           <input
@@ -133,19 +133,19 @@ function handleKeydown(e: KeyboardEvent) {
 
         <!-- Error Message -->
         {#if error}
-          <div class="rounded-lg bg-red-500/10 border border-red-500/20 p-3">
+          <div class="form-error">
             <p class="font-mono text-xs text-red-500">{error}</p>
           </div>
         {/if}
       </div>
 
       <!-- Actions -->
-      <div class="mt-6 flex justify-end gap-3">
+      <div class="modal-actions">
         <button
           type="button"
           onclick={handleCancel}
           disabled={loading}
-          class="rounded-lg px-4 py-2 font-mono text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="modal-cancel"
         >
           Cancel
         </button>
@@ -153,7 +153,7 @@ function handleKeydown(e: KeyboardEvent) {
           type="button"
           onclick={handleSave}
           disabled={loading}
-          class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          class="modal-submit"
         >
           {#if loading}
             <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">

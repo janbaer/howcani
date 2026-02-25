@@ -77,7 +77,7 @@ function clearSearch() {
             value={searchQuery}
             oninput={handleSearch}
             placeholder="Search HowCanI..."
-            class="w-full rounded-lg border border-input bg-background pl-9 pr-8 py-1.5 text-sm font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            class="input pl-9 pr-8 py-1.5 font-mono"
           />
           {#if searchQuery}
             <button
@@ -113,7 +113,7 @@ function clearSearch() {
       <!-- Dark mode toggle -->
       <button
         onclick={toggleTheme}
-        class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        class="btn-icon"
         title="Toggle dark mode"
       >
         {#if isDark()}
@@ -132,7 +132,7 @@ function clearSearch() {
         <a
           href="/settings"
           use:link
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          class="btn-icon"
           title="Settings"
         >
           <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -146,7 +146,7 @@ function clearSearch() {
       {#if authState.isAuthenticated && authState.user}
         <button
           onclick={logout}
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          class="btn-icon"
           title={authState.user.username}
         >
           <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="currentColor">
@@ -156,7 +156,7 @@ function clearSearch() {
       {:else if !authState.isLoading}
         <button
           onclick={() => navigate('/login')}
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          class="btn-icon"
         >
           <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -175,7 +175,7 @@ function clearSearch() {
       {#if isItemsPage && overlayState.isAvailable}
         <button
           onclick={toggleTagOverlay}
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-colors lg:hidden"
+          class="btn-mobile-icon hover:bg-primary-foreground/10 lg:hidden"
           aria-label="Toggle tag menu"
         >
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -197,7 +197,7 @@ function clearSearch() {
     <div class="flex items-center gap-2">
       <button
         onclick={toggleTheme}
-        class="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+        class="btn-mobile-icon"
       >
         {#if isDark()}
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -212,7 +212,7 @@ function clearSearch() {
       {#if authState.isAuthenticated && authState.user}
         <button
           onclick={logout}
-          class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground"
+          class="btn-mobile-user"
           title={authState.user.username}
         >
           <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -222,7 +222,7 @@ function clearSearch() {
       {:else if !authState.isLoading}
         <button
           onclick={() => navigate('/login')}
-          class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground"
+          class="btn-mobile-user"
         >
           <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -244,7 +244,7 @@ function clearSearch() {
           value={searchQuery}
           oninput={handleSearch}
           placeholder="Search HowCanI..."
-          class="w-full rounded-lg border border-input bg-card pl-9 pr-8 py-2 text-sm font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          class="input pl-9 pr-8 py-2 bg-card font-mono"
         />
         {#if searchQuery}
           <button

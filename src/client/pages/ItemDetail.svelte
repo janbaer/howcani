@@ -49,7 +49,7 @@ $effect(() => {
   <a
     href="/{username}/items"
     use:link
-    class="sticky top-14 z-10 -mx-4 px-4 py-4 -mt-6 bg-background flex items-center gap-1.5 font-mono text-sm text-muted-foreground hover:text-primary transition-colors mb-2 shrink-0"
+    class="back-link"
   >
     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -84,7 +84,7 @@ $effect(() => {
   <!-- Item detail -->
   {:else if store.item}
     <div class="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
-      <article class="fade-in min-w-0 rounded-xl border border-border bg-card p-6 md:p-8 md:flex md:flex-col md:max-h-[calc(100vh-12rem)] md:overflow-hidden">
+      <article class="fade-in card min-w-0 p-6 md:p-8 md:flex md:flex-col md:max-h-[calc(100vh-12rem)] md:overflow-hidden">
         <h1 class="text-lg md:text-xl font-bold text-card-foreground leading-snug mb-4 shrink-0">
           {store.item.question}
         </h1>
@@ -125,7 +125,7 @@ $effect(() => {
               <button
                 type="button"
                 onclick={() => store.editingItem = store.item}
-                class="flex items-center gap-1 rounded-md p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                class="btn-icon-edit"
                 title="Edit question"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -135,7 +135,7 @@ $effect(() => {
               <button
                 type="button"
                 onclick={() => store.deletingItem = store.item}
-                class="flex items-center gap-1 rounded-md p-1.5 hover:bg-red-500/10 transition-colors text-muted-foreground hover:text-red-500"
+                class="btn-icon-delete"
                 title="Delete question"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

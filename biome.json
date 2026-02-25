@@ -51,6 +51,6 @@
     }
   },
   "files": {
-    "includes": ["src/**"]
+    "includes": ["src/**", "!src/styles/**"]
   }
 }

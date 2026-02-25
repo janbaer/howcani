@@ -47,7 +47,7 @@ async function toggleSemanticSearch() {
   <div class="mb-6">
     <button
       onclick={() => history.back()}
-      class="flex items-center gap-1.5 font-mono text-sm text-muted-foreground hover:text-foreground transition-colors"
+      class="btn-back"
     >
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -55,7 +55,7 @@ async function toggleSemanticSearch() {
       Back
     </button>
   </div>
-  <h1 class="font-mono text-2xl font-bold text-foreground mb-6">Settings</h1>
+  <h1 class="page-title mb-6">Settings</h1>
 
   {#if loading}
     <div class="text-sm text-muted-foreground font-mono">Loading...</div>
@@ -64,7 +64,7 @@ async function toggleSemanticSearch() {
       {error}
     </div>
   {:else}
-    <div class="rounded-xl border border-border bg-card divide-y divide-border">
+    <div class="card divide-y divide-border">
       <div class="flex items-center justify-between px-5 py-4">
         <div>
           <div class="font-mono text-sm font-medium text-card-foreground">Semantic search</div>

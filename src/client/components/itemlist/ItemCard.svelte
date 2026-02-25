@@ -18,7 +18,7 @@ const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: 
 </script>
 
 <article
-  class="item-card group flex flex-col rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md fade-in"
+  class="item-card group card flex flex-col p-4 shadow-sm transition-shadow hover:shadow-md fade-in"
   style="animation-delay: {animationDelay}ms"
   tabindex={isOwner ? 0 : -1}
   onkeydown={(e) => onKeyDown(item, e)}
@@ -66,7 +66,7 @@ const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: 
         <button
           type="button"
           onclick={(e) => onEdit(item, e)}
-          class="rounded-md p-1.5 text-muted-foreground hover:text-primary hover:bg-muted active:bg-muted transition-colors"
+          class="btn-icon-edit"
           aria-label="Edit question"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -76,7 +76,7 @@ const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: 
         <button
           type="button"
           onclick={(e) => onDelete(item, e)}
-          class="rounded-md p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 active:bg-red-50 transition-colors"
+          class="btn-icon-delete"
           aria-label="Delete question"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">

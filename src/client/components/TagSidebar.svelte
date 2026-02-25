@@ -73,12 +73,10 @@ function handleKeyDown(tag: TagWithCount, e: KeyboardEvent) {
           <button
             onclick={() => onToggleTag(tag.name)}
             onkeydown={(e) => handleKeyDown(tag, e)}
-            class="group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors
-              {isSelected ? 'bg-primary/10 text-primary font-medium' : 'text-sidebar-foreground hover:bg-muted'}"
+            class="group tag-nav-item {isSelected ? 'bg-primary/10 text-primary font-medium' : 'text-sidebar-foreground hover:bg-muted'}"
           >
             <!-- Checkbox indicator -->
-            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors
-              {isSelected ? 'border-primary bg-primary' : 'border-border'}">
+            <span class="tag-nav-checkbox {isSelected ? 'border-primary bg-primary' : 'border-border'}">
               {#if isSelected}
                 <svg class="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />

@@ -3,6 +3,17 @@
 import { resolve } from 'node:path';
 import { SveltePlugin } from 'bun-plugin-svelte';
 
+// Build Tailwind CSS before bundling
+const tailwind = Bun.spawnSync(
+  ['bunx', '@tailwindcss/cli', '-i', 'src/styles/app.css', '-o', 'src/styles/main.css', '--minify'],
+  { stdout: 'inherit', stderr: 'inherit' },
+);
+if (tailwind.exitCode !== 0) {
+  console.error('Tailwind CSS build failed');
+  process.exit(tailwind.exitCode ?? 1);
+}
+console.log('✓ Tailwind CSS built');
+
 const outdir = resolve('./dist');
 const isDev = process.env.NODE_ENV !== 'production';
 
