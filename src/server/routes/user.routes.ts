@@ -18,7 +18,6 @@ export const userRoutes = new Elysia({ prefix: '/users' })
         });
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash: _, ...safeUser } = user;
       return safeUser;
     },
@@ -84,7 +83,6 @@ export const userRoutes = new Elysia({ prefix: '/users' })
         });
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password_hash: _, ...safeUser } = updated;
       return safeUser;
     },

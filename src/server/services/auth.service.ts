@@ -25,7 +25,6 @@ export interface AuthError {
 type Result<T> = { success: true; data: T } | { success: false; error: AuthError };
 
 function sanitizeUser(user: User): Omit<User, 'password_hash'> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password_hash: _, ...safeUser } = user;
   return safeUser;
 }

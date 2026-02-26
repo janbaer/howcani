@@ -3,7 +3,6 @@ import { type User, userRepository } from '../repositories';
 export type SafeUser = Omit<User, 'password_hash'>;
 
 function sanitizeUser(user: User): SafeUser {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password_hash: _, ...safeUser } = user;
   return safeUser;
 }

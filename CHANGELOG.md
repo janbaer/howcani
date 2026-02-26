@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.42 - 2026-02-26
+---
+
+- Updated all dependencies to their latest versions (svelte 5.53.5, elysia 1.4.26, @modelcontextprotocol/sdk 1.27.1, marked 17.0.3, and others); pinned codemirror to 5.65.19 as v6 has an incompatible API
+- Removed unused ESLint dependencies (`@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `typescript-eslint`, `globals`) left over from the Biome migration in January
+- Removed leftover `eslint-disable-next-line` comments from 3 server files
+
 ## 3.0.41 - 2026-02-25
 ---
 
