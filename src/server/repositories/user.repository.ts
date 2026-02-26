@@ -7,6 +7,7 @@ export interface User {
   email: string;
   password_hash: string;
   semantic_search_enabled: number;
+  duplicate_threshold: number;
   created_at: string;
   updated_at: string;
 }
@@ -93,6 +94,10 @@ export class UserRepository extends BaseRepository<User> {
       this.now(),
       id,
     ]);
+  }
+
+  updateDuplicateThreshold(id: string, threshold: number): void {
+    db.run(`UPDATE users SET duplicate_threshold = ?, updated_at = ? WHERE id = ?`, [threshold, this.now(), id]);
   }
 
   updatePassword(id: string, passwordHash: string): boolean {

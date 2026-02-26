@@ -185,6 +185,28 @@ export const items = {
   async getRelated(username: string, id: string): Promise<ApiResponse<{ items: Item[] }>> {
     return request<{ items: Item[] }>(`/${username}/items/${id}/related`);
   },
+
+  async getDuplicates(
+    username: string,
+    id: string,
+  ): Promise<ApiResponse<{ items: Array<Item & { relevance: number }> }>> {
+    return request<{ items: Array<Item & { relevance: number }> }>(`/${username}/items/${id}/duplicates`);
+  },
+};
+
+export interface DuplicateItem extends Item {
+  relevance: number;
+}
+
+export interface DuplicateGroup {
+  item: Item;
+  duplicates: DuplicateItem[];
+}
+
+export const duplicates = {
+  async getAll(username: string): Promise<ApiResponse<{ groups: DuplicateGroup[] }>> {
+    return request<{ groups: DuplicateGroup[] }>(`/${username}/duplicates`);
+  },
 };
 
 // --- Tag types ---
@@ -210,6 +232,7 @@ export interface TagUpdateResponse {
 
 export interface Settings {
   semanticSearchEnabled: boolean;
+  duplicateThreshold: number;
 }
 
 export const settings = {

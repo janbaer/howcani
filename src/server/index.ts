@@ -4,7 +4,7 @@ import index from '../index.html';
 import { startCron } from './cron';
 import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
-import { authRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
+import { authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
 
 declare const APP_VERSION: string | undefined;
 console.log(`[howcani] v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'dev'}`);
@@ -13,19 +13,23 @@ runMigrations();
 startCron();
 
 const api = new Elysia()
-  .onError(({ code, set }) => {
+  .onError(({ code, error, set }) => {
     if (code === 'VALIDATION') {
       set.status = 422;
       return { error: { code: 'VALIDATION_ERROR', message: 'Request validation failed' } };
     }
+    console.error('[api] Unhandled error:', code, error);
+    set.status = 500;
+    return { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } };
   })
   .group('/api', (app) =>
     app
       .use(authRoutes)
-      .use(userRoutes)
+      .use(duplicateRoutes)
       .use(itemRoutes)
-      .use(tagRoutes)
       .use(settingsRoutes)
+      .use(tagRoutes)
+      .use(userRoutes)
       .get('/health', () => ({
         status: 'ok',
         timestamp: new Date().toISOString(),

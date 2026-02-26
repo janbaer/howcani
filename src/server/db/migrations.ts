@@ -198,6 +198,11 @@ const MIGRATIONS: Migration[] = [
       SELECT rowid, question, answer FROM items;
     `,
   },
+  {
+    version: 10,
+    name: 'add_duplicate_threshold_to_users',
+    up: `ALTER TABLE users ADD COLUMN duplicate_threshold INTEGER NOT NULL DEFAULT 80;`,
+  },
 ];
 
 const VEC_ITEMS_DDL = `
@@ -228,6 +233,13 @@ export function runMigrations(): void {
 
       console.log(`[db] Migration ${migration.version} complete`);
     }
+  }
+
+  // Recovery: ensure duplicate_threshold column exists even if migration 10 was missed.
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN duplicate_threshold INTEGER NOT NULL DEFAULT 80`);
+  } catch {
+    // Column already exists — expected in the normal case
   }
 
   // Recovery: if the extension is available but vec_items is missing (inconsistent state),

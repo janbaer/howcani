@@ -128,6 +128,22 @@ const mockSessionItemService = {
       return { success: true, data: related };
     },
   ),
+  getDuplicateItems: mock(
+    (
+      itemId: string,
+      username: string,
+    ): { success: true; data: ItemWithTags[] } | { success: false; error: ItemError } => {
+      const user = testUsers.get(username);
+      if (!user) {
+        return createErrorResult('USER_NOT_FOUND', 'User not found');
+      }
+      const item = testItems.get(itemId);
+      if (!item || item.user_id !== user.id) {
+        return createErrorResult('NOT_FOUND', 'Item not found');
+      }
+      return { success: true, data: [] };
+    },
+  ),
   listItems: mock(
     (
       username: string,
@@ -1110,6 +1126,54 @@ describe('Item Routes', () => {
       const itemId = created.item.id;
 
       const res = await app.handle(new Request(`http://localhost/api/john4/items/${itemId}/related`));
+
+      expect(res.status).toBe(StatusCodes.OK);
+    });
+  });
+
+  describe('GET /api/:username/items/:id/duplicates - Duplicate Items', () => {
+    test('returns 200 with duplicates array', async () => {
+      const { token } = await registerAndLogin('dup1', 'dup1@example.com');
+
+      const createRes = await app.handle(
+        new Request('http://localhost/api/dup1/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader(token) },
+          body: JSON.stringify({ question: 'Source item', answer: '' }),
+        }),
+      );
+      const created = await createRes.json();
+      const itemId = created.item.id;
+
+      const res = await app.handle(new Request(`http://localhost/api/dup1/items/${itemId}/duplicates`));
+
+      expect(res.status).toBe(StatusCodes.OK);
+      const data = await res.json();
+      expect(Array.isArray(data.items)).toBe(true);
+    });
+
+    test('returns 404 for non-existent item', async () => {
+      await registerAndLogin('dup2', 'dup2@example.com');
+
+      const res = await app.handle(new Request('http://localhost/api/dup2/items/nonexistent/duplicates'));
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND);
+    });
+
+    test('returns 200 without authentication (public endpoint)', async () => {
+      const { token } = await registerAndLogin('dup3', 'dup3@example.com');
+
+      const createRes = await app.handle(
+        new Request('http://localhost/api/dup3/items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader(token) },
+          body: JSON.stringify({ question: 'Item for dup check', answer: '' }),
+        }),
+      );
+      const created = await createRes.json();
+      const itemId = created.item.id;
+
+      const res = await app.handle(new Request(`http://localhost/api/dup3/items/${itemId}/duplicates`));
 
       expect(res.status).toBe(StatusCodes.OK);
     });

@@ -482,6 +482,103 @@ export class ItemRepository extends BaseRepository<Item> {
       .filter(Boolean) as Array<{ item: Item; distance: number }>;
   }
 
+  findDuplicates(
+    itemId: string,
+    userId: string,
+    thresholdPct: number,
+    limit = 10,
+  ): Array<{ item: Item; distance: number }> {
+    if (!isSqliteVecAvailable()) {
+      return [];
+    }
+
+    const row = db
+      .query<{ embedding: Uint8Array }, [string]>('SELECT embedding FROM item_embeddings WHERE item_id = ?')
+      .get(itemId);
+
+    if (!row) {
+      return [];
+    }
+
+    const rawBytes = row.embedding;
+    const vector = new Float32Array(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength / 4);
+    const maxDistance = Math.sqrt(2 * (1 - thresholdPct / 100));
+
+    const vecRows = db
+      .query<{ item_id: string; distance: number }, [string, Uint8Array, number]>(
+        `SELECT vec_items.item_id, vec_items.distance FROM vec_items
+         JOIN items ON vec_items.item_id = items.id
+         WHERE items.user_id = ?
+           AND vec_items.embedding MATCH ?
+           AND k = ?`,
+      )
+      .all(userId, vector as unknown as Uint8Array, limit + 1);
+
+    const filtered = vecRows.filter((r) => r.item_id !== itemId && r.distance <= maxDistance).slice(0, limit);
+
+    if (filtered.length === 0) {
+      return [];
+    }
+
+    const ids = filtered.map((r) => r.item_id);
+    const placeholders = ids.map(() => '?').join(', ');
+    const items = db.query<Item, string[]>(`SELECT * FROM items WHERE id IN (${placeholders})`).all(...ids);
+    const itemMap = new Map(items.map((i) => [i.id, i]));
+
+    return filtered
+      .map((r) => {
+        const item = itemMap.get(r.item_id);
+        return item ? { item, distance: r.distance } : null;
+      })
+      .filter(Boolean) as Array<{ item: Item; distance: number }>;
+  }
+
+  findAllDuplicates(
+    userId: string,
+    thresholdPct: number,
+  ): Array<{ item: Item; duplicates: Array<Item & { distance: number }> }> {
+    if (!isSqliteVecAvailable()) {
+      return [];
+    }
+
+    const rows = db
+      .query<{ item_id: string }, [string]>(
+        `SELECT ie.item_id FROM item_embeddings ie
+         JOIN items i ON ie.item_id = i.id
+         WHERE i.user_id = ?`,
+      )
+      .all(userId);
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const itemIds = rows.map((r) => r.item_id);
+    const placeholders = itemIds.map(() => '?').join(', ');
+    const allItems = db.query<Item, string[]>(`SELECT * FROM items WHERE id IN (${placeholders})`).all(...itemIds);
+
+    const seenPairs = new Set<string>();
+    const groups: Array<{ item: Item; duplicates: Array<Item & { distance: number }> }> = [];
+
+    for (const item of allItems) {
+      const dups = this.findDuplicates(item.id, userId, thresholdPct);
+      const newDups: Array<Item & { distance: number }> = [];
+
+      for (const { item: dupItem, distance } of dups) {
+        const pairKey = [item.id, dupItem.id].sort().join('|');
+        if (seenPairs.has(pairKey)) continue;
+        seenPairs.add(pairKey);
+        newDups.push({ ...dupItem, distance });
+      }
+
+      if (newDups.length > 0) {
+        groups.push({ item, duplicates: newDups });
+      }
+    }
+
+    return groups;
+  }
+
   countByUserId(userId: string): number {
     const result = db
       .query<{ count: number }, [string]>(`SELECT COUNT(*) as count FROM items WHERE user_id = ?`)

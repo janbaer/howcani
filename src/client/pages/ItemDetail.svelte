@@ -1,4 +1,5 @@
 <script lang="ts">
+import DuplicatesPanel from '../components/DuplicatesPanel.svelte';
 import ItemDeleteConfirmModal from '../components/ItemDeleteConfirmModal.svelte';
 import ItemFormModal from '../components/ItemFormModal.svelte';
 import MarkdownRenderer from '../components/MarkdownRenderer.svelte';
@@ -156,7 +157,10 @@ $effect(() => {
         </div>
       </article>
 
-      <RelatedItemsPanel {username} itemId={store.item.id} />
+      <div class="flex flex-col gap-6">
+        <RelatedItemsPanel {username} itemId={store.item.id} />
+        <DuplicatesPanel {username} itemId={store.item.id} />
+      </div>
     </div>
   {/if}
 </div>

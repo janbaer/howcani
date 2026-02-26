@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.43 - 2026-02-26
+---
+
+- Added duplicate detection via KNN vector similarity: new `GET /api/:username/items/:id/duplicates` endpoint and `DuplicatesPanel` component in the item detail sidebar showing semantically near-identical items with relevance scores
+- Added global duplicates overview: new `GET /api/:username/duplicates` endpoint and collapsible `DuplicatesSection` in Settings listing all duplicate pairs across the knowledge base; section lazy-loads on first expand to avoid O(n²) query on page load
+- Added per-user `duplicate_threshold` setting (integer 50–100%, default 80%) stored in the `users` table (migration v10); Settings page shows a debounced threshold input with auto-save on blur; changing the threshold while the duplicates section is open re-fetches the list
+- Added catch-all error handler to the Elysia API that returns JSON for all unhandled errors, preventing "Network error occurred" on the client
+- Fixed `clearTestDatabase()` to also clear `item_embeddings` and `vec_items` tables between tests
+
 ## 3.0.42 - 2026-02-26
 ---
 

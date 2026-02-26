@@ -68,6 +68,8 @@ const mockItemRepository = {
     },
   ),
   findRelated: mock((_itemId: string, _userId: string) => []),
+  findAllDuplicates: mock((_userId: string, _threshold: number) => []),
+  findDuplicates: mock((_itemId: string, _userId: string, _threshold: number) => []),
 };
 
 mock.module('../repositories', () => ({
@@ -586,6 +588,96 @@ describe('ItemService', () => {
       const itemService = new ItemService(user.id, createMockTagService(user.id) as unknown as TagService);
 
       const result = itemService.getRelatedItems('nonexistent-id', 'related-user-3');
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('NOT_FOUND');
+    });
+  });
+
+  describe('getAllDuplicates', () => {
+    test('returns empty array when no duplicates exist', () => {
+      const user = createTestUser('dup-user-1');
+      const itemService = new ItemService(user.id, createMockTagService(user.id) as unknown as TagService);
+      mockItemRepository.findAllDuplicates.mockImplementation(() => []);
+
+      const result = itemService.getAllDuplicates('dup-user-1');
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data).toEqual([]);
+    });
+
+    test('returns USER_NOT_FOUND when username does not exist', () => {
+      const itemService = new ItemService('', createMockTagService('') as unknown as TagService);
+
+      const result = itemService.getAllDuplicates('nonexistent-user');
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('USER_NOT_FOUND');
+    });
+
+    test('maps repository groups to DuplicateGroup with relevance', () => {
+      const user = createTestUser('dup-user-2');
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const itemA = itemService.createItem({ question: 'Item A', answer: '' });
+      const itemB = itemService.createItem({ question: 'Item B', answer: '' });
+      if (!itemA.success || !itemB.success) throw new Error('create failed');
+
+      mockItemRepository.findAllDuplicates.mockImplementation(() => [
+        {
+          item: testItems.get(itemA.data.id)!,
+          duplicates: [{ ...testItems.get(itemB.data.id)!, distance: 0.1 }],
+        },
+      ]);
+
+      const result = itemService.getAllDuplicates('dup-user-2');
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].item.id).toBe(itemA.data.id);
+      expect(result.data[0].duplicates).toHaveLength(1);
+      expect(result.data[0].duplicates[0].id).toBe(itemB.data.id);
+      expect(typeof result.data[0].duplicates[0].relevance).toBe('number');
+    });
+  });
+
+  describe('getDuplicateItems', () => {
+    test('returns duplicate items for valid item', () => {
+      const user = createTestUser('dup-user-3');
+      const mockTagService = createMockTagService(user.id);
+      const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
+
+      const item = itemService.createItem({ question: 'Source item', answer: '' });
+      if (!item.success) throw new Error('create failed');
+
+      const result = itemService.getDuplicateItems(item.data.id, 'dup-user-3');
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(Array.isArray(result.data)).toBe(true);
+    });
+
+    test('returns USER_NOT_FOUND when username does not exist', () => {
+      const user = createTestUser('dup-user-4');
+      const itemService = new ItemService(user.id, createMockTagService(user.id) as unknown as TagService);
+
+      const result = itemService.getDuplicateItems('some-id', 'nonexistent-dup-user');
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('USER_NOT_FOUND');
+    });
+
+    test('returns NOT_FOUND when item does not exist', () => {
+      const user = createTestUser('dup-user-5');
+      const itemService = new ItemService(user.id, createMockTagService(user.id) as unknown as TagService);
+
+      const result = itemService.getDuplicateItems('nonexistent-id', 'dup-user-5');
 
       expect(result.success).toBe(false);
       if (result.success) return;

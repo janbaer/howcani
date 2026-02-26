@@ -10,6 +10,11 @@ export interface ItemWithTags extends Item {
   tags: Tag[];
 }
 
+export interface DuplicateGroup {
+  item: ItemWithTags;
+  duplicates: Array<ItemWithTags & { relevance: number }>;
+}
+
 export interface SearchFilters {
   search?: string;
   tags?: string[];
@@ -198,6 +203,54 @@ export class ItemService {
           tags: filters.tags && filters.tags.length > 0 ? filters.tags : null,
         },
       },
+    };
+  }
+
+  getAllDuplicates(username: string): Result<DuplicateGroup[]> {
+    const user = userService.findByUsername(username);
+    if (!user) {
+      return createError('USER_NOT_FOUND', 'User not found');
+    }
+
+    const threshold = user.duplicate_threshold ?? 80;
+    const rawGroups = itemRepository.findAllDuplicates(user.id, threshold);
+
+    return {
+      success: true,
+      data: rawGroups.map((group) => ({
+        item: {
+          ...group.item,
+          tags: this.tagService.findTagsForItem(group.item.id),
+        },
+        duplicates: group.duplicates.map((dup) => ({
+          ...dup,
+          tags: this.tagService.findTagsForItem(dup.id),
+          relevance: Math.round((1 - dup.distance ** 2 / 2) * 100),
+        })),
+      })),
+    };
+  }
+
+  getDuplicateItems(itemId: string, username: string): Result<Array<ItemWithTags & { relevance: number }>> {
+    const user = userService.findByUsername(username);
+    if (!user) {
+      return createError('USER_NOT_FOUND', 'User not found');
+    }
+
+    const item = itemRepository.findByIdAndUserId(itemId, user.id);
+    if (!item) {
+      return createError('NOT_FOUND', 'Item not found');
+    }
+
+    const threshold = user.duplicate_threshold ?? 80;
+    const duplicates = itemRepository.findDuplicates(itemId, user.id, threshold);
+    return {
+      success: true,
+      data: duplicates.map(({ item: d, distance }) => ({
+        ...d,
+        tags: this.tagService.findTagsForItem(d.id),
+        relevance: Math.round((1 - distance ** 2 / 2) * 100),
+      })),
     };
   }
 

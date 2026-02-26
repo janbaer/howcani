@@ -763,4 +763,163 @@ describe('ItemRepository Integration Tests', () => {
       expect(results.map((r) => r.item.id)).not.toContain(otherItem.id);
     });
   });
+
+  describe('findDuplicates', () => {
+    let sourceItemId: string;
+    let nearDuplicateItemId: string;
+    let differentItemId: string;
+
+    beforeEach(() => {
+      const source = itemRepo.create({ userId: testUserId, question: 'Source item', answer: '' });
+      sourceItemId = source.id;
+      const nearDuplicate = itemRepo.create({ userId: testUserId, question: 'Near duplicate item', answer: '' });
+      nearDuplicateItemId = nearDuplicate.id;
+      const different = itemRepo.create({ userId: testUserId, question: 'Completely different topic', answer: '' });
+      differentItemId = different.id;
+
+      const { db } = require('../db/database');
+      const vectorSource = new Float32Array(1536).fill(0.5);
+      const vectorNearDuplicate = new Float32Array(1536).fill(0.5001);
+      const vectorDifferent = new Float32Array(1536).fill(0.0);
+
+      for (const [id, vec] of [
+        [sourceItemId, vectorSource],
+        [nearDuplicateItemId, vectorNearDuplicate],
+        [differentItemId, vectorDifferent],
+      ] as [string, Float32Array][]) {
+        db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+          id,
+          vec,
+          'test-model',
+          new Date().toISOString(),
+        ]);
+        db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [id, vec]);
+      }
+    });
+
+    test('returns items above the similarity threshold', () => {
+      const results = itemRepo.findDuplicates(sourceItemId, testUserId, 50);
+      expect(results.map((r) => r.item.id)).not.toContain(sourceItemId);
+      expect(results.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('excludes source item from results', () => {
+      const results = itemRepo.findDuplicates(sourceItemId, testUserId, 50);
+      expect(results.map((r) => r.item.id)).not.toContain(sourceItemId);
+    });
+
+    test('returns empty array for high threshold when no near-duplicates exist', () => {
+      const results = itemRepo.findDuplicates(differentItemId, testUserId, 99);
+      const ids = results.map((r) => r.item.id);
+      expect(ids).not.toContain(differentItemId);
+    });
+
+    test('returns empty array when item has no embedding', () => {
+      const noEmbeddingItem = itemRepo.create({ userId: testUserId, question: 'No embedding', answer: '' });
+      const results = itemRepo.findDuplicates(noEmbeddingItem.id, testUserId, 50);
+      expect(results).toEqual([]);
+    });
+
+    test('returns distance value for each result', () => {
+      const results = itemRepo.findDuplicates(sourceItemId, testUserId, 50);
+      for (const r of results) {
+        expect(typeof r.distance).toBe('number');
+        expect(r.distance).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    test('does not return items from other users', () => {
+      const otherUser = new UserRepository().create({
+        username: 'other-dup',
+        email: 'other-dup@example.com',
+        passwordHash: 'hash',
+      });
+      const otherItem = itemRepo.create({ userId: otherUser.id, question: 'Other user duplicate', answer: '' });
+      const { db } = require('../db/database');
+      const vec = new Float32Array(1536).fill(0.5);
+      db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+        otherItem.id,
+        vec,
+        'test-model',
+        new Date().toISOString(),
+      ]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [otherItem.id, vec]);
+
+      const results = itemRepo.findDuplicates(sourceItemId, testUserId, 50);
+      expect(results.map((r) => r.item.id)).not.toContain(otherItem.id);
+    });
+  });
+
+  describe('findAllDuplicates', () => {
+    let itemAId: string;
+    let itemBId: string;
+    let itemCId: string;
+
+    beforeEach(() => {
+      const itemA = itemRepo.create({ userId: testUserId, question: 'Item A', answer: '' });
+      itemAId = itemA.id;
+      const itemB = itemRepo.create({ userId: testUserId, question: 'Item B very similar to A', answer: '' });
+      itemBId = itemB.id;
+      const itemC = itemRepo.create({ userId: testUserId, question: 'Item C completely different', answer: '' });
+      itemCId = itemC.id;
+
+      const { db } = require('../db/database');
+      const vecA = new Float32Array(1536).fill(0.5);
+      const vecB = new Float32Array(1536).fill(0.51);
+      const vecC = new Float32Array(1536).fill(0.0);
+
+      for (const [id, vec] of [
+        [itemAId, vecA],
+        [itemBId, vecB],
+        [itemCId, vecC],
+      ] as [string, Float32Array][]) {
+        db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+          id,
+          vec,
+          'test-model',
+          new Date().toISOString(),
+        ]);
+        db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [id, vec]);
+      }
+    });
+
+    test('returns groups for items with near-duplicate embeddings', () => {
+      const groups = itemRepo.findAllDuplicates(testUserId, 50);
+      expect(groups.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('each pair appears exactly once (symmetric deduplication)', () => {
+      const groups = itemRepo.findAllDuplicates(testUserId, 50);
+      const pairKeys = new Set<string>();
+      for (const group of groups) {
+        for (const dup of group.duplicates) {
+          const key = [group.item.id, dup.id].sort().join('|');
+          expect(pairKeys.has(key)).toBe(false);
+          pairKeys.add(key);
+        }
+      }
+    });
+
+    test('the A-B pair is captured', () => {
+      const groups = itemRepo.findAllDuplicates(testUserId, 50);
+      const allPairs = groups.flatMap((g) => g.duplicates.map((d) => [g.item.id, d.id].sort().join('|')));
+      const abKey = [itemAId, itemBId].sort().join('|');
+      expect(allPairs).toContain(abKey);
+    });
+
+    test('returns empty array when no pairs exceed threshold', () => {
+      const groups = itemRepo.findAllDuplicates(testUserId, 99);
+      expect(groups).toEqual([]);
+    });
+
+    test('excludes items with no embeddings from groups', () => {
+      itemRepo.create({ userId: testUserId, question: 'No embedding item', answer: '' });
+      const groups = itemRepo.findAllDuplicates(testUserId, 50);
+      const allIds = groups.flatMap((g) => [g.item.id, ...g.duplicates.map((d) => d.id)]);
+      for (const id of allIds) {
+        const found = [itemAId, itemBId, itemCId].includes(id);
+        expect(found).toBe(true);
+      }
+    });
+  });
 });

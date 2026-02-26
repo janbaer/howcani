@@ -1,4 +1,5 @@
 <script lang="ts">
+import DuplicatesSection from '../components/settings/DuplicatesSection.svelte';
 import { settings } from '../lib/api';
 import { getAuthState } from '../lib/auth.svelte';
 import { navigate } from '../lib/router.svelte';
@@ -11,9 +12,12 @@ const { params }: Props = $props();
 const authState = getAuthState();
 
 let semanticSearchEnabled = $state(false);
+let duplicateThreshold = $state(80);
+let savedThreshold = $state(80);
 let loading = $state(true);
 let saving = $state(false);
 let error = $state<string | null>(null);
+let thresholdTimer: ReturnType<typeof setTimeout> | null = null;
 
 $effect(() => {
   if (!authState.isAuthenticated) {
@@ -23,12 +27,43 @@ $effect(() => {
   settings.get().then((res) => {
     if (res.data) {
       semanticSearchEnabled = res.data.semanticSearchEnabled;
+      duplicateThreshold = res.data.duplicateThreshold;
+      savedThreshold = res.data.duplicateThreshold;
     } else {
       error = res.error?.message ?? 'Failed to load settings';
     }
     loading = false;
   });
 });
+
+async function saveThresholdAndRefresh(threshold: number) {
+  const res = await settings.update({ duplicateThreshold: threshold });
+  if (!res.data) {
+    error = res.error?.message ?? 'Failed to save threshold';
+    return;
+  }
+  savedThreshold = threshold;
+}
+
+function onDuplicateThresholdInput() {
+  if (thresholdTimer) clearTimeout(thresholdTimer);
+  thresholdTimer = setTimeout(async () => {
+    thresholdTimer = null;
+    const clamped = Math.min(100, Math.max(50, duplicateThreshold));
+    if (clamped !== duplicateThreshold) duplicateThreshold = clamped;
+    await saveThresholdAndRefresh(clamped);
+  }, 800);
+}
+
+async function onDuplicateThresholdBlur() {
+  if (thresholdTimer) {
+    clearTimeout(thresholdTimer);
+    thresholdTimer = null;
+  }
+  const clamped = Math.min(100, Math.max(50, duplicateThreshold));
+  if (clamped !== duplicateThreshold) duplicateThreshold = clamped;
+  await saveThresholdAndRefresh(clamped);
+}
 
 async function toggleSemanticSearch() {
   saving = true;
@@ -84,6 +119,28 @@ async function toggleSemanticSearch() {
           ></span>
         </button>
       </div>
+
+      <div class="px-5 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="font-mono text-sm font-medium text-card-foreground">Duplicate threshold</div>
+            <div class="font-mono text-xs text-muted-foreground mt-0.5">
+              Minimum similarity (50–100%) to consider two items duplicates
+            </div>
+          </div>
+          <input
+            type="number"
+            min="50"
+            max="100"
+            bind:value={duplicateThreshold}
+            oninput={onDuplicateThresholdInput}
+            onblur={onDuplicateThresholdBlur}
+            class="w-20 rounded-md border border-input bg-background px-3 py-1.5 font-mono text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+      </div>
     </div>
+
+    <DuplicatesSection username={authState.user?.username} {savedThreshold} />
   {/if}
 </div>

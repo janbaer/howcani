@@ -1,4 +1,5 @@
 import { Elysia, t } from 'elysia';
+import { StatusCodes } from 'http-status-codes';
 import { assertAuthenticated, authPlugin } from '../middleware';
 import { settingsService } from '../services/settings.service';
 
@@ -14,14 +15,23 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
   )
   .patch(
     '/',
-    ({ user, body }) => {
+    ({ user, body, set }) => {
       assertAuthenticated(user);
-      return settingsService.updateSettings(user.userId, body);
+      try {
+        return settingsService.updateSettings(user.userId, body);
+      } catch (err) {
+        if (err instanceof RangeError) {
+          set.status = StatusCodes.BAD_REQUEST;
+          return { error: { code: 'VALIDATION_ERROR', message: err.message } };
+        }
+        throw err;
+      }
     },
     {
       auth: true,
       body: t.Object({
         semanticSearchEnabled: t.Optional(t.Boolean()),
+        duplicateThreshold: t.Optional(t.Number()),
       }),
     },
   );
