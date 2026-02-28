@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.47 - 2026-02-28
+---
+
+- Added automatic version update detection via a minimal service worker: when a new version is deployed, a dismissible banner appears at the bottom of the page prompting the user to refresh; the check runs every 5 minutes in the background without requiring a manual page reload
+
 ## 3.0.44 - 2026-02-27
 ---
 

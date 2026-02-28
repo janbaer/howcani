@@ -1,7 +1,9 @@
 <script lang="ts">
 import Layout from './components/Layout.svelte';
+import UpdateBanner from './components/UpdateBanner.svelte';
 import { checkAuth, getAuthState } from './lib/auth.svelte';
 import { getCurrentPath, matchRoute, type RouteMatch, setRoutes, subscribe } from './lib/router.svelte';
+import { initVersionCheck } from './lib/version.svelte';
 import Home from './pages/Home.svelte';
 import ItemDetail from './pages/ItemDetail.svelte';
 import ItemList from './pages/ItemList.svelte';
@@ -24,6 +26,7 @@ const authState = getAuthState();
 
 $effect(() => {
   checkAuth();
+  initVersionCheck();
 });
 
 $effect(() => {
@@ -37,6 +40,7 @@ const Component = $derived((match?.component ?? NotFound) as typeof Home);
 const routeParams = $derived(match?.params ?? {});
 </script>
 
+<UpdateBanner />
 <Layout>
   {#if authState.isLoading}
     <div class="flex items-center justify-center py-12">

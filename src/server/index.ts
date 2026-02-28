@@ -64,7 +64,7 @@ export default {
     }
 
     // Static files from public directory
-    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt', '/app.webmanifest']);
+    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt', '/app.webmanifest', '/sw.js']);
     const staticExtensions = ['.css'];
     const isStaticFile =
       staticFiles.has(url.pathname) ||

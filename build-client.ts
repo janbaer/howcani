@@ -49,6 +49,16 @@ if (!result.success) {
   process.exit(1);
 }
 
+const swContent = `// HowCanI v${pkg.version}
+self.addEventListener('install', () => {});
+self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+self.addEventListener('message', (e) => {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
+});
+`;
+await Bun.write('./public/sw.js', swContent);
+console.log(`✓ Service worker written (v${pkg.version})`);
+
 console.log('✓ Build successful');
 console.log(`  Output: ${outdir}`);
 console.log(`  Files: ${result.outputs.length}`);
