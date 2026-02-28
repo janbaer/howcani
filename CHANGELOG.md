@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.44 - 2026-02-27
+---
+
+- Improved mobile UX: the entire item card is now tappable — clicking/tapping anywhere on a card navigates to the item detail page; clicks on links, buttons, and other interactive elements are handled by those elements only (guard pattern with `closest()`)
+
 ## 3.0.43 - 2026-02-26
 ---
 

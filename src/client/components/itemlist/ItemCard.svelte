@@ -1,6 +1,6 @@
 <script lang="ts">
 import { formatTimestamp, type Item } from '../../lib/items.svelte';
-import { link } from '../../lib/router.svelte';
+import { link, navigate } from '../../lib/router.svelte';
 import MarkdownRenderer from '../MarkdownRenderer.svelte';
 import TagBadge from '../TagBadge.svelte';
 
@@ -15,10 +15,16 @@ interface Props {
 }
 
 const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: Props = $props();
+
+function handleCardClick(e: MouseEvent) {
+  if ((e.target as HTMLElement).closest('a, button, input, select, textarea, [role="button"]')) return;
+  navigate(`/${username}/items/${item.id}`);
+}
 </script>
 
 <article
-  class="item-card group card flex flex-col p-4 shadow-sm transition-shadow hover:shadow-md fade-in"
+  class="item-card group card flex flex-col p-4 shadow-sm transition-shadow hover:shadow-md fade-in cursor-pointer"
+  onclick={handleCardClick}
   style="animation-delay: {animationDelay}ms"
   tabindex={isOwner ? 0 : -1}
   onkeydown={(e) => onKeyDown(item, e)}

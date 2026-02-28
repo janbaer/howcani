@@ -99,6 +99,22 @@ The item list MUST display FAQ items with previews and interaction options.
 - **WHEN** user has more items than page size
 - **THEN** the component MUST show current page items, total count, and pagination controls
 
+#### Scenario: Card-wide tap target navigates to detail
+- **WHEN** user taps or clicks anywhere on the card body (not on a link or button)
+- **THEN** the system SHALL navigate to the item detail page
+
+#### Scenario: Edit button not affected by card tap
+- **WHEN** user taps the edit button on a card
+- **THEN** the edit modal SHALL open and navigation SHALL NOT occur
+
+#### Scenario: Delete button not affected by card tap
+- **WHEN** user taps the delete button on a card
+- **THEN** the delete confirmation SHALL appear and navigation SHALL NOT occur
+
+#### Scenario: Question title link still works
+- **WHEN** user clicks the question title link
+- **THEN** the system SHALL navigate to the item detail page (via the anchor element)
+
 ### Requirement: Authentication State
 
 The UI MUST adapt based on authentication status.
