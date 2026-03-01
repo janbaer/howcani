@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Item, TagWithCount } from '../lib/items.svelte';
+import type { Item, TagWithCount } from '../../lib/items.svelte';
 import MarkdownEditor from './MarkdownEditor.svelte';
 
 interface Props {

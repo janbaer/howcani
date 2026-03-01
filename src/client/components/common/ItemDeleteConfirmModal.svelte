@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Item } from '../lib/items.svelte';
+import type { Item } from '../../lib/items.svelte';
 
 interface Props {
   item: Item | null;

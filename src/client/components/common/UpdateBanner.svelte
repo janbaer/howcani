@@ -1,5 +1,5 @@
 <script lang="ts">
-import { dismiss, getVersionState, refresh } from '../lib/version.svelte';
+import { dismiss, getVersionState, refresh } from '../../lib/version.svelte';
 
 const version = getVersionState();
 </script>

@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { TagWithCount } from '../lib/items.svelte';
+import type { TagWithCount } from '../../lib/items.svelte';
 import ColorPicker from './ColorPicker.svelte';
 
 interface Props {

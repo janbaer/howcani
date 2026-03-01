@@ -1,6 +1,6 @@
 <script lang="ts">
-import Layout from './components/Layout.svelte';
-import UpdateBanner from './components/UpdateBanner.svelte';
+import UpdateBanner from './components/common/UpdateBanner.svelte';
+import Layout from './components/layout/Layout.svelte';
 import { checkAuth, getAuthState } from './lib/auth.svelte';
 import { getCurrentPath, matchRoute, type RouteMatch, setRoutes, subscribe } from './lib/router.svelte';
 import { initVersionCheck } from './lib/version.svelte';

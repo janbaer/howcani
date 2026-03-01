@@ -1,6 +1,6 @@
 <script lang="ts">
-import { type Item, items as itemsApi } from '../lib/api';
-import { link } from '../lib/router.svelte';
+import { type Item, items as itemsApi } from '../../lib/api';
+import { link } from '../../lib/router.svelte';
 
 type DuplicateItem = Item & { relevance: number };
 

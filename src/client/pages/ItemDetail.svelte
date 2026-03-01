@@ -1,10 +1,10 @@
 <script lang="ts">
-import DuplicatesPanel from '../components/DuplicatesPanel.svelte';
-import ItemDeleteConfirmModal from '../components/ItemDeleteConfirmModal.svelte';
-import ItemFormModal from '../components/ItemFormModal.svelte';
-import MarkdownRenderer from '../components/MarkdownRenderer.svelte';
-import RelatedItemsPanel from '../components/RelatedItemsPanel.svelte';
-import TagBadge from '../components/TagBadge.svelte';
+import ItemDeleteConfirmModal from '../components/common/ItemDeleteConfirmModal.svelte';
+import ItemFormModal from '../components/common/ItemFormModal.svelte';
+import MarkdownRenderer from '../components/common/MarkdownRenderer.svelte';
+import TagBadge from '../components/common/TagBadge.svelte';
+import DuplicatesPanel from '../components/item-detail/DuplicatesPanel.svelte';
+import RelatedItemsPanel from '../components/item-detail/RelatedItemsPanel.svelte';
 import { getAuthState } from '../lib/auth.svelte';
 import { formatDate, formatTimestamp, type ItemUpdateData } from '../lib/items.svelte';
 import { link } from '../lib/router.svelte';

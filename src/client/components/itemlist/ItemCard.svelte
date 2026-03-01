@@ -1,8 +1,8 @@
 <script lang="ts">
 import { formatTimestamp, type Item } from '../../lib/items.svelte';
 import { link, navigate } from '../../lib/router.svelte';
-import MarkdownRenderer from '../MarkdownRenderer.svelte';
-import TagBadge from '../TagBadge.svelte';
+import MarkdownRenderer from '../common/MarkdownRenderer.svelte';
+import TagBadge from '../common/TagBadge.svelte';
 
 interface Props {
   item: Item;

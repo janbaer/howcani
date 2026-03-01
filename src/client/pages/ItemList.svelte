@@ -1,11 +1,11 @@
 <script lang="ts">
-import ItemDeleteConfirmModal from '../components/ItemDeleteConfirmModal.svelte';
-import ItemFormModal from '../components/ItemFormModal.svelte';
+import ItemDeleteConfirmModal from '../components/common/ItemDeleteConfirmModal.svelte';
+import ItemFormModal from '../components/common/ItemFormModal.svelte';
 import ActiveFilters from '../components/itemlist/ActiveFilters.svelte';
 import ItemCard from '../components/itemlist/ItemCard.svelte';
 import MobileTagChips from '../components/itemlist/MobileTagChips.svelte';
 import MobileTagOverlay from '../components/itemlist/MobileTagOverlay.svelte';
-import TagSidebar from '../components/TagSidebar.svelte';
+import TagSidebar from '../components/tags/TagSidebar.svelte';
 import { getAuthState } from '../lib/auth.svelte';
 import { getCreateModalState, openCreateModal } from '../lib/create-modal.svelte';
 import type { Item, ItemCreateData } from '../lib/items.svelte';

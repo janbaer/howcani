@@ -1,7 +1,7 @@
 <script lang="ts">
-import { getAuthState } from '../lib/auth.svelte';
-import type { TagWithCount } from '../lib/items.svelte';
-import { deleteTag as deleteTagService, updateTag as updateTagService } from '../lib/items.svelte';
+import { getAuthState } from '../../lib/auth.svelte';
+import type { TagWithCount } from '../../lib/items.svelte';
+import { deleteTag as deleteTagService, updateTag as updateTagService } from '../../lib/items.svelte';
 import TagDeleteConfirmModal from './TagDeleteConfirmModal.svelte';
 import TagEditModal from './TagEditModal.svelte';
 

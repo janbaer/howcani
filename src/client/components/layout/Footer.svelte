@@ -1,5 +1,5 @@
 <script lang="ts">
-import { version } from '../../../package.json';
+import { version } from '../../../../package.json';
 
 const currentYear = new Date().getFullYear();
 </script>

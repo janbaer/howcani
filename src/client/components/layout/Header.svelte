@@ -1,9 +1,9 @@
 <script lang="ts">
-import { getAuthState, logout } from '../lib/auth.svelte';
-import { openCreateModal } from '../lib/create-modal.svelte';
-import { getCurrentPath, getCurrentQuery, link, navigate } from '../lib/router.svelte';
-import { getTagOverlayState, toggleTagOverlay } from '../lib/tag-overlay.svelte';
-import { isDark, toggleTheme } from '../lib/theme.svelte';
+import { getAuthState, logout } from '../../lib/auth.svelte';
+import { openCreateModal } from '../../lib/create-modal.svelte';
+import { getCurrentPath, getCurrentQuery, link, navigate } from '../../lib/router.svelte';
+import { getTagOverlayState, toggleTagOverlay } from '../../lib/tag-overlay.svelte';
+import { isDark, toggleTheme } from '../../lib/theme.svelte';
 
 const authState = getAuthState();
 const overlayState = getTagOverlayState();

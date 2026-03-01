@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.48 - 2026-03-01
+---
+
+- Reorganized client components into feature-based subdirectories: `common/` for shared components, `item-detail/` for ItemDetail-specific panels, `layout/` for app shell components, and `tags/` for tag management; existing `itemlist/` and `settings/` subdirectories are unchanged
+
 ## 3.0.47 - 2026-02-28
 ---
 

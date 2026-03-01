@@ -14,7 +14,7 @@ bun run lint         # Check with Biome (must pass before committing)
 bun run lint:fix     # Auto-fix Biome issues
 ```
 
-Tests use in-memory SQLite — no setup needed. Always run `bun run lint` before committing.
+Tests use in-memory SQLite — no setup needed. Always run `bun run lint` and `bun run build` before committing. The build catches broken module resolution (e.g. incorrect relative import paths after moving files) that lint and tests cannot detect.
 
 ## Architecture
 
