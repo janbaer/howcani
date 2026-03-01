@@ -1,4 +1,4 @@
-// HowCanI service worker — dev placeholder (overwritten by build)
+// HowCanI Service Worker (dev placeholder)
 self.addEventListener('install', () => {});
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
 self.addEventListener('message', (e) => {

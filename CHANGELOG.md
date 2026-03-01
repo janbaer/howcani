@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.49 - 2026-03-01
+---
+
+- Moved the generated service worker (`sw.js`) from `public/` to `dist/` so it is treated as a build artifact and not tracked by Git; in production the versioned file is served from `dist/`, in development the static placeholder from `public/` is used
+
 ## 3.0.48 - 2026-03-01
 ---
 

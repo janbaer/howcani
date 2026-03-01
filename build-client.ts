@@ -56,7 +56,7 @@ self.addEventListener('message', (e) => {
   if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
 `;
-await Bun.write('./public/sw.js', swContent);
+await Bun.write('./dist/sw.js', swContent);
 console.log(`✓ Service worker written (v${pkg.version})`);
 
 console.log('✓ Build successful');

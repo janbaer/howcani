@@ -63,8 +63,19 @@ export default {
       return api.fetch(req);
     }
 
+    // Service worker: serve versioned file from CWD root in production (Dockerfile flattens dist/ to /app/),
+    // or from public/ in dev
+    if (url.pathname === '/sw.js') {
+      const swPath = isDev ? resolve('./public/sw.js') : resolve('./sw.js');
+      const swFile = Bun.file(swPath);
+      if (await swFile.exists()) {
+        return new Response(swFile, { headers: { 'Content-Type': 'application/javascript' } });
+      }
+      return new Response('Service worker not found', { status: 404 });
+    }
+
     // Static files from public directory
-    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt', '/app.webmanifest', '/sw.js']);
+    const staticFiles = new Set(['/favicon.svg', '/logo.svg', '/robots.txt', '/app.webmanifest']);
     const staticExtensions = ['.css'];
     const isStaticFile =
       staticFiles.has(url.pathname) ||
