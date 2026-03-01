@@ -59,7 +59,7 @@ This enables:
   - Service tests: Mock repositories using `mock.module()`, test business logic
   - Repository tests: Use real SQLite in-memory database, test data access
 - **Tools**: Bun test with pytest-style Arrange-Act-Assert structure
-- **Lint**: Always run `bun lint` before committing. Fix all reported errors.
+- **Lint**: Always run `bun run lint` and `bun run build` before committing. Fix all reported errors. The build catches broken module resolution that lint cannot detect.
 
 ### Git Workflow
 - Feature branches for development
@@ -84,7 +84,7 @@ This enables:
 - Frontend code follows layer separation similar to the backend
 - **Pages** (`src/client/pages/`): Routing, lifecycle effects, template rendering. Thin orchestration only.
 - **Stores** (`src/client/stores/`): Reactive state management and business logic using Svelte 5 `$state` runes. Instance-based classes (not singletons) for per-page state. Named `*.store.svelte.ts`.
-- **Components** (`src/client/components/`): Reusable UI pieces receiving data via `$props()`. No direct API calls.
+- **Components** (`src/client/components/`): Reusable UI pieces receiving data via `$props()`. No direct API calls. Organized into subdirectories by feature: `common/` (shared across pages), `item-detail/` (ItemDetail-specific), `itemlist/` (ItemList-specific), `layout/` (app shell), `settings/` (Settings-specific), `tags/` (tag management).
 - **Lib** (`src/client/lib/`): API clients, utilities, and global singletons (auth, router, theme). Named `*.svelte.ts` when using runes.
 - Pages create store instances and wire them to effects; stores handle data fetching, optimistic updates, and state mutations; lib modules handle REST communication with the backend
 

@@ -61,7 +61,7 @@ Svelte 5 SPA with rune-based state. Layer rules mirror the backend:
 
 - **Pages** (`pages/`): routing, lifecycle, thin orchestration only
 - **Stores** (`stores/*.store.svelte.ts`): reactive state classes (not singletons — instantiated per page), data fetching, business logic
-- **Components** (`components/`): receive data via `$props()`, no direct API calls
+- **Components** (`components/`): receive data via `$props()`, no direct API calls; organized into subdirectories: `common/`, `item-detail/`, `itemlist/`, `layout/`, `settings/`, `tags/`
 - **Lib** (`lib/`): API client (`api.ts`), auth state, router, theme — global singletons using runes, named `*.svelte.ts`
 
 The client-side router is hash-based. SPA routes must also be declared in the `routes` map in `src/server/index.ts` or Bun won't serve the HTML shell for direct navigation.
