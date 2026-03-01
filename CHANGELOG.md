@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.53 - 2026-03-01
+---
+
+- Migrated `MarkdownEditor` from CodeMirror 5 (maintenance-only) to CodeMirror 6: the component now uses the `EditorView` API, `Compartment` for dynamic read-only toggling, and `@codemirror/lang-markdown` for GFM syntax highlighting; the external props interface (`value`, `onChange`, `disabled`, `placeholder`) is unchanged
+
 ## 3.0.49 - 2026-03-01
 ---
 
