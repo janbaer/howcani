@@ -14,7 +14,7 @@ bun run lint         # Check with Biome (must pass before committing)
 bun run lint:fix     # Auto-fix Biome issues
 ```
 
-Tests use in-memory SQLite — no setup needed. Always run `bun run lint` and `bun run build` before committing. The build catches broken module resolution (e.g. incorrect relative import paths after moving files) that lint and tests cannot detect.
+Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build and tests. No manual invocation needed before committing or pushing.
 
 ## Architecture
 
