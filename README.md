@@ -55,6 +55,27 @@ Users can toggle semantic search per-account in Settings.
 
 Images go to `forgejo.home.janbaer.de/jan/howcani:VERSION` and `:latest`.
 
+### Cleaning up old images
+
+```bash
+# Delete all local and remote images older than the current package.json version
+./scripts/cleanup-docker.sh
+
+# Or specify a version explicitly
+./scripts/cleanup-docker.sh 3.0.49
+
+# Preview what would be deleted without making changes
+./scripts/cleanup-docker.sh --dry-run
+
+# Only clean up local images (no registry access needed)
+./scripts/cleanup-docker.sh --local-only
+
+# Only clean up remote registry tags (requires FORGEJO_TOKEN)
+./scripts/cleanup-docker.sh --remote-only
+```
+
+Set `FORGEJO_TOKEN` to enable remote cleanup. Local cleanup works without it.
+
 ### Running with Docker Compose
 
 1. Authenticate to the registry: `docker login forgejo.home.janbaer.de`

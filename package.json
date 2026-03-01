@@ -8,13 +8,14 @@
     "dev:css": "bunx @tailwindcss/cli -i src/styles/app.css -o src/styles/main.css --watch",
     "build": "NODE_ENV=production bun run build-client.ts",
     "build:docker": "./scripts/build-docker.sh",
+    "cleanup:docker": "./scripts/cleanup-docker.sh",
     "start": "NODE_ENV=production bun run src/server/index.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "lint": "bunx @biomejs/biome check ./src/",
     "lint:fix": "bunx @biomejs/biome check --fix ./src/",
     "db:migrate": "bun run src/server/db/migrate.ts",
-    "mcp-inspect": "npx @modelcontextprotocol/inspector",
+    "mcp-inspect": "bunx @modelcontextprotocol/inspector",
     "postinstall": "bunx simple-git-hooks"
   },
   "simple-git-hooks": {
