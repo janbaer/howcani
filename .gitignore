@@ -55,3 +55,5 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 screenshots
+.claude/commands/opsx
+.claude/skills/openspec-*
