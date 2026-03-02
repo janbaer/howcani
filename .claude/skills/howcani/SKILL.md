@@ -24,6 +24,10 @@ Ask the user, which tags should be assigned, and if there is no suitable for the
 
 Always show the user a preview of the new item and ask the user if they want to make any changes.
 
+**Formatting guidelines for answers:**
+  - Use Markdown for formatting.
+  - Never start the answer with a header, since the h1 for the whole topic is the question it self. Instead just start with the text for the answer
+
 ## Requirements
 
 - howcani-mcp server should be running and accessible.
