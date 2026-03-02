@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.54 - 2026-03-02
+---
+
+- Added settings icon link to the mobile header bar, visible only when authenticated, matching the desktop header's gear icon and placement
+- Tightened spacing in the DuplicatesSection duplicate pairs list
+
 ## 3.0.53 - 2026-03-01
 ---
 

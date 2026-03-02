@@ -74,7 +74,7 @@ function toggleDuplicates() {
     {:else}
       <ul class="card divide-y divide-border">
         {#each duplicateGroups as group}
-          <li class="px-5 py-3">
+          <li class="px-5 py-2">
             <a
               href="/{username}/items/{group.item.id}"
               use:link
@@ -84,7 +84,7 @@ function toggleDuplicates() {
             </a>
             <ul class="mt-2 space-y-1.5">
               {#each group.duplicates as dup}
-                <li class="ml-8 flex items-center gap-2">
+                <li class="ml-1 flex items-center gap-2">
                   <span class="text-muted-foreground">↳</span>
                   <a
                     href="/{username}/items/{dup.id}"
