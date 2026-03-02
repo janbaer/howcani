@@ -1,4 +1,5 @@
 import { embeddingRepository } from './repositories/embedding.repository';
+import { startBackupCron } from './services/backup.service';
 import { embeddingService } from './services/embedding.service';
 
 const CRON_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -24,6 +25,8 @@ async function backfillEmbeddings(): Promise<void> {
 let cronInterval: ReturnType<typeof setInterval> | null = null;
 
 export function startCron(): void {
+  startBackupCron();
+
   if (!process.env.OPENROUTER_API_KEY) {
     console.warn('[cron] OPENROUTER_API_KEY not set — embedding backfill disabled');
     return;

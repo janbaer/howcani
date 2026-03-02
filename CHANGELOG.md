@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.55 - 2026-03-02
+---
+
+- Added scheduled per-user daily backup: users can enable daily backups, configure a backup time (HH:MM), and set a retention period (1–30 days) in the Settings page; the server runs a per-minute cron that writes `<username>-backup-YYYY-MM-DD.json` files to `./data/backups/` and prunes old files automatically
+- Added configurable backup time column to the users table (migration 12) with `updateBackupTime` repository method and settings service support including HH:MM format validation
+- Added comprehensive test coverage for `backup.service.ts` (16 tests covering `fetchItemsForUser`, `pruneOldBackups`, `runBackupForUser`, and `runScheduledBackups`)
+- Fixed UTC/local date mismatch in backup pruning logic; backup JSON fields use camelCase (`exportedAt`, `createdAt`, `updatedAt`)
+
 ## 3.0.54 - 2026-03-02
 ---
 

@@ -203,6 +203,19 @@ const MIGRATIONS: Migration[] = [
     name: 'add_duplicate_threshold_to_users',
     up: `ALTER TABLE users ADD COLUMN duplicate_threshold INTEGER NOT NULL DEFAULT 80;`,
   },
+  {
+    version: 11,
+    name: 'add_backup_settings_to_users',
+    up: `
+      ALTER TABLE users ADD COLUMN backup_enabled INTEGER NOT NULL DEFAULT 0;
+      ALTER TABLE users ADD COLUMN backup_retention_days INTEGER NOT NULL DEFAULT 7;
+    `,
+  },
+  {
+    version: 12,
+    name: 'add_backup_time_to_users',
+    up: `ALTER TABLE users ADD COLUMN backup_time TEXT NOT NULL DEFAULT '20:00';`,
+  },
 ];
 
 const VEC_ITEMS_DDL = `

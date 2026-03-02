@@ -496,3 +496,20 @@ The mobile header SHALL display the same authenticated navigation actions as the
 - **WHEN** an authenticated user views the application on a mobile viewport
 - **THEN** the header SHALL display a settings icon link to `/settings` in the right-side action bar
 - **AND** the link SHALL only be visible when the user is authenticated
+
+### Requirement: Backup settings in Settings page
+The Settings page SHALL include a Backups section allowing authenticated users to enable daily backups, configure the time of day for the backup, and configure the retention period.
+
+#### Scenario: Backup toggle visible in Settings
+- **WHEN** an authenticated user opens the Settings page
+- **THEN** a "Daily backups" toggle SHALL be visible
+
+#### Scenario: Backup time and retention inputs visible only when backup enabled
+- **WHEN** the backup toggle is enabled
+- **THEN** a "Backup time" time input (HH:MM, default 20:00, server local time) SHALL be visible
+- **AND** a "Retention period" number input (range 1–30, default 7) SHALL be visible
+- **AND** both inputs SHALL auto-save on blur
+
+#### Scenario: Backup inputs hidden when backup disabled
+- **WHEN** the backup toggle is disabled
+- **THEN** the backup time and retention period inputs SHALL NOT be visible

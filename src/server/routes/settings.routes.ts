@@ -32,6 +32,9 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
       body: t.Object({
         semanticSearchEnabled: t.Optional(t.Boolean()),
         duplicateThreshold: t.Optional(t.Number()),
+        backupEnabled: t.Optional(t.Boolean()),
+        backupRetentionDays: t.Optional(t.Number()),
+        backupTime: t.Optional(t.String()),
       }),
     },
   );
