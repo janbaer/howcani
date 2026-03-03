@@ -8,13 +8,12 @@ interface Props {
   item: Item;
   username: string;
   isOwner: boolean;
-  animationDelay: number;
   onEdit: (item: Item, e?: Event) => void;
   onDelete: (item: Item, e: Event) => void;
   onKeyDown: (item: Item, e: KeyboardEvent) => void;
 }
 
-const { item, username, isOwner, animationDelay, onEdit, onDelete, onKeyDown }: Props = $props();
+const { item, username, isOwner, onEdit, onDelete, onKeyDown }: Props = $props();
 
 function handleCardClick(e: MouseEvent) {
   if ((e.target as HTMLElement).closest('a, button, input, select, textarea, [role="button"]')) return;
@@ -23,9 +22,8 @@ function handleCardClick(e: MouseEvent) {
 </script>
 
 <article
-  class="item-card group card flex flex-col p-4 shadow-sm transition-shadow hover:shadow-md fade-in cursor-pointer"
+  class="item-card group card flex flex-col p-4 shadow-sm transition-shadow hover:shadow-md cursor-pointer"
   onclick={handleCardClick}
-  style="animation-delay: {animationDelay}ms"
   tabindex={isOwner ? 0 : -1}
   onkeydown={(e) => onKeyDown(item, e)}
 >

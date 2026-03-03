@@ -27,5 +27,9 @@ export function isDark(): boolean {
 export function toggleTheme() {
   current = current === 'dark' ? 'light' : 'dark';
   localStorage.setItem(THEME_KEY, current);
-  applyTheme(current);
+  if (document.startViewTransition) {
+    document.startViewTransition(() => applyTheme(current));
+  } else {
+    applyTheme(current);
+  }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { fade } from 'svelte/transition';
 import ItemDeleteConfirmModal from '../components/common/ItemDeleteConfirmModal.svelte';
 import ItemFormModal from '../components/common/ItemFormModal.svelte';
 import ActiveFilters from '../components/itemlist/ActiveFilters.svelte';
@@ -12,6 +13,40 @@ import type { Item, ItemCreateData } from '../lib/items.svelte';
 import { getCurrentQuery } from '../lib/router.svelte';
 import { setTagOverlayAvailable } from '../lib/tag-overlay.svelte';
 import { ItemListStore } from '../stores/item-list.store.svelte';
+
+function scrollReveal(node: HTMLElement) {
+  node.style.opacity = '0';
+  node.style.transform = 'translateY(12px)';
+  node.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+  let revealed = false;
+
+  function reveal() {
+    if (revealed) return;
+    revealed = true;
+    node.style.opacity = '1';
+    node.style.transform = 'translateY(0)';
+    observer.disconnect();
+  }
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting) reveal();
+    },
+    { threshold: 0.1 },
+  );
+
+  observer.observe(node);
+
+  // Fallback: reveal items already in the viewport after the page transition (150ms) settles.
+  // On mobile, IntersectionObserver can fire before layout is stable and report isIntersecting: false.
+  setTimeout(() => {
+    const rect = node.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) reveal();
+  }, 200);
+
+  return { destroy: () => observer.disconnect() };
+}
 
 interface Props {
   params: Record<string, string>;
@@ -164,16 +199,17 @@ $effect(() => {
     <!-- Item card grid -->
     {:else}
       <div class="items-masonry">
-        {#each store.items as item, i}
-          <ItemCard
-            {item}
-            {username}
-            {isOwner}
-            animationDelay={Math.min(i * 40, 200)}
-            onEdit={(it, e) => store.handleEdit(it, e)}
-            onDelete={(it, e) => store.handleDeleteClick(it, e)}
-            onKeyDown={handleCardKeyDown}
-          />
+        {#each store.items as item (item.id)}
+          <div use:scrollReveal out:fade={{ duration: 100 }}>
+            <ItemCard
+              {item}
+              {username}
+              {isOwner}
+              onEdit={(it, e) => store.handleEdit(it, e)}
+              onDelete={(it, e) => store.handleDeleteClick(it, e)}
+              onKeyDown={handleCardKeyDown}
+            />
+          </div>
         {/each}
       </div>
 

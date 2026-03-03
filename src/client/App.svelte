@@ -1,4 +1,5 @@
 <script lang="ts">
+import { fly } from 'svelte/transition';
 import UpdateBanner from './components/common/UpdateBanner.svelte';
 import Layout from './components/layout/Layout.svelte';
 import { checkAuth, getAuthState } from './lib/auth.svelte';
@@ -47,6 +48,10 @@ const routeParams = $derived(match?.params ?? {});
       <div class="font-mono text-sm text-muted-foreground">Loading...</div>
     </div>
   {:else}
-    <Component params={routeParams} />
+    {#key path}
+      <div transition:fly={{ x: 20, duration: 150, opacity: 0 }}>
+        <Component params={routeParams} />
+      </div>
+    {/key}
   {/if}
 </Layout>
