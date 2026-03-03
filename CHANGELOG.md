@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.58 - 2026-03-03
+---
+
+- Added polished UI animations using Svelte built-ins, the View Transitions API, and CSS `@starting-style` — no new dependencies
+- Page navigation now slides in from the right using a symmetric `transition:fly` (150ms) on a `{#key path}` block, avoiding the layout shift that separate `in:`/`out:` directives cause
+- Item cards reveal progressively as they scroll into the viewport via a `scrollReveal` Svelte action (IntersectionObserver-based with a 200ms `setTimeout` fallback for mobile Android, where the observer may fire before layout is stable after a page transition)
+- Item cards fade out on removal with `out:fade`; the existing CSS `animationDelay` stagger and `fade-in` class have been removed from `ItemCard`
+- Modal dialogs now scale up from 95% opacity on open and animate out on close using `@starting-style` + `transition-behavior: allow-discrete` on the native `<dialog>` element — no Svelte component changes required
+- Theme toggle cross-fades between light and dark using `document.startViewTransition()` with a synchronous fallback for Firefox
+
 ## 3.0.56 - 2026-03-03
 ---
 
