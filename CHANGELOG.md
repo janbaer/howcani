@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.56 - 2026-03-03
+---
+
+- Fixed backup scheduler timezone mismatch: added `TZ` environment variable (default `Europe/Berlin`) to `docker-compose.yml` so the container's local time matches the user-configured backup time
+
 ## 3.0.55 - 2026-03-02
 ---
 

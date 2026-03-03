@@ -7,6 +7,7 @@ services:
       PORT: ${HOWCANI_PORT:-3000}
       DATABASE_URL: /data/howcani.db
       NODE_ENV: production
+      TZ: ${HOWCANI_TZ:-Europe/Berlin}
     user: ${HOWCANI_UID:-1000}:${HOWCANI_GID:-1000}
     volumes:
       - ${HOWCANI_DATA_DIR:-./data}:/data
