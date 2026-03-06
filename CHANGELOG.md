@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.59 - 2026-03-06
+---
+
+- Strengthened all UI animations: page transitions now use a larger shift (40px + 12px diagonal) with 280ms `cubicOut` easing; scroll-reveal cards animate with 28px lift and a spring curve (`cubic-bezier(0.16, 1, 0.3, 1)`) and a per-card stagger of 50ms (capped at 300ms) for a cascading wave effect
+- Modal open animation now scales from 88% with a −20px vertical drop-in (was an imperceptible 5% scale change at 95%)
+- Theme toggle replaced the default View Transitions cross-fade with a radial `clip-path` circle expanding from the toggle button position
+- Fixed masonry layout fallback: replaced `display: grid` (fixed row heights caused gaps below short cards) with `columns: 32rem` (CSS multi-column, gap-free in all browsers); native `display: grid-lanes` (Chromium 144+) and `grid-template-rows: masonry` (Firefox Nightly) now include proper column specs
+
 ## 3.0.58 - 2026-03-03
 ---
 

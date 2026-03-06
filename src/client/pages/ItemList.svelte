@@ -14,10 +14,16 @@ import { getCurrentQuery } from '../lib/router.svelte';
 import { setTagOverlayAvailable } from '../lib/tag-overlay.svelte';
 import { ItemListStore } from '../stores/item-list.store.svelte';
 
-function scrollReveal(node: HTMLElement) {
+function scrollReveal(node: HTMLElement, index = 0) {
+  // Stagger delay: 50ms per card, capped at 300ms so deep items don't wait forever
+  const delay = Math.min(index * 50, 300);
+
   node.style.opacity = '0';
-  node.style.transform = 'translateY(12px)';
-  node.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  node.style.transform = 'translateY(28px)';
+  // Set the shorthand first — it resets transition-delay to 0s internally.
+  // The explicit delay must come after so it isn't overwritten by the shorthand.
+  node.style.transition = 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
+  node.style.transitionDelay = `${delay}ms`;
 
   let revealed = false;
 
@@ -38,12 +44,12 @@ function scrollReveal(node: HTMLElement) {
 
   observer.observe(node);
 
-  // Fallback: reveal items already in the viewport after the page transition (150ms) settles.
+  // Fallback: reveal items already in the viewport after the page transition (280ms) settles.
   // On mobile, IntersectionObserver can fire before layout is stable and report isIntersecting: false.
   setTimeout(() => {
     const rect = node.getBoundingClientRect();
     if (rect.top < window.innerHeight && rect.bottom > 0) reveal();
-  }, 200);
+  }, 300);
 
   return { destroy: () => observer.disconnect() };
 }
@@ -199,8 +205,8 @@ $effect(() => {
     <!-- Item card grid -->
     {:else}
       <div class="items-masonry">
-        {#each store.items as item (item.id)}
-          <div use:scrollReveal out:fade={{ duration: 100 }}>
+        {#each store.items as item, i (item.id)}
+          <div use:scrollReveal={i} out:fade={{ duration: 150 }}>
             <ItemCard
               {item}
               {username}
@@ -266,30 +272,41 @@ $effect(() => {
 
 <style>
   .items-masonry {
-    /* Base fallback: standard grid */
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(32rem, 100%), 1fr));
-    gap: 1rem;
+    /* CSS columns: true masonry fill — no fixed row heights, no gaps below short cards */
+    columns: 32rem;
+    column-gap: 1rem;
   }
 
-  /* Chromium 140-143: display: masonry (early implementation) */
-  @supports (display: masonry) {
-    .items-masonry {
-      display: masonry;
-    }
+  /* Each card wrapper must not break across a column boundary */
+  .items-masonry > div {
+    break-inside: avoid;
+    margin-bottom: 1rem;
   }
 
-  /* Chromium 144+, Safari TP 234+: grid-lanes (CSSWG standard) */
+  /* Native masonry: Chromium 144+ via chrome://flags (CSSWG standard proposal) */
   @supports (display: grid-lanes) {
     .items-masonry {
       display: grid-lanes;
+      grid-template-columns: repeat(auto-fill, minmax(min(32rem, 100%), 1fr));
+      gap: 1rem;
+    }
+    .items-masonry > div {
+      break-inside: unset;
+      margin-bottom: 0;
     }
   }
 
-  /* Firefox Nightly: grid-based masonry */
+  /* Native masonry: Firefox Nightly */
   @supports (grid-template-rows: masonry) {
     .items-masonry {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(32rem, 100%), 1fr));
       grid-template-rows: masonry;
+      gap: 1rem;
+    }
+    .items-masonry > div {
+      break-inside: unset;
+      margin-bottom: 0;
     }
   }
 </style>

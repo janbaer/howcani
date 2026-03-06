@@ -145,15 +145,33 @@
 
       /* Dialog open/close animation */
       dialog[open] {
-        transition: opacity 0.2s ease, transform 0.2s ease, display 0.2s allow-discrete;
+        transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                    display 0.3s allow-discrete;
         opacity: 1;
-        transform: scale(1);
+        transform: scale(1) translateY(0);
       }
       @starting-style {
         dialog[open] {
           opacity: 0;
-          transform: scale(0.95);
+          transform: scale(0.88) translateY(-20px);
         }
+      }
+
+      /* Theme toggle: radial reveal from the top-right where the button lives */
+      ::view-transition-new(root) {
+        animation: 500ms ease-in-out both theme-reveal-in;
+      }
+      ::view-transition-old(root) {
+        animation: 400ms ease-in-out both theme-reveal-out;
+      }
+      @keyframes theme-reveal-in {
+        from { clip-path: circle(0% at 93% 2%); }
+        to   { clip-path: circle(150% at 93% 2%); }
+      }
+      @keyframes theme-reveal-out {
+        from { clip-path: circle(150% at 93% 2%); }
+        to   { clip-path: circle(0% at 93% 2%); }
       }
 
       /* Code preview in cards */

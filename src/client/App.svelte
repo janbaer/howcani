@@ -1,4 +1,5 @@
 <script lang="ts">
+import { cubicOut } from 'svelte/easing';
 import { fly } from 'svelte/transition';
 import UpdateBanner from './components/common/UpdateBanner.svelte';
 import Layout from './components/layout/Layout.svelte';
@@ -49,7 +50,7 @@ const routeParams = $derived(match?.params ?? {});
     </div>
   {:else}
     {#key path}
-      <div transition:fly={{ x: 20, duration: 150, opacity: 0 }}>
+      <div transition:fly={{ x: 40, y: 12, duration: 280, easing: cubicOut, opacity: 0 }}>
         <Component params={routeParams} />
       </div>
     {/key}
