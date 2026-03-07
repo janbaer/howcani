@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { Elysia } from 'elysia';
+import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import index from '../index.html';
 import { startCron } from './cron';
 import { runMigrations } from './db';
@@ -7,7 +8,8 @@ import { handleMcpRequest } from './mcp';
 import { authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
 
 declare const APP_VERSION: string | undefined;
-console.log(`[howcani] v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'dev'}`);
+const appVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : Bun.env.npm_package_version;
+console.log(`[howcani] v${appVersion}`);
 
 runMigrations();
 startCron();
@@ -15,12 +17,16 @@ startCron();
 const api = new Elysia()
   .onError(({ code, error, set }) => {
     if (code === 'VALIDATION') {
-      set.status = 422;
+      set.status = StatusCodes.UNPROCESSABLE_ENTITY;
       return { error: { code: 'VALIDATION_ERROR', message: 'Request validation failed' } };
     }
+    if (code === 'NOT_FOUND') {
+      set.status = StatusCodes.NOT_FOUND;
+      return { error: { code: 'NOT_FOUND', message: getReasonPhrase(StatusCodes.NOT_FOUND) } };
+    }
     console.error('[api] Unhandled error:', code, error);
-    set.status = 500;
-    return { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } };
+    set.status = StatusCodes.INTERNAL_SERVER_ERROR;
+    return { error: { code: 'INTERNAL_ERROR', message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) } };
   })
   .group('/api', (app) =>
     app
@@ -32,6 +38,7 @@ const api = new Elysia()
       .use(userRoutes)
       .get('/health', () => ({
         status: 'ok',
+        version: appVersion,
         timestamp: new Date().toISOString(),
       })),
   );
@@ -71,7 +78,7 @@ export default {
       if (await swFile.exists()) {
         return new Response(swFile, { headers: { 'Content-Type': 'application/javascript' } });
       }
-      return new Response('Service worker not found', { status: 404 });
+      return new Response('Service worker not found', { status: StatusCodes.NOT_FOUND });
     }
 
     // Static files from public directory
@@ -91,7 +98,7 @@ export default {
 
       // Prevent directory traversal attacks
       if (!requestedPath.startsWith(publicDir)) {
-        return new Response('Forbidden', { status: 403 });
+        return new Response(getReasonPhrase(StatusCodes.FORBIDDEN), { status: StatusCodes.FORBIDDEN });
       }
 
       const file = Bun.file(requestedPath);
@@ -107,7 +114,7 @@ export default {
 
       // Prevent directory traversal attacks
       if (!requestedPath.startsWith(distDir)) {
-        return new Response('Forbidden', { status: 403 });
+        return new Response(getReasonPhrase(StatusCodes.FORBIDDEN), { status: StatusCodes.FORBIDDEN });
       }
 
       const file = Bun.file(requestedPath);

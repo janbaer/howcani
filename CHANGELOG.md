@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.61 - 2026-03-07
+---
+
+- Added `version` field to `GET /api/health` response, sourced from the `APP_VERSION` build-time constant (production) or `Bun.env.npm_package_version` (dev mode)
+- Fixed unknown API routes returning 500; they now correctly return 404
+- Replaced all hardcoded HTTP status codes and message strings in `src/server/index.ts` with `http-status-codes` constants and `getReasonPhrase`
+
 ## 3.0.60 - 2026-03-07
 ---
 
