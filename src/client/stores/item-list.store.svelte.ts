@@ -10,6 +10,7 @@ import {
   type TagWithCount,
   updateItem as updateItemService,
 } from '../lib/items.svelte';
+import { setSearchQuery } from '../lib/search-state.svelte';
 
 export class ItemListStore {
   items = $state<Item[]>([]);
@@ -31,12 +32,31 @@ export class ItemListStore {
     return this.offset + this.pageSize < this.total;
   }
 
+  private filterKey(username: string) {
+    return `howcani_filter_${username}`;
+  }
+
+  private readFilter(username: string): { tags: string[]; search: string } {
+    try {
+      const raw = localStorage.getItem(this.filterKey(username));
+      return raw ? JSON.parse(raw) : { tags: [], search: '' };
+    } catch (e) {
+      console.warn('Failed to read filter state from localStorage:', e);
+      return { tags: [], search: '' };
+    }
+  }
+
+  private saveFilter(username: string, tags: string[], search: string) {
+    localStorage.setItem(this.filterKey(username), JSON.stringify({ tags, search }));
+  }
+
   toggleTag(tagName: string, username: string, searchQuery: string) {
     if (this.selectedTags.includes(tagName)) {
       this.selectedTags = this.selectedTags.filter((t) => t !== tagName);
     } else {
       this.selectedTags = [...this.selectedTags, tagName];
     }
+    this.saveFilter(username, this.selectedTags, searchQuery);
     this.offset = 0;
     this.loadItems(username, searchQuery);
   }
@@ -176,16 +196,29 @@ export class ItemListStore {
   }
 
   load(username: string, searchQuery: string) {
+    const stored = this.readFilter(username);
+    const initialTags = stored.tags;
+
+    // On fresh app open with no active search, restore saved search via the global singleton
+    // (deferred to avoid writing reactive state inside an effect)
+    if (!searchQuery && stored.search) {
+      setTimeout(() => setSearchQuery(stored.search), 0);
+    }
+
     this.offset = 0;
-    this.selectedTags = [];
+    this.selectedTags = initialTags;
     this.loading = true;
     this.error = null;
     this.tagError = null;
 
+    // Always keep localStorage in sync with current state
+    this.saveFilter(username, initialTags, searchQuery || stored.search);
+
     fetchItems(username, {
       limit: this.pageSize,
       offset: 0,
-      search: searchQuery || undefined,
+      search: searchQuery || stored.search || undefined,
+      tags: initialTags.length > 0 ? initialTags : undefined,
     })
       .then((data) => {
         this.items = data.items;

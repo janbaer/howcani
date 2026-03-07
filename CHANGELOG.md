@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.60 - 2026-03-07
+---
+
+- Persisted active tag filters and search term per user in `localStorage` under `howcani_filter_<username>` as `{ tags, search }`, surviving navigation and app reopen
+- Replaced URL query parameter approach for search with a global `$state` singleton (`search-state.svelte.ts`) shared between `Header` and `ItemList` without a common store instance
+- Clearing the search box now immediately writes an empty string to `localStorage`, preventing stale search terms from being restored on page remount
+- Added `console.warn` logging for `localStorage` read and write failures to aid debugging when storage is disabled or quota is exceeded
+
 ## 3.0.59 - 2026-03-06
 ---
 

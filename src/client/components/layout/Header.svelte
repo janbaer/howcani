@@ -1,7 +1,8 @@
 <script lang="ts">
 import { getAuthState, logout } from '../../lib/auth.svelte';
 import { openCreateModal } from '../../lib/create-modal.svelte';
-import { getCurrentPath, getCurrentQuery, link, navigate } from '../../lib/router.svelte';
+import { getCurrentPath, link, navigate } from '../../lib/router.svelte';
+import { getSearchQuery, persistSearch, setSearchQuery } from '../../lib/search-state.svelte';
 import { getTagOverlayState, toggleTagOverlay } from '../../lib/tag-overlay.svelte';
 import { isDark, toggleTheme } from '../../lib/theme.svelte';
 
@@ -14,12 +15,9 @@ let searchTimeout = $state<ReturnType<typeof setTimeout> | null>(null);
 const currentPath = $derived(getCurrentPath());
 const isItemsPage = $derived(currentPath.includes('/items') && !currentPath.match(/\/items\/.+$/));
 
-// Sync search from URL
+// Sync search box from global search state (e.g. when store restores search on app open)
 $effect(() => {
-  if (isItemsPage) {
-    const query = getCurrentQuery();
-    searchQuery = query.search || '';
-  }
+  searchQuery = getSearchQuery();
 });
 
 function handleSearch(e: Event) {
@@ -28,26 +26,15 @@ function handleSearch(e: Event) {
 
   if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    const currentQuery = getCurrentQuery();
-    const newParams = new URLSearchParams();
-
-    if (value) newParams.set('search', value);
-    if (currentQuery.tags) newParams.set('tags', currentQuery.tags);
-
-    const queryString = newParams.toString();
-    navigate(`${currentPath}${queryString ? `?${queryString}` : ''}`);
+    setSearchQuery(value);
+    if (authState.user) persistSearch(authState.user.username, value);
   }, 300);
 }
 
 function clearSearch() {
   searchQuery = '';
-  const currentQuery = getCurrentQuery();
-  const newParams = new URLSearchParams();
-
-  if (currentQuery.tags) newParams.set('tags', currentQuery.tags);
-
-  const queryString = newParams.toString();
-  navigate(`${currentPath}${queryString ? `?${queryString}` : ''}`);
+  setSearchQuery('');
+  if (authState.user) persistSearch(authState.user.username, '');
 }
 </script>
 

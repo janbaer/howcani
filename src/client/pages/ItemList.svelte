@@ -10,7 +10,7 @@ import TagSidebar from '../components/tags/TagSidebar.svelte';
 import { getAuthState } from '../lib/auth.svelte';
 import { getCreateModalState, openCreateModal } from '../lib/create-modal.svelte';
 import type { Item, ItemCreateData } from '../lib/items.svelte';
-import { getCurrentQuery } from '../lib/router.svelte';
+import { getSearchQuery } from '../lib/search-state.svelte';
 import { setTagOverlayAvailable } from '../lib/tag-overlay.svelte';
 import { ItemListStore } from '../stores/item-list.store.svelte';
 
@@ -64,8 +64,7 @@ const createModalState = getCreateModalState();
 const store = new ItemListStore();
 
 const username = $derived(params.username);
-const query = $derived(getCurrentQuery());
-const searchQuery = $derived(query.search || '');
+const searchQuery = $derived(getSearchQuery());
 const isOwner = $derived(authState.isAuthenticated && authState.user?.username === username);
 
 let sentinelElement = $state<HTMLDivElement | null>(null);
