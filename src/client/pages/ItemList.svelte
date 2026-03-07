@@ -271,8 +271,10 @@ $effect(() => {
 
 <style>
   .items-masonry {
+    --card-min-width: 26rem;
+
     /* CSS columns: true masonry fill — no fixed row heights, no gaps below short cards */
-    columns: 32rem;
+    columns: var(--card-min-width);
     column-gap: 1rem;
   }
 
@@ -286,7 +288,7 @@ $effect(() => {
   @supports (display: grid-lanes) {
     .items-masonry {
       display: grid-lanes;
-      grid-template-columns: repeat(auto-fill, minmax(min(32rem, 100%), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min-width), 100%), 1fr));
       gap: 1rem;
     }
     .items-masonry > div {
@@ -299,7 +301,7 @@ $effect(() => {
   @supports (grid-template-rows: masonry) {
     .items-masonry {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(32rem, 100%), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min-width), 100%), 1fr));
       grid-template-rows: masonry;
       gap: 1rem;
     }

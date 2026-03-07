@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.65 - 2026-03-07
+---
+
+- Reduced masonry column min-width from `32rem` to `26rem` to ensure two columns render on the OnePlus Pad 3 in landscape mode (CSS viewport: 1292px)
+- Extracted the column width into a `--card-min-width` CSS variable to avoid repetition across the three masonry layout fallbacks
+
 ## 3.0.64 - 2026-03-07
 ---
 
