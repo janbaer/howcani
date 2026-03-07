@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.64 - 2026-03-07
+---
+
+- Fixed backup files not persisting across container restarts — backup directory is now mounted as a dedicated volume (`HOWCANI_BACKUP_DIR` on host → `/data/backups` in container) instead of writing to the container's ephemeral filesystem
+- Empty string for `BACKUP_DIR` env var now correctly falls back to `/data/backups` (changed `??` to `||`)
+- Healthcheck now uses `/api/health` endpoint instead of the root path
+- Added `HOWCANI_BACKUP_DIR` to `.env.example` for operator discoverability
+
 ## 3.0.63 - 2026-03-07
 ---
 

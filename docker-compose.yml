@@ -7,15 +7,17 @@ services:
       PORT: ${HOWCANI_PORT:-3000}
       DATABASE_URL: /data/howcani.db
       NODE_ENV: production
+      BACKUP_DIR: /data/backups
       TZ: ${HOWCANI_TZ:-Europe/Berlin}
     user: ${HOWCANI_UID:-1000}:${HOWCANI_GID:-1000}
     volumes:
       - ${HOWCANI_DATA_DIR:-./data}:/data
+      - ${HOWCANI_BACKUP_DIR:-./data/backups}:/data/backups
     ports:
       - ${HOWCANI_PORT:-3000}:${HOWCANI_PORT:-3000}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 3000)).then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 3000) + '/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3

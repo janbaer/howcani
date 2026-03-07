@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:
 import { join } from 'node:path';
 import { db } from '../db/database';
 
-const BACKUP_DIR = './data/backups';
+const BACKUP_DIR = process.env.BACKUP_DIR || '/data/backups';
 
 interface BackupItem {
   id: string;
