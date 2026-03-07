@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.63 - 2026-03-07
+---
+
+- Fixed false "new version available" banner appearing on fresh page load after deployment — `onUpdateAvailable` now fetches `/api/health` and suppresses the banner when the server version matches the client's `APP_VERSION`
+- Non-2xx responses from `/api/health` and fetch/parse errors now suppress the banner rather than triggering it, avoiding false positives during rolling deploys
+- Fixed a secondary issue where the `updatefound` listener was never registered if a waiting SW was present on load, causing future deployments to go undetected during the session
+
 ## 3.0.61 - 2026-03-07
 ---
 

@@ -4,7 +4,19 @@ const state = $state({ updateAvailable: false, dismissed: false });
 
 let registration: ServiceWorkerRegistration | null = null;
 
-function onUpdateAvailable() {
+async function onUpdateAvailable() {
+  if (state.updateAvailable) return;
+
+  try {
+    const res = await fetch('/api/health');
+    if (!res.ok) return;
+    const data: { version?: string } = await res.json();
+    if (data.version === APP_VERSION) return;
+  } catch {
+    // fetch or parse error — suppress banner to avoid false positives
+    return;
+  }
+
   state.updateAvailable = true;
 }
 
@@ -13,7 +25,6 @@ function watchRegistration(reg: ServiceWorkerRegistration) {
 
   if (reg.waiting) {
     onUpdateAvailable();
-    return;
   }
 
   setInterval(() => reg.update(), 5 * 60 * 1000);
