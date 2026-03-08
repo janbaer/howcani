@@ -1,6 +1,6 @@
 # HowCanI 3
 
-A personal FAQ and knowledge base with a Bun/Elysia backend, SQLite storage, and a Svelte 5 frontend. Runs in your home lab, accessible over WireGuard VPN. Supports full-text search, tag filtering, and optional vector-based semantic search.
+A personal FAQ and knowledge base built with a Bun/Elysia backend, SQLite storage, and a Svelte 5 frontend. Runs locally, accessible over WireGuard VPN, and offers full‑text search, tag filtering, and optional vector‑based semantic search.
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/janbaer/howcani)
 

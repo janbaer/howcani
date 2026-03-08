@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+For project purpose, tech stack, architecture patterns, layer access rules, code style, and domain context see [`openspec/project.md`](openspec/project.md).
+
 ## Commands
 
 ```bash
@@ -25,13 +27,6 @@ The server is a **Bun HTTP server** that delegates to three subsystems:
 - `/mcp` → MCP protocol handler (`mcp/`)
 - `/api/*` → Elysia app with route groups
 - SPA routes + static files → HTML bundle from `public/` and `dist/`
-
-**Layer hierarchy** (strict — routes cannot access repositories):
-```
-Routes → Services → Repository (own entity only)
-                 → Other Services (for cross-entity access)
-Domain (pure types/validation, no dependencies)
-```
 
 **Session model**: `authPlugin` (`middleware/auth.middleware.ts`) verifies the JWT on every request and calls `createSession()`, which instantiates `ItemService` and `TagService` bound to the authenticated `userId`. Mutation routes use `session.itemService` / `session.tagService`; read routes use the singleton `itemService` (with empty userId, resolves user from URL `:username`).
 
@@ -57,24 +52,13 @@ Stateless HTTP MCP server at `/mcp`. Auth is a Bearer token checked per-call in 
 
 ### Client (`src/client/`)
 
-Svelte 5 SPA with rune-based state. Layer rules mirror the backend:
-
-- **Pages** (`pages/`): routing, lifecycle, thin orchestration only
-- **Stores** (`stores/*.store.svelte.ts`): reactive state classes (not singletons — instantiated per page), data fetching, business logic
-- **Components** (`components/`): receive data via `$props()`, no direct API calls; organized into subdirectories: `common/`, `item-detail/`, `itemlist/`, `layout/`, `settings/`, `tags/`
-- **Lib** (`lib/`): API client (`api.ts`), auth state, router, theme — global singletons using runes, named `*.svelte.ts`
+Svelte 5 SPA with rune-based state. Layer rules mirror the backend (see `openspec/project.md`).
 
 The client-side router is hash-based. SPA routes must also be declared in the `routes` map in `src/server/index.ts` or Bun won't serve the HTML shell for direct navigation.
 
-## Key Conventions
-
-- `node:` protocol for built-in modules (`node:fs`, `node:path`)
-- Use `http-status-codes` for all HTTP status codes
-- Imports must be alphabetically sorted (Biome enforces this)
-- `$state()` uses `let` in Svelte — Biome's `useConst` rule is disabled for `src/client/**/*.svelte`
-- Biome also disables unused-variable warnings for Svelte files (variables used in templates are invisible to the linter)
-- Services use a `Result<T>` pattern — never throw from service methods
-- No non-null assertions (`!`) — use explicit null checks
+**Svelte/Biome quirks:**
+- `$state()` requires `let` — Biome's `useConst` rule is disabled for `src/client/**/*.svelte`
+- Biome can't see variables used in templates, so `noUnusedVariables` and `noUnusedImports` are also disabled for Svelte files
 
 ## Spec System (OpenSpec)
 
