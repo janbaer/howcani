@@ -11,6 +11,14 @@ const overlayState = getTagOverlayState();
 
 let searchQuery = $state('');
 let searchTimeout = $state<ReturnType<typeof setTimeout> | null>(null);
+let shimmerDone = $state(false);
+
+$effect(() => {
+  const timer = setTimeout(() => {
+    shimmerDone = true;
+  }, 4500);
+  return () => clearTimeout(timer);
+});
 
 const currentPath = $derived(getCurrentPath());
 const isItemsPage = $derived(currentPath.includes('/items') && !currentPath.match(/\/items\/.+$/));
@@ -43,10 +51,26 @@ function clearSearch() {
   <div class="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
     <!-- Logo -->
     <a href="/" use:link class="shrink-0">
-      <svg class="h-8" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
+      <svg class="h-8" style="aspect-ratio: 500/120" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cometShimmer" gradientUnits="userSpaceOnUse">
+            <animate attributeName="x1" values="-40; 100" dur="1.5s" repeatCount="3" />
+            <animate attributeName="y1" values="-40; 100" dur="1.5s" repeatCount="3" />
+            <animate attributeName="x2" values="10; 150" dur="1.5s" repeatCount="3" />
+            <animate attributeName="y2" values="10; 150" dur="1.5s" repeatCount="3" />
+
+            <stop offset="0%" stop-color="hsl(var(--primary-foreground))" stop-opacity="0.1" />
+            <stop offset="70%" stop-color="hsl(var(--primary-foreground))" stop-opacity="0.3" />
+            <stop offset="90%" stop-color="hsl(var(--primary-foreground))" stop-opacity="1" />
+            <stop offset="95%" stop-color="hsl(var(--primary-foreground))" stop-opacity="0.1" />
+            <stop offset="100%" stop-color="hsl(var(--primary-foreground))" stop-opacity="0.1" />
+          </linearGradient>
+        </defs>
         <rect fill="hsl(var(--primary))" x="10" y="10" width="100" height="100" rx="25" ry="25"/>
-        <rect fill="hsl(var(--primary-foreground))" x="38" y="35" width="14" height="50"/>
-        <path fill="hsl(var(--primary-foreground))" d="M 82 35 L 82 85 L 68 85 L 68 62 C 68 62 60 68 52 64 L 52 52 C 60 55 68 45 68 35 Z" />
+        <g fill={shimmerDone ? 'hsl(var(--primary-foreground))' : 'url(#cometShimmer)'}>
+          <rect x="38" y="35" width="14" height="50"/>
+          <path d="M 82 35 L 82 85 L 68 85 L 68 62 C 68 62 60 68 52 64 L 52 52 C 60 55 68 45 68 35 Z" />
+        </g> 
         <text x="130" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="currentColor">How</text>
         <text x="285" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="hsl(var(--primary))">CanI</text>
       </svg>
@@ -260,3 +284,4 @@ function clearSearch() {
     </div>
   {/if}
 </header>
+

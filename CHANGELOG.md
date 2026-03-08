@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.67 - 2026-03-08
+---
+
+- Added comet shimmer animation to the logo on page load — the "H" mark shimmers for ~4.5 seconds then settles to its normal colour
+
 ## 3.0.65 - 2026-03-07
 ---
 
