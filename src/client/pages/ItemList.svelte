@@ -44,12 +44,11 @@ function scrollReveal(node: HTMLElement, index = 0) {
 
   observer.observe(node);
 
-  // Fallback: reveal items already in the viewport after the page transition (280ms) settles.
-  // On mobile, IntersectionObserver can fire before layout is stable and report isIntersecting: false.
-  setTimeout(() => {
-    const rect = node.getBoundingClientRect();
-    if (rect.top < window.innerHeight && rect.bottom > 0) reveal();
-  }, 300);
+  // Fallback: unconditionally reveal after the page transition (280ms) settles.
+  // IntersectionObserver can fire before layout is stable and report isIntersecting: false,
+  // especially on mobile. Checking viewport bounds here is unreliable in the app-shell model
+  // because the scroll container is smaller than window.innerHeight (header + footer subtract from it).
+  setTimeout(() => reveal(), 300);
 
   return { destroy: () => observer.disconnect() };
 }
@@ -129,129 +128,134 @@ $effect(() => {
 
 <MobileTagOverlay tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
 
-<!-- Mobile sticky strip: full-width, pinned below the header.
-     With no py-6 top padding on the Layout for this page, the strip's natural position
-     already equals the sticky threshold so it never moves.
-     Phones (< md): top = 3.5rem (icon row) + 3.75rem (search bar row) = 7.25rem
-     Tablets (md–lg): top = 3.5rem (desktop single-row header, no search bar row) -->
-{#if store.tags.length > 0}
-  <div class="mobile-tag-strip lg:hidden sticky z-10 bg-background pb-2">
-    <MobileTagChips tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
-    <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
-  </div>
-{/if}
-
-<div class="content-flex flex gap-6">
-  <!-- Desktop tag sidebar -->
-  {#if store.tagError}
-    <div class="hidden lg:block">
-      <p class="text-sm text-red-500 dark:text-red-400">{store.tagError}</p>
-    </div>
-  {:else if store.tags.length > 0}
-    <div class="hidden lg:block">
-      <TagSidebar tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} onTagsChanged={handleTagsChanged} {isOwner} />
+<div class="flex h-full flex-col">
+  <!-- Mobile tag chips (< lg): fixed bar below header, no sticky needed in app shell -->
+  {#if store.tags.length > 0}
+    <div class="lg:hidden flex-shrink-0 bg-background border-b border-border px-4 pt-1 pb-2">
+      <MobileTagChips tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
+      <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
     </div>
   {/if}
 
-  <!-- Main content -->
-  <div class="flex-1 min-w-0">
-    <!-- Desktop sticky active filter row: inside the content column for correct alignment.
-         With no py-6, its natural position is already at the sticky threshold. -->
-    {#if store.selectedTags.length > 0}
-      <div class="hidden lg:block sticky z-10 bg-background pb-2" style="top: 3.5rem; padding-top: 1rem">
-        <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
+  <!-- Two-column body: sidebar + right column each scroll independently -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Desktop tag sidebar: independent scroll container -->
+    {#if store.tagError}
+      <div class="hidden lg:block w-52 shrink-0 border-r border-border py-4 px-2">
+        <p class="text-sm text-red-500 dark:text-red-400">{store.tagError}</p>
+      </div>
+    {:else if store.tags.length > 0}
+      <div class="hidden lg:block w-52 shrink-0 overflow-x-hidden overflow-y-auto border-r border-border py-4">
+        <TagSidebar tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} onTagsChanged={handleTagsChanged} {isOwner} />
       </div>
     {/if}
 
-    <!-- Loading skeleton -->
-    {#if store.loading && store.items.length === 0}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {#each Array(4) as _}
-          <div class="card p-5">
-            <div class="skeleton h-5 w-3/4 mb-3"></div>
-            <div class="skeleton h-16 w-full rounded-md mb-3"></div>
-            <div class="flex gap-2">
-              <div class="skeleton h-5 w-14 rounded-full"></div>
-              <div class="skeleton h-5 w-24"></div>
-            </div>
-          </div>
-        {/each}
-      </div>
+    <!-- Right column: active filter strip + scrollable items -->
+    <div class="flex flex-1 flex-col overflow-hidden min-w-0">
 
-    <!-- Error state -->
-    {:else if store.error}
-      <div class="py-16 text-center">
-        <p class="font-mono text-sm text-red-500 mb-2">{store.error}</p>
-        <button
-          onclick={() => store.loadItems(username, searchQuery)}
-          class="font-mono text-sm text-primary hover:underline"
-        >
-          Try again
-        </button>
-      </div>
-
-    <!-- Empty state -->
-    {:else if !store.loading && store.items.length === 0}
-      <div class="py-16 text-center">
-        <p class="font-mono text-lg text-muted-foreground mb-2">
-          {searchQuery || store.selectedTags.length > 0 ? "No matching questions" : "No questions yet"}
-        </p>
-        <p class="text-sm text-muted-foreground mb-6">
-          {#if searchQuery || store.selectedTags.length > 0}
-            Try adjusting your search or filters.
-          {:else if isOwner}
-            Start building your knowledge base.
-          {:else}
-            This user hasn't added any questions yet.
-          {/if}
-        </p>
-        {#if isOwner && !searchQuery && store.selectedTags.length === 0}
-          <button
-            onclick={openCreateModal}
-            class="btn-primary px-6 py-2.5"
-          >
-            Add your first question
-          </button>
-        {/if}
-      </div>
-
-    <!-- Item card grid -->
-    {:else}
-      <div class="items-masonry">
-        {#each store.items as item, i (item.id)}
-          <div use:scrollReveal={i} out:fade={{ duration: 150 }}>
-            <ItemCard
-              {item}
-              {username}
-              {isOwner}
-              onEdit={(it, e) => store.handleEdit(it, e)}
-              onDelete={(it, e) => store.handleDeleteClick(it, e)}
-              onKeyDown={handleCardKeyDown}
-            />
-          </div>
-        {/each}
-      </div>
-
-      <!-- Infinite scroll sentinel element -->
-      {#if store.hasMore}
-        <div
-          bind:this={sentinelElement}
-          class="py-8 text-center"
-          role="status"
-          aria-live="polite"
-        >
-          {#if store.loading}
-            <div class="flex items-center justify-center gap-2">
-              <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span class="font-mono text-sm text-muted-foreground">Loading more items...</span>
-            </div>
-          {/if}
+      <!-- Desktop active filter strip: fixed in layout, not in scroll flow -->
+      {#if store.selectedTags.length > 0}
+        <div class="hidden lg:flex items-center flex-shrink-0 bg-background border-b border-border px-4 py-2">
+          <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
         </div>
       {/if}
-    {/if}
+
+      <!-- Scrollable items area -->
+      <div class="flex-1 overflow-y-auto px-4 py-4">
+
+        <!-- Loading skeleton -->
+        {#if store.loading && store.items.length === 0}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {#each Array(4) as _}
+              <div class="card p-5">
+                <div class="skeleton h-5 w-3/4 mb-3"></div>
+                <div class="skeleton h-16 w-full rounded-md mb-3"></div>
+                <div class="flex gap-2">
+                  <div class="skeleton h-5 w-14 rounded-full"></div>
+                  <div class="skeleton h-5 w-24"></div>
+                </div>
+              </div>
+            {/each}
+          </div>
+
+        <!-- Error state -->
+        {:else if store.error}
+          <div class="py-16 text-center">
+            <p class="font-mono text-sm text-red-500 mb-2">{store.error}</p>
+            <button
+              onclick={() => store.loadItems(username, searchQuery)}
+              class="font-mono text-sm text-primary hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+
+        <!-- Empty state -->
+        {:else if !store.loading && store.items.length === 0}
+          <div class="py-16 text-center">
+            <p class="font-mono text-lg text-muted-foreground mb-2">
+              {searchQuery || store.selectedTags.length > 0 ? "No matching questions" : "No questions yet"}
+            </p>
+            <p class="text-sm text-muted-foreground mb-6">
+              {#if searchQuery || store.selectedTags.length > 0}
+                Try adjusting your search or filters.
+              {:else if isOwner}
+                Start building your knowledge base.
+              {:else}
+                This user hasn't added any questions yet.
+              {/if}
+            </p>
+            {#if isOwner && !searchQuery && store.selectedTags.length === 0}
+              <button
+                onclick={openCreateModal}
+                class="btn-primary px-6 py-2.5"
+              >
+                Add your first question
+              </button>
+            {/if}
+          </div>
+
+        <!-- Item card grid -->
+        {:else}
+          <div class="items-masonry">
+            {#each store.items as item, i (item.id)}
+              <div use:scrollReveal={i} out:fade={{ duration: 150 }}>
+                <ItemCard
+                  {item}
+                  {username}
+                  {isOwner}
+                  onEdit={(it, e) => store.handleEdit(it, e)}
+                  onDelete={(it, e) => store.handleDeleteClick(it, e)}
+                  onKeyDown={handleCardKeyDown}
+                />
+              </div>
+            {/each}
+          </div>
+
+          <!-- Infinite scroll sentinel element -->
+          {#if store.hasMore}
+            <div
+              bind:this={sentinelElement}
+              class="py-8 text-center"
+              role="status"
+              aria-live="polite"
+            >
+              {#if store.loading}
+                <div class="flex items-center justify-center gap-2">
+                  <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="font-mono text-sm text-muted-foreground">Loading more items...</span>
+                </div>
+              {/if}
+            </div>
+          {/if}
+        {/if}
+
+      </div>
+    </div>
   </div>
 </div>
 
@@ -284,28 +288,6 @@ $effect(() => {
 />
 
 <style>
-  /* Phones: mobile header = icon row (3.5rem) + search bar row (3.75rem) = 7.25rem */
-  .mobile-tag-strip {
-    top: 7.25rem;
-    /* Extend background 1px left to cover the card's border-border at the px-4 boundary */
-    box-shadow: -1px 0 0 0 var(--color-background);
-  }
-
-  /* Tablets (md–lg): desktop single-row header = 3.5rem */
-  @media (min-width: 768px) {
-    .mobile-tag-strip {
-      top: 3.5rem;
-    }
-  }
-
-  /* Mobile/tablet: no top padding (chip strip provides visual separation) */
-  /* Desktop: restore the Layout py-6 top gap that was removed via noPaddingTop */
-  @media (min-width: 1024px) {
-    .content-flex {
-      padding-top: 1.5rem;
-    }
-  }
-
   .items-masonry {
     --card-min-width: 26rem;
 

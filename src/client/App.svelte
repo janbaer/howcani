@@ -43,14 +43,15 @@ const routeParams = $derived(match?.params ?? {});
 </script>
 
 <UpdateBanner />
-<Layout noPaddingTop={Component === ItemList}>
+<Layout appShell={Component === ItemList}>
   {#if authState.isLoading}
     <div class="flex items-center justify-center py-12">
       <div class="font-mono text-sm text-muted-foreground">Loading...</div>
     </div>
   {:else}
     {#key path}
-      <div transition:fly={{ x: 40, y: 12, duration: 280, easing: cubicOut, opacity: 0 }}>
+      <!-- h-full provides a height reference for ItemList's flex layout in appShell mode; no-op on other pages -->
+      <div class="h-full" transition:fly={{ x: 40, y: 12, duration: 280, easing: cubicOut, opacity: 0 }}>
         <Component params={routeParams} />
       </div>
     {/key}

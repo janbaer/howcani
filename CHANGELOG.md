@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.71 - 2026-03-09
+---
+
+- Refactored ItemList page to use an app shell layout: header, tag sidebar, item list, and footer are now fixed-height independent regions instead of a single document scroll. The tag sidebar scrolls independently from the item list, the "Filtered by" strip is pinned above the scroll area without layout jumps, and the footer is always visible at the bottom of the viewport. Addressed code review findings: fixed nested `<aside>` landmark regression, corrected `scrollReveal` fallback for bounded scroll containers, removed dead `noPaddingTop` prop from Layout, and updated the OpenSpec spec to reflect footer visibility.
+
 ## 3.0.69 - 2026-03-09
 ---
 
