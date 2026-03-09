@@ -141,7 +141,7 @@ $effect(() => {
   </div>
 {/if}
 
-<div class="flex gap-6">
+<div class="content-flex flex gap-6">
   <!-- Desktop tag sidebar -->
   {#if store.tagError}
     <div class="hidden lg:block">
@@ -295,6 +295,14 @@ $effect(() => {
   @media (min-width: 768px) {
     .mobile-tag-strip {
       top: 3.5rem;
+    }
+  }
+
+  /* Mobile/tablet: no top padding (chip strip provides visual separation) */
+  /* Desktop: restore the Layout py-6 top gap that was removed via noPaddingTop */
+  @media (min-width: 1024px) {
+    .content-flex {
+      padding-top: 1.5rem;
     }
   }
 
