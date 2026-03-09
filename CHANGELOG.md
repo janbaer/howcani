@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.68 - 2026-03-09
+---
+
+- Updated dependencies: dompurify 3.3.2, jose 6.2.1, marked 17.0.4, svelte 5.53.7, svelte-check 4.4.5, @types/bun 1.3.10
+
 ## 3.0.67 - 2026-03-08
 ---
 
