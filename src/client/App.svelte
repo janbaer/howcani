@@ -43,7 +43,7 @@ const routeParams = $derived(match?.params ?? {});
 </script>
 
 <UpdateBanner />
-<Layout>
+<Layout noPaddingTop={Component === ItemList}>
   {#if authState.isLoading}
     <div class="flex items-center justify-center py-12">
       <div class="font-mono text-sm text-muted-foreground">Loading...</div>

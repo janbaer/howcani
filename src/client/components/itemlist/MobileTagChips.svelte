@@ -10,8 +10,8 @@ interface Props {
 const { tags, selectedTags, onToggleTag }: Props = $props();
 </script>
 
-<div class="lg:hidden mb-2 -mx-4 px-4 sticky top-[119px] z-10 bg-background pb-2 -mt-6">
-  <div class="flex gap-2 overflow-x-auto tags-scroll pb-1">
+<div class="-mx-4 tags-outer pb-2">
+  <div class="flex gap-2 overflow-x-auto tags-scroll pb-1 px-4">
     {#each tags as tag}
       {@const isSelected = selectedTags.includes(tag.name)}
       <button
@@ -26,3 +26,28 @@ const { tags, selectedTags, onToggleTag }: Props = $props();
     {/each}
   </div>
 </div>
+
+<style>
+  /* overflow-x: clip prevents content bleeding visually without creating a scroll context */
+  .tags-outer {
+    position: relative;
+    overflow-x: clip;
+  }
+
+  /* Minimum 10px gap between header bottom and first chip button */
+  .tags-scroll {
+    padding-top: 1rem;
+  }
+
+  /* Gradient fade at the right edge signals that the strip is horizontally scrollable */
+  .tags-outer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 3rem;
+    background: linear-gradient(to right, transparent, var(--color-background));
+    pointer-events: none;
+  }
+</style>

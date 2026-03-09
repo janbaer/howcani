@@ -129,6 +129,18 @@ $effect(() => {
 
 <MobileTagOverlay tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
 
+<!-- Mobile sticky strip: full-width, pinned below the header.
+     With no py-6 top padding on the Layout for this page, the strip's natural position
+     already equals the sticky threshold so it never moves.
+     Phones (< md): top = 3.5rem (icon row) + 3.75rem (search bar row) = 7.25rem
+     Tablets (md–lg): top = 3.5rem (desktop single-row header, no search bar row) -->
+{#if store.tags.length > 0}
+  <div class="mobile-tag-strip lg:hidden sticky z-10 bg-background pb-2">
+    <MobileTagChips tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
+    <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
+  </div>
+{/if}
+
 <div class="flex gap-6">
   <!-- Desktop tag sidebar -->
   {#if store.tagError}
@@ -143,11 +155,13 @@ $effect(() => {
 
   <!-- Main content -->
   <div class="flex-1 min-w-0">
-    {#if store.tags.length > 0}
-      <MobileTagChips tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
+    <!-- Desktop sticky active filter row: inside the content column for correct alignment.
+         With no py-6, its natural position is already at the sticky threshold. -->
+    {#if store.selectedTags.length > 0}
+      <div class="hidden lg:block sticky z-10 bg-background pb-2" style="top: 3.5rem; padding-top: 1rem">
+        <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
+      </div>
     {/if}
-
-    <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
 
     <!-- Loading skeleton -->
     {#if store.loading && store.items.length === 0}
@@ -270,6 +284,20 @@ $effect(() => {
 />
 
 <style>
+  /* Phones: mobile header = icon row (3.5rem) + search bar row (3.75rem) = 7.25rem */
+  .mobile-tag-strip {
+    top: 7.25rem;
+    /* Extend background 1px left to cover the card's border-border at the px-4 boundary */
+    box-shadow: -1px 0 0 0 var(--color-background);
+  }
+
+  /* Tablets (md–lg): desktop single-row header = 3.5rem */
+  @media (min-width: 768px) {
+    .mobile-tag-strip {
+      top: 3.5rem;
+    }
+  }
+
   .items-masonry {
     --card-min-width: 26rem;
 

@@ -497,6 +497,35 @@ The mobile header SHALL display the same authenticated navigation actions as the
 - **THEN** the header SHALL display a settings icon link to `/settings` in the right-side action bar
 - **AND** the link SHALL only be visible when the user is authenticated
 
+### Requirement: Tag chip strip sticky positioning
+
+The tag chip strip (horizontal scrollable row of tag buttons) and the active filter row ("Filtered by: …") SHALL remain pinned below the header while the item list is scrolled, on all mobile and tablet viewports. The "Filtered by" row SHALL additionally be sticky on desktop when at least one tag is active.
+
+#### Scenario: Tag chips and active filter sticky on mobile
+- **WHEN** viewport width is less than 1024px (smartphones and tablets in portrait)
+- **AND** the tag list is non-empty
+- **THEN** both the tag chip strip AND the active filter row SHALL use `position: sticky` and SHALL remain visible directly below the header as the user scrolls down
+- **AND** neither element SHALL move or scroll away while the item list is scrolled
+
+#### Scenario: Minimum gap between header and tag chips
+- **WHEN** the tag chip strip is visible and sticky
+- **THEN** there SHALL be a minimum gap of 10px between the bottom of the header and the top of the first chip button
+
+#### Scenario: Active filter sticky on desktop when tag selected
+- **WHEN** viewport width is 1024px or greater
+- **AND** at least one tag is selected (active filter row is shown)
+- **THEN** the "Filtered by: …" row SHALL use `position: sticky` and SHALL remain visible directly below the header while the item list is scrolled
+- **AND** tag chips are NOT shown on desktop (they are replaced by the left-column tag sidebar)
+
+#### Scenario: Sticky strip background covers scrolled content
+- **WHEN** the sticky strip (tag chips and/or active filters) is pinned below the header
+- **THEN** the strip background SHALL match the page background so that content scrolling beneath it is fully hidden
+
+#### Scenario: No layout gap before sticky activates
+- **WHEN** the page loads and the item list is at scroll position 0
+- **THEN** the sticky strip SHALL already be at its pinned position (top of strip = bottom of header)
+- **AND** there SHALL be no visible movement of the strip for the first few pixels of scroll
+
 ### Requirement: Backup settings in Settings page
 The Settings page SHALL include a Backups section allowing authenticated users to enable daily backups, configure the time of day for the backup, and configure the retention period.
 

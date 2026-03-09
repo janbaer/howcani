@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.69 - 2026-03-09
+---
+
+- Fixed tag chip strip and active filter row sticky positioning across all viewports: chips no longer move on scroll on phones, tablets, or desktop. Correct sticky offsets per device (phones: 7.25rem, tablets/desktop: 3.5rem). Added gradient fade on chip strip right edge as scroll affordance.
+
 ## 3.0.68 - 2026-03-09
 ---
 
