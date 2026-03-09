@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.72 - 2026-03-09
+---
+
+- Tightened spacing in the mobile tag strip area: reduced bottom margin on the "Filtered by" row (`mb-3` → `mb-2`), reduced top padding on the chip scroll container (`1rem` → `0.5rem`), and reduced bottom padding on the strip wrapper (`pb-2` → `pb-1`)
+
 ## 3.0.71 - 2026-03-09
 ---
 

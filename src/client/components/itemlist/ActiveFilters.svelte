@@ -8,7 +8,7 @@ const { selectedTags, onToggleTag }: Props = $props();
 </script>
 
 {#if selectedTags.length > 0}
-  <div class="mb-3 flex items-center gap-2">
+  <div class="mb-2 flex items-center gap-2">
     <span class="font-mono text-xs text-muted-foreground">Filtered by:</span>
     {#each selectedTags as tagName}
       <button

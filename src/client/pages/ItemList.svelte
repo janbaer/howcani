@@ -131,7 +131,7 @@ $effect(() => {
 <div class="flex h-full flex-col">
   <!-- Mobile tag chips (< lg): fixed bar below header, no sticky needed in app shell -->
   {#if store.tags.length > 0}
-    <div class="lg:hidden flex-shrink-0 bg-background border-b border-border px-4 pt-1 pb-2">
+    <div class="lg:hidden flex-shrink-0 bg-background border-b border-border px-4 pt-1 pb-1">
       <MobileTagChips tags={store.tags} selectedTags={store.selectedTags} onToggleTag={toggleTag} />
       <ActiveFilters selectedTags={store.selectedTags} onToggleTag={toggleTag} />
     </div>

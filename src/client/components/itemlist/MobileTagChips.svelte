@@ -36,7 +36,7 @@ const { tags, selectedTags, onToggleTag }: Props = $props();
 
   /* Minimum 10px gap between header bottom and first chip button */
   .tags-scroll {
-    padding-top: 1rem;
+    padding-top: 0.5rem;
   }
 
   /* Gradient fade at the right edge signals that the strip is horizontally scrollable */
