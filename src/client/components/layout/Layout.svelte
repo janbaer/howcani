@@ -12,7 +12,7 @@ const { children, appShell = false }: Props = $props();
 </script>
 
 {#if appShell}
-  <div class="flex h-screen flex-col overflow-hidden">
+  <div class="fixed inset-0 flex flex-col overflow-hidden">
     <Header />
     <main class="flex flex-1 flex-col overflow-hidden">
       {@render children()}
@@ -20,7 +20,7 @@ const { children, appShell = false }: Props = $props();
     <Footer />
   </div>
 {:else}
-  <div class="flex min-h-screen flex-col">
+  <div class="flex min-h-dvh flex-col">
     <Header />
     <main class="flex-1">
       <div class="mx-auto px-4 py-6">

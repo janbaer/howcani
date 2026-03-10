@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.75 - 2026-03-10
+---
+
+- Fixed footer disappearing on mobile after pull-to-refresh: replaced `h-dvh` with `fixed inset-0` on the app shell container so it always fills the visual viewport regardless of address bar state or browser version
+
 ## 3.0.72 - 2026-03-09
 ---
 
