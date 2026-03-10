@@ -1,4 +1,5 @@
 <script lang="ts">
+import BackupSection from '../components/settings/BackupSection.svelte';
 import DuplicatesSection from '../components/settings/DuplicatesSection.svelte';
 import { settings } from '../lib/api';
 import { getAuthState } from '../lib/auth.svelte';
@@ -253,6 +254,8 @@ async function toggleSemanticSearch() {
         </div>
       {/if}
     </div>
+
+    <BackupSection />
 
     <DuplicatesSection username={authState.user?.username} {savedThreshold} />
   {/if}

@@ -1,8 +1,12 @@
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { db } from '../db/database';
 
 const BACKUP_DIR = process.env.BACKUP_DIR || '/data/backups';
+
+export function getBackupDir(): string {
+  return process.env.BACKUP_DIR || '/data/backups';
+}
 
 interface BackupItem {
   id: string;
@@ -86,6 +90,35 @@ export function pruneOldBackups(username: string, retentionDays: number, dir = B
       console.log(`[backup] Pruned ${file}`);
     }
   }
+}
+
+export interface BackupEntry {
+  filename: string;
+  date: string;
+  sizeBytes: number;
+}
+
+export function listBackupsForUser(username: string, dir?: string): BackupEntry[] {
+  const backupDir = dir ?? process.env.BACKUP_DIR ?? '/data/backups';
+  let files: string[];
+  try {
+    files = readdirSync(backupDir);
+  } catch {
+    return [];
+  }
+
+  const prefix = `${username}-backup-`;
+  const entries: BackupEntry[] = [];
+
+  for (const file of files) {
+    if (!file.startsWith(prefix) || !file.endsWith('.json')) continue;
+    const date = file.slice(prefix.length, -5); // YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    const sizeBytes = statSync(join(backupDir, file)).size;
+    entries.push({ filename: file, date, sizeBytes });
+  }
+
+  return entries.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 interface ScheduledUser {

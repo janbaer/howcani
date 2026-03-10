@@ -1,6 +1,8 @@
+import { basename, join } from 'node:path';
 import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { assertAuthenticated, authPlugin } from '../middleware';
+import { getBackupDir, listBackupsForUser } from '../services/backup.service';
 import { settingsService } from '../services/settings.service';
 
 export const settingsRoutes = new Elysia({ prefix: '/settings' })
@@ -37,4 +39,35 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
         backupTime: t.Optional(t.String()),
       }),
     },
+  )
+  .get(
+    '/backups',
+    ({ user }) => {
+      assertAuthenticated(user);
+      return listBackupsForUser(user.username, getBackupDir());
+    },
+    { auth: true },
+  )
+  .get(
+    '/backups/:filename',
+    ({ user, params, set }) => {
+      assertAuthenticated(user);
+      const safe = basename(params.filename);
+      if (!safe.startsWith(`${user.username}-backup-`) || !safe.endsWith('.json')) {
+        set.status = StatusCodes.NOT_FOUND;
+        return { error: { code: 'NOT_FOUND', message: 'Backup not found' } };
+      }
+      const file = Bun.file(join(getBackupDir(), safe));
+      if (file.size === 0) {
+        set.status = StatusCodes.NOT_FOUND;
+        return { error: { code: 'NOT_FOUND', message: 'Backup not found' } };
+      }
+      return new Response(file, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Disposition': `attachment; filename="${safe}"`,
+        },
+      });
+    },
+    { auth: true, params: t.Object({ filename: t.String() }) },
   );

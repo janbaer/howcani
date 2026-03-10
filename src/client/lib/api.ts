@@ -235,6 +235,12 @@ export interface Settings {
   duplicateThreshold: number;
 }
 
+export interface BackupEntry {
+  filename: string;
+  date: string;
+  sizeBytes: number;
+}
+
 export const settings = {
   async get(): Promise<ApiResponse<Settings>> {
     return request<Settings>('/settings');
@@ -245,6 +251,27 @@ export const settings = {
       method: 'PATCH',
       body: JSON.stringify(patch),
     });
+  },
+
+  async listBackups(): Promise<ApiResponse<BackupEntry[]>> {
+    return request<BackupEntry[]>('/settings/backups');
+  },
+
+  async downloadBackup(filename: string): Promise<Blob | null> {
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/settings/backups/${encodeURIComponent(filename)}`, {
+        headers,
+        credentials: 'include',
+      });
+      if (!res.ok) return null;
+      return res.blob();
+    } catch {
+      return null;
+    }
   },
 };
 

@@ -6,7 +6,13 @@ import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { ItemRepository } from '../repositories/item.repository';
 import { TagRepository } from '../repositories/tag.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { fetchItemsForUser, pruneOldBackups, runBackupForUser, runScheduledBackups } from './backup.service';
+import {
+  fetchItemsForUser,
+  listBackupsForUser,
+  pruneOldBackups,
+  runBackupForUser,
+  runScheduledBackups,
+} from './backup.service';
 
 function todayStr(): string {
   const now = new Date();
@@ -197,6 +203,59 @@ describe('runBackupForUser', () => {
 
     expect(existsSync(oldFile)).toBe(false);
     expect(existsSync(join(tmpDir, `alice-backup-${todayStr()}.json`))).toBe(true);
+  });
+});
+
+describe('listBackupsForUser', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'howcani-backup-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true });
+  });
+
+  test('returns empty array when directory does not exist', () => {
+    expect(listBackupsForUser('alice', '/nonexistent/path/xyz')).toEqual([]);
+  });
+
+  test('returns empty array when no backup files for the user exist', () => {
+    writeFileSync(join(tmpDir, 'bob-backup-2026-01-01.json'), '{}');
+    expect(listBackupsForUser('alice', tmpDir)).toEqual([]);
+  });
+
+  test('returns entries with filename, date and sizeBytes', () => {
+    const content = '{"version":1}';
+    writeFileSync(join(tmpDir, 'alice-backup-2026-03-10.json'), content);
+
+    const entries = listBackupsForUser('alice', tmpDir);
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].filename).toBe('alice-backup-2026-03-10.json');
+    expect(entries[0].date).toBe('2026-03-10');
+    expect(entries[0].sizeBytes).toBe(Buffer.byteLength(content));
+  });
+
+  test('returns entries sorted newest-first', () => {
+    writeFileSync(join(tmpDir, 'alice-backup-2026-03-08.json'), '{}');
+    writeFileSync(join(tmpDir, 'alice-backup-2026-03-10.json'), '{}');
+    writeFileSync(join(tmpDir, 'alice-backup-2026-03-09.json'), '{}');
+
+    const entries = listBackupsForUser('alice', tmpDir);
+
+    expect(entries.map((e) => e.date)).toEqual(['2026-03-10', '2026-03-09', '2026-03-08']);
+  });
+
+  test('ignores files with invalid date format', () => {
+    writeFileSync(join(tmpDir, 'alice-backup-not-a-date.json'), '{}');
+    expect(listBackupsForUser('alice', tmpDir)).toEqual([]);
+  });
+
+  test('ignores files belonging to other users', () => {
+    writeFileSync(join(tmpDir, 'bob-backup-2026-03-10.json'), '{}');
+    expect(listBackupsForUser('alice', tmpDir)).toEqual([]);
   });
 });
 

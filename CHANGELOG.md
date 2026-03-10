@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.76 - 2026-03-10
+---
+
+- Added "Your backups" section to the Settings page: lists daily backup files with date, formatted size, and a download button; shows a distinct error state on fetch failure and an empty state when no backups exist
+- Added `GET /settings/backups` and `GET /settings/backups/:filename` API routes (auth-required, ownership-checked, TOCTOU-safe file serving via `Bun.file.size`)
+- Extracted backup list logic into a self-contained `BackupSection.svelte` component
+- Added `getBackupDir()` helper to `backup.service.ts` for lazy `BACKUP_DIR` resolution, eliminating duplicated fallback strings across route handlers
+
 ## 3.0.75 - 2026-03-10
 ---
 
