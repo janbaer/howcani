@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.77 - 2026-03-11
+---
+
+- MCP read tools (`search_items`, `list_items`, `get_item`, `list_tags`, `get_related_items`) now accept an optional `username` argument — falls back to the `X-Username` request header when omitted, enabling MCP clients to set a default user once at the connection level
+- Added CORS support to the `/mcp` endpoint so browser-based clients (MCP Inspector) can connect cross-origin
+- Added `docs/mcp-setup.md` with client configuration examples for Claude Code, AI agents, and MCP Inspector
+
 ## 3.0.76 - 2026-03-10
 ---
 

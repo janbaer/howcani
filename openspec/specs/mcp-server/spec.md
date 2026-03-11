@@ -1,5 +1,8 @@
 ### Requirement: MCP endpoint available on existing server
-The system SHALL expose an MCP Streamable HTTP endpoint at `/mcp` on the existing Elysia server. The endpoint SHALL handle POST, GET, and DELETE HTTP methods for MCP protocol communication. The endpoint SHALL use stateless transport (no session persistence between requests).
+The system SHALL expose an MCP Streamable HTTP endpoint at `/mcp` on the existing Elysia server. The endpoint SHALL handle POST, GET, and DELETE HTTP methods for MCP protocol communication. The endpoint SHALL use stateless transport (no session persistence between requests). The endpoint SHALL include CORS headers on all responses and respond to OPTIONS preflight requests, allowing browser-based MCP clients to connect from any origin.
+
+### Requirement: Default username via X-Username header
+The MCP server SHALL read the `X-Username` HTTP request header on each incoming request and use its value as the default `username` for all read tools when the caller does not supply a `username` argument explicitly. When neither the `username` argument nor the `X-Username` header is present, the tool SHALL return an error indicating that a username is required.
 
 #### Scenario: MCP client initializes connection
 - **WHEN** an MCP client sends an initialize request to `POST /mcp`
@@ -14,7 +17,7 @@ The system SHALL expose an MCP Streamable HTTP endpoint at `/mcp` on the existin
 - **THEN** the server responds with a 400 status code
 
 ### Requirement: search_items tool
-The system SHALL provide a `search_items` MCP tool that performs full-text search across a user's knowledge base items. The tool SHALL accept a required `username` parameter, an optional `query` string for FTS search, an optional `tags` parameter (comma-separated tag names for filtering), and an optional `limit` parameter (default 20, max 100). The tool SHALL NOT require authentication.
+The system SHALL provide a `search_items` MCP tool that performs full-text search across a user's knowledge base items. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header), an optional `query` string for FTS search, an optional `tags` parameter (comma-separated tag names for filtering), and an optional `limit` parameter (default 20, max 100). The tool SHALL NOT require authentication.
 
 #### Scenario: Search by query
 - **WHEN** an MCP client calls `search_items` with username "jan" and query "docker"
@@ -33,7 +36,7 @@ The system SHALL provide a `search_items` MCP tool that performs full-text searc
 - **THEN** the tool returns an error indicating the user was not found
 
 ### Requirement: list_items tool
-The system SHALL provide a `list_items` MCP tool that returns a paginated list of a user's items sorted by creation date (newest first). The tool SHALL accept a required `username` parameter, an optional `limit` (default 20, max 100), and an optional `offset` (default 0). The tool SHALL NOT require authentication.
+The system SHALL provide a `list_items` MCP tool that returns a paginated list of a user's items sorted by creation date (newest first). The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header), an optional `limit` (default 20, max 100), and an optional `offset` (default 0). The tool SHALL NOT require authentication.
 
 #### Scenario: List items with defaults
 - **WHEN** an MCP client calls `list_items` with username "jan"
@@ -44,7 +47,7 @@ The system SHALL provide a `list_items` MCP tool that returns a paginated list o
 - **THEN** the tool returns items 11-20 and the total count for pagination
 
 ### Requirement: get_item tool
-The system SHALL provide a `get_item` MCP tool that retrieves a single item by its ID. The tool SHALL accept a required `username` and a required `item_id` parameter. The tool SHALL return the full item including question, answer, tags, and timestamps. The tool SHALL NOT require authentication.
+The system SHALL provide a `get_item` MCP tool that retrieves a single item by its ID. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header) and a required `item_id` parameter. The tool SHALL return the full item including question, answer, tags, and timestamps. The tool SHALL NOT require authentication.
 
 #### Scenario: Get existing item
 - **WHEN** an MCP client calls `get_item` with a valid username and item_id
@@ -55,7 +58,7 @@ The system SHALL provide a `get_item` MCP tool that retrieves a single item by i
 - **THEN** the tool returns an error indicating the item was not found
 
 ### Requirement: list_tags tool
-The system SHALL provide a `list_tags` MCP tool that returns all tags for a user with their item counts. The tool SHALL accept a required `username` parameter. Tags SHALL be sorted alphabetically (case-insensitive). The tool SHALL NOT require authentication.
+The system SHALL provide a `list_tags` MCP tool that returns all tags for a user with their item counts. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header). Tags SHALL be sorted alphabetically (case-insensitive). The tool SHALL NOT require authentication.
 
 #### Scenario: List tags
 - **WHEN** an MCP client calls `list_tags` with username "jan"
@@ -115,7 +118,7 @@ The system SHALL provide an `update_item` MCP tool that updates an existing know
 - **THEN** the tool returns an error indicating the item was not found
 
 ### Requirement: get_related_items tool
-The system SHALL provide a `get_related_items` MCP tool that returns semantically similar items for a given item using KNN vector search on stored embeddings. The tool SHALL accept a required `username` parameter and a required `item_id` parameter. The tool SHALL return up to 5 items with their `id`, `question`, `answer`, and `tags`, excluding the requested item itself. The tool SHALL NOT require authentication.
+The system SHALL provide a `get_related_items` MCP tool that returns semantically similar items for a given item using KNN vector search on stored embeddings. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header) and a required `item_id` parameter. The tool SHALL return up to 5 items with their `id`, `question`, `answer`, and `tags`, excluding the requested item itself. The tool SHALL NOT require authentication.
 
 #### Scenario: Returns related items
 - **WHEN** an MCP client calls `get_related_items` with a valid username and an item_id that has a stored embedding
