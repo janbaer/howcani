@@ -5,7 +5,7 @@
 - [x] 1.3 Add migration version 6 to `src/server/db/migrations.ts`: create `item_embeddings` table with `item_id TEXT PRIMARY KEY REFERENCES items(id) ON DELETE CASCADE`, `embedding BLOB NOT NULL`, `model TEXT NOT NULL`, `created_at TEXT NOT NULL`
 - [x] 1.4 Add migration version 7 to `src/server/db/migrations.ts`: create `vec_items` virtual table using `vec0(item_id TEXT PRIMARY KEY, embedding float[1536])`
 - [x] 1.5 Add migration version 8 to `src/server/db/migrations.ts`: `ALTER TABLE users ADD COLUMN semantic_search_enabled INTEGER NOT NULL DEFAULT 0`
-- [ ] 1.6 Run `bun run dev` and confirm all three migrations run without error
+- [x] 1.6 Run `bun run dev` and confirm all three migrations run without error
 
 ## 2. Embedding Service
 
@@ -62,7 +62,7 @@
 ## 9. Verification
 
 - [x] 9.1 Run the full test suite: `bun test`
-- [ ] 9.2 Start the dev server, create an item, confirm an embedding is generated (check `item_embeddings` table)
-- [ ] 9.3 Enable semantic search in the Settings UI, search for a synonym of an item's content, confirm relevant results appear
-- [ ] 9.4 Disable `OPENROUTER_API_KEY`, confirm server starts, items save, and search falls back to FTS5 without errors
+- [x] 9.2 Start the dev server, create an item, confirm an embedding is generated (check `item_embeddings` table)
+- [x] 9.3 Enable semantic search in the Settings UI, search for a synonym of an item's content, confirm relevant results appear
+- [x] 9.4 Disable `OPENROUTER_API_KEY`, confirm server starts, items save, and search falls back to FTS5 without errors
 - [x] 9.5 Commit all changes
