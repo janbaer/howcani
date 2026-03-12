@@ -7,9 +7,11 @@ import { ItemRepository } from '../repositories/item.repository';
 import { TagRepository } from '../repositories/tag.repository';
 import { UserRepository } from '../repositories/user.repository';
 import {
+  BackupRestoreError,
   fetchItemsForUser,
   listBackupsForUser,
   pruneOldBackups,
+  restoreBackup,
   runBackupForUser,
   runScheduledBackups,
 } from './backup.service';
@@ -256,6 +258,118 @@ describe('listBackupsForUser', () => {
   test('ignores files belonging to other users', () => {
     writeFileSync(join(tmpDir, 'bob-backup-2026-03-10.json'), '{}');
     expect(listBackupsForUser('alice', tmpDir)).toEqual([]);
+  });
+});
+
+function makeBackupItem(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'item-default-id',
+    question: 'Q?',
+    answer: 'A',
+    tags: [] as string[],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+function makeBackup(items: ReturnType<typeof makeBackupItem>[], username = 'alice') {
+  return { version: 1, username, exportedAt: '2026-03-01T00:00:00.000Z', items };
+}
+
+describe('restoreBackup', () => {
+  let userRepo: UserRepository;
+  let itemRepo: ItemRepository;
+  let tagRepo: TagRepository;
+  let userId: string;
+
+  beforeEach(() => {
+    clearTestDatabase();
+    userRepo = new UserRepository();
+    itemRepo = new ItemRepository();
+    tagRepo = new TagRepository();
+    const user = userRepo.create({ username: 'alice', email: 'alice@example.com', passwordHash: 'hash' });
+    userId = user.id;
+  });
+
+  test('imports items with original timestamps', () => {
+    const backup = makeBackup([
+      makeBackupItem({
+        id: 'item-original-id',
+        question: 'What is Bun?',
+        answer: 'A fast runtime.',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-02-01T00:00:00.000Z',
+      }),
+    ]);
+
+    const count = restoreBackup(userId, backup, false);
+
+    expect(count).toBe(1);
+    const item = itemRepo.findById('item-original-id');
+    expect(item).not.toBeNull();
+    expect(item?.question).toBe('What is Bun?');
+    expect(item?.created_at).toBe('2026-01-01T00:00:00.000Z');
+    expect(item?.updated_at).toBe('2026-02-01T00:00:00.000Z');
+  });
+
+  test('creates tags by name and links them to items', () => {
+    const backup = makeBackup([makeBackupItem({ id: 'item-with-tags', tags: ['bun', 'typescript'] })]);
+
+    restoreBackup(userId, backup, false);
+
+    const items = fetchItemsForUser(userId);
+    expect(items[0].tags).toContain('bun');
+    expect(items[0].tags).toContain('typescript');
+  });
+
+  test('reuses existing tag by name', () => {
+    tagRepo.create({ userId, name: 'bun' });
+    const backup = makeBackup([makeBackupItem({ id: 'item-1', tags: ['bun'] })]);
+
+    restoreBackup(userId, backup, false);
+
+    const allTags = tagRepo.findByUserId(userId);
+    expect(allTags).toHaveLength(1);
+  });
+
+  test('upserts on original ID so re-import is idempotent', () => {
+    const backup = makeBackup([makeBackupItem({ id: 'item-fixed-id' })]);
+
+    restoreBackup(userId, backup, false);
+    restoreBackup(userId, backup, false);
+
+    const result = itemRepo.findByUserId(userId);
+    expect(result.items).toHaveLength(1);
+  });
+
+  test('clears existing data when clearBeforeRestore is true', () => {
+    itemRepo.create({ userId, question: 'Old Q?', answer: 'Old A' });
+    const backup = makeBackup([makeBackupItem({ id: 'new-item-id', question: 'New Q?', answer: 'New A' })]);
+
+    restoreBackup(userId, backup, true);
+
+    const result = itemRepo.findByUserId(userId);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].question).toBe('New Q?');
+  });
+
+  test('works cross-user: imports into the authenticated user regardless of username in backup', () => {
+    const otherUser = userRepo.create({ username: 'bob', email: 'bob@example.com', passwordHash: 'hash' });
+    const backup = makeBackup([makeBackupItem({ id: 'bob-item-id', question: 'Bob Q?', answer: 'Bob A' })], 'bob');
+
+    restoreBackup(userId, backup, false);
+
+    const aliceItems = itemRepo.findByUserId(userId);
+    expect(aliceItems.items).toHaveLength(1);
+    expect(aliceItems.items[0].question).toBe('Bob Q?');
+    expect(itemRepo.findByUserId(otherUser.id).items).toHaveLength(0);
+  });
+
+  test('throws BackupRestoreError for invalid JSON structure', () => {
+    expect(() => restoreBackup(userId, { noVersionField: true }, false)).toThrow(BackupRestoreError);
+    expect(() => restoreBackup(userId, null, false)).toThrow(BackupRestoreError);
+    expect(() => restoreBackup(userId, { version: 1 }, false)).toThrow(BackupRestoreError);
   });
 });
 

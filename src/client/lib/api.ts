@@ -27,6 +27,10 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
+function authHeaders(): Record<string, string> {
+  return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -257,14 +261,31 @@ export const settings = {
     return request<BackupEntry[]>('/settings/backups');
   },
 
-  async downloadBackup(filename: string): Promise<Blob | null> {
-    const headers: Record<string, string> = {};
-    if (accessToken) {
-      headers.Authorization = `Bearer ${accessToken}`;
+  async restoreBackup(file: File, clearBeforeRestore: boolean): Promise<ApiResponse<{ imported: number }>> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('clearBeforeRestore', String(clearBeforeRestore));
+    try {
+      const response = await fetch(`${API_BASE}/settings/backups/restore`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: form,
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { error: data.error as ApiError };
+      }
+      return { data: data as { imported: number } };
+    } catch {
+      return { error: { code: 'NETWORK_ERROR', message: 'Network error occurred' } };
     }
+  },
+
+  async downloadBackup(filename: string): Promise<Blob | null> {
     try {
       const res = await fetch(`${API_BASE}/settings/backups/${encodeURIComponent(filename)}`, {
-        headers,
+        headers: authHeaders(),
         credentials: 'include',
       });
       if (!res.ok) return null;

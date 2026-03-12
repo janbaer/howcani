@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.79 - 2026-03-12
+---
+
+- Added backup restore via file upload to the Settings page: users can upload a `.json` backup file, optionally wipe existing data before importing, and receive a success message with the imported item count; restores preserve original item IDs and timestamps for idempotent re-imports; cross-user and cross-instance imports are supported
+
 ## 3.0.78 - 2026-03-12
 ---
 

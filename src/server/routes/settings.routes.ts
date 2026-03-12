@@ -2,7 +2,7 @@ import { basename, join } from 'node:path';
 import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { assertAuthenticated, authPlugin } from '../middleware';
-import { getBackupDir, listBackupsForUser } from '../services/backup.service';
+import { BackupRestoreError, getBackupDir, listBackupsForUser, restoreBackup } from '../services/backup.service';
 import { settingsService } from '../services/settings.service';
 
 export const settingsRoutes = new Elysia({ prefix: '/settings' })
@@ -70,4 +70,42 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
       });
     },
     { auth: true, params: t.Object({ filename: t.String() }) },
+  )
+  .post(
+    '/backups/restore',
+    async ({ user, request, set }) => {
+      assertAuthenticated(user);
+      const formData = await request.formData();
+      const file = formData.get('file');
+      const clearBeforeRestore = formData.get('clearBeforeRestore') === 'true';
+
+      if (!(file instanceof File)) {
+        set.status = StatusCodes.BAD_REQUEST;
+        return { error: { code: 'VALIDATION_ERROR', message: 'No file provided' } };
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        set.status = StatusCodes.BAD_REQUEST;
+        return { error: { code: 'VALIDATION_ERROR', message: 'File too large (max 10 MB)' } };
+      }
+
+      let data: unknown;
+      try {
+        data = JSON.parse(await file.text());
+      } catch {
+        set.status = StatusCodes.BAD_REQUEST;
+        return { error: { code: 'VALIDATION_ERROR', message: 'File is not valid JSON' } };
+      }
+
+      try {
+        return { imported: restoreBackup(user.userId, data, clearBeforeRestore) };
+      } catch (err) {
+        if (err instanceof BackupRestoreError) {
+          set.status = StatusCodes.BAD_REQUEST;
+          return { error: { code: 'VALIDATION_ERROR', message: err.message } };
+        }
+        throw err;
+      }
+    },
+    { auth: true },
   );

@@ -5,6 +5,13 @@ let backups = $state<BackupEntry[]>([]);
 let loading = $state(true);
 let error = $state<string | null>(null);
 
+let fileInput: HTMLInputElement | null = null;
+let selectedFile = $state<File | null>(null);
+let clearBeforeRestore = $state(false);
+let restoring = $state(false);
+let restoreResult = $state<string | null>(null);
+let restoreError = $state<string | null>(null);
+
 $effect(() => {
   settings.listBackups().then((res) => {
     if (res.data) {
@@ -34,7 +41,66 @@ async function downloadBackup(filename: string) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  selectedFile = input.files?.[0] ?? null;
+}
+
+async function restoreFromBackup() {
+  if (!selectedFile) return;
+  restoring = true;
+  restoreResult = null;
+  restoreError = null;
+  const res = await settings.restoreBackup(selectedFile, clearBeforeRestore);
+  restoring = false;
+  if (res.data) {
+    restoreResult = `${res.data.imported} item${res.data.imported === 1 ? '' : 's'} imported successfully.`;
+    selectedFile = null;
+    clearBeforeRestore = false;
+    if (fileInput) fileInput.value = '';
+  } else {
+    restoreError = res.error?.message ?? 'Restore failed';
+  }
+}
 </script>
+
+<div class="mt-6">
+  <h2 class="section-header mb-3">Restore from backup</h2>
+  <div class="card px-5 py-4 space-y-3">
+    <p class="font-mono text-xs text-muted-foreground">
+      Upload a backup file to restore your items. Existing items with matching IDs will be overwritten.
+    </p>
+    <label class="cursor-pointer rounded-lg border border-border px-4 py-2 font-mono text-sm text-card-foreground hover:bg-muted transition-colors inline-block">
+      <input type="file" accept="application/json,.json" class="sr-only" bind:this={fileInput} onchange={onFileSelected} />
+      {selectedFile ? selectedFile.name : 'Choose backup file'}
+    </label>
+    {#if selectedFile}
+      <label class="flex items-center gap-2 font-mono text-sm text-card-foreground cursor-pointer">
+        <input type="checkbox" bind:checked={clearBeforeRestore} class="rounded" />
+        Delete existing data before restoring
+      </label>
+      <button
+        type="button"
+        onclick={restoreFromBackup}
+        disabled={restoring}
+        class="rounded-lg bg-primary px-4 py-2 font-mono text-sm text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+      >
+        {restoring ? 'Restoring…' : 'Restore'}
+      </button>
+    {/if}
+    {#if restoreResult}
+      <div class="rounded-lg border border-green-500/50 bg-green-500/10 px-4 py-3 font-mono text-sm text-green-700 dark:text-green-400">
+        {restoreResult}
+      </div>
+    {/if}
+    {#if restoreError}
+      <div class="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 font-mono text-sm text-destructive">
+        {restoreError}
+      </div>
+    {/if}
+  </div>
+</div>
 
 <div class="mt-6">
   <h2 class="section-header mb-3">Your backups</h2>

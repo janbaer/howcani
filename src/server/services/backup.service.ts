@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { db } from '../db/database';
+import { db, isSqliteVecAvailable, runTransaction } from '../db/database';
+import { tagRepository } from '../repositories/tag.repository';
 
 const BACKUP_DIR = process.env.BACKUP_DIR || '/data/backups';
 
@@ -66,6 +67,63 @@ export function fetchItemsForUser(userId: string): BackupItem[] {
   }
 
   return [...itemMap.values()];
+}
+
+export class BackupRestoreError extends Error {}
+
+function isValidBackupFile(data: unknown): data is BackupFile {
+  if (typeof data !== 'object' || data === null) return false;
+  const d = data as Record<string, unknown>;
+  if (typeof d.version !== 'number') return false;
+  if (!Array.isArray(d.items)) return false;
+  for (const item of d.items) {
+    if (typeof item !== 'object' || item === null) return false;
+    const i = item as Record<string, unknown>;
+    if (typeof i.id !== 'string' || typeof i.question !== 'string' || typeof i.answer !== 'string') return false;
+    if (!Array.isArray(i.tags) || !i.tags.every((t) => typeof t === 'string')) return false;
+    if (typeof i.createdAt !== 'string' || typeof i.updatedAt !== 'string') return false;
+  }
+  return true;
+}
+
+export function restoreBackup(userId: string, data: unknown, clearBeforeRestore: boolean): number {
+  if (!isValidBackupFile(data)) {
+    throw new BackupRestoreError('Invalid backup file: missing required fields (version, items)');
+  }
+
+  return runTransaction(() => {
+    if (clearBeforeRestore) {
+      if (isSqliteVecAvailable()) {
+        db.run(`DELETE FROM vec_items WHERE item_id IN (SELECT id FROM items WHERE user_id = ?)`, [userId]);
+      }
+      db.run(`DELETE FROM items WHERE user_id = ?`, [userId]);
+      db.run(`DELETE FROM tags WHERE user_id = ?`, [userId]);
+    }
+
+    const tagMap = new Map(tagRepository.findAllByUserId(userId).map((t) => [t.name.toLowerCase(), t]));
+
+    for (const item of data.items) {
+      db.run(
+        `INSERT OR REPLACE INTO items (id, user_id, question, answer, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [item.id, userId, item.question, item.answer, item.createdAt, item.updatedAt],
+      );
+
+      const tagIds: string[] = [];
+      for (const tagName of item.tags) {
+        let tag = tagMap.get(tagName.toLowerCase());
+        if (!tag) {
+          tag = tagRepository.create({ userId, name: tagName });
+          tagMap.set(tagName.toLowerCase(), tag);
+        }
+        tagIds.push(tag.id);
+      }
+
+      tagRepository.setItemTags(item.id, tagIds);
+    }
+
+    return data.items.length;
+  });
 }
 
 export function pruneOldBackups(username: string, retentionDays: number, dir = BACKUP_DIR): void {
