@@ -16,8 +16,8 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     version: pkg.version,
   });
 
-  function resolveUsername(username?: string): string | null {
-    return username ?? defaultUsername ?? null;
+  function resolveUsername(): string | null {
+    return defaultUsername ?? null;
   }
 
   function missingUsernameError() {
@@ -25,7 +25,7 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       content: [
         {
           type: 'text' as const,
-          text: 'username is required: provide it as a tool argument or via X-Username request header',
+          text: 'username is required: set the X-Username request header',
         },
       ],
       isError: true,
@@ -36,18 +36,12 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     'search_items',
     "Search a user's knowledge base using full-text search and/or tag filtering",
     {
-      username: z
-        .string()
-        .trim()
-        .min(1)
-        .optional()
-        .describe('Username whose knowledge base to search (defaults to X-Username request header)'),
       query: z.string().min(1).optional().describe('Full-text search query'),
       tags: z.string().min(1).optional().describe('Comma-separated tag names to filter by'),
       limit: z.number().min(1).max(100).optional().describe('Max results to return (default 20, max 100)'),
     },
     async (args) => {
-      const username = resolveUsername(args.username);
+      const username = resolveUsername();
       if (!username) return missingUsernameError();
       return searchItems({ ...args, username });
     },
@@ -57,17 +51,11 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     'list_items',
     "List items from a user's knowledge base, sorted by newest first",
     {
-      username: z
-        .string()
-        .trim()
-        .min(1)
-        .optional()
-        .describe('Username whose items to list (defaults to X-Username request header)'),
       limit: z.number().min(1).max(100).optional().describe('Max items to return (default 20, max 100)'),
       offset: z.number().min(0).optional().describe('Number of items to skip for pagination (default 0)'),
     },
     (args) => {
-      const username = resolveUsername(args.username);
+      const username = resolveUsername();
       if (!username) return missingUsernameError();
       return listItems({ ...args, username });
     },
@@ -77,53 +65,29 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     'get_item',
     'Get a single knowledge base item by ID',
     {
-      username: z
-        .string()
-        .trim()
-        .min(1)
-        .optional()
-        .describe('Username who owns the item (defaults to X-Username request header)'),
       item_id: z.string().describe('The item ID to retrieve'),
     },
     (args) => {
-      const username = resolveUsername(args.username);
+      const username = resolveUsername();
       if (!username) return missingUsernameError();
       return getItem({ ...args, username });
     },
   );
 
-  server.tool(
-    'list_tags',
-    'List all tags for a user with item counts',
-    {
-      username: z
-        .string()
-        .trim()
-        .min(1)
-        .optional()
-        .describe('Username whose tags to list (defaults to X-Username request header)'),
-    },
-    (args) => {
-      const username = resolveUsername(args.username);
-      if (!username) return missingUsernameError();
-      return listTags({ ...args, username });
-    },
-  );
+  server.tool('list_tags', 'List all tags for a user with item counts', {}, () => {
+    const username = resolveUsername();
+    if (!username) return missingUsernameError();
+    return listTags({ username });
+  });
 
   server.tool(
     'get_related_items',
     'Get semantically similar items for a given item using KNN vector search',
     {
-      username: z
-        .string()
-        .trim()
-        .min(1)
-        .optional()
-        .describe('Username who owns the item (defaults to X-Username request header)'),
       item_id: z.string().describe('The item ID to find related items for'),
     },
     (args) => {
-      const username = resolveUsername(args.username);
+      const username = resolveUsername();
       if (!username) return missingUsernameError();
       return getRelatedItems({ ...args, username });
     },

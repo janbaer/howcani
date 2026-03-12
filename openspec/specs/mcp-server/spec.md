@@ -2,7 +2,7 @@
 The system SHALL expose an MCP Streamable HTTP endpoint at `/mcp` on the existing Elysia server. The endpoint SHALL handle POST, GET, and DELETE HTTP methods for MCP protocol communication. The endpoint SHALL use stateless transport (no session persistence between requests). The endpoint SHALL include CORS headers on all responses and respond to OPTIONS preflight requests, allowing browser-based MCP clients to connect from any origin.
 
 ### Requirement: Default username via X-Username header
-The MCP server SHALL read the `X-Username` HTTP request header on each incoming request and use its value as the default `username` for all read tools when the caller does not supply a `username` argument explicitly. When neither the `username` argument nor the `X-Username` header is present, the tool SHALL return an error indicating that a username is required.
+The MCP server SHALL read the `X-Username` HTTP request header on each incoming request and use its value as the username for all read tools. Read tools SHALL NOT accept a `username` argument — the header is the sole source of user identity. When the `X-Username` header is absent, the tool SHALL return an error indicating that a username is required.
 
 #### Scenario: MCP client initializes connection
 - **WHEN** an MCP client sends an initialize request to `POST /mcp`
@@ -17,56 +17,72 @@ The MCP server SHALL read the `X-Username` HTTP request header on each incoming 
 - **THEN** the server responds with a 400 status code
 
 ### Requirement: search_items tool
-The system SHALL provide a `search_items` MCP tool that performs full-text search across a user's knowledge base items. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header), an optional `query` string for FTS search, an optional `tags` parameter (comma-separated tag names for filtering), and an optional `limit` parameter (default 20, max 100). The tool SHALL NOT require authentication.
+The system SHALL provide a `search_items` MCP tool that performs full-text search across a user's knowledge base items. The tool SHALL resolve the username exclusively from the `X-Username` request header. The tool schema SHALL NOT include a `username` argument. The tool SHALL accept an optional `query` string for FTS search, an optional `tags` parameter (comma-separated tag names for filtering), and an optional `limit` parameter (default 20, max 100). The tool SHALL NOT require authentication.
 
 #### Scenario: Search by query
-- **WHEN** an MCP client calls `search_items` with username "jan" and query "docker"
+- **WHEN** an MCP client sends `X-Username: jan` and calls `search_items` with query "docker"
 - **THEN** the tool returns items matching "docker" in question or answer fields, ranked by relevance
 
 #### Scenario: Search by tags
-- **WHEN** an MCP client calls `search_items` with username "jan" and tags "devops,linux"
+- **WHEN** an MCP client sends `X-Username: jan` and calls `search_items` with tags "devops,linux"
 - **THEN** the tool returns items tagged with "devops" or "linux"
 
 #### Scenario: Search with query and tags combined
-- **WHEN** an MCP client calls `search_items` with username "jan", query "docker", and tags "devops"
+- **WHEN** an MCP client sends `X-Username: jan` and calls `search_items` with query "docker" and tags "devops"
 - **THEN** the tool returns items matching "docker" that are also tagged "devops"
 
 #### Scenario: Search for nonexistent username
-- **WHEN** an MCP client calls `search_items` with a username that does not exist
+- **WHEN** the `X-Username` header contains a username that does not exist
 - **THEN** the tool returns an error indicating the user was not found
 
+#### Scenario: Missing X-Username header
+- **WHEN** no `X-Username` header is set and `search_items` is called
+- **THEN** the tool returns `isError: true` with a message indicating username is required
+
 ### Requirement: list_items tool
-The system SHALL provide a `list_items` MCP tool that returns a paginated list of a user's items sorted by creation date (newest first). The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header), an optional `limit` (default 20, max 100), and an optional `offset` (default 0). The tool SHALL NOT require authentication.
+The system SHALL provide a `list_items` MCP tool that returns a paginated list of a user's items sorted by creation date (newest first). The tool SHALL resolve the username exclusively from the `X-Username` request header. The tool schema SHALL NOT include a `username` argument. The tool SHALL accept an optional `limit` (default 20, max 100) and an optional `offset` (default 0). The tool SHALL NOT require authentication.
 
 #### Scenario: List items with defaults
-- **WHEN** an MCP client calls `list_items` with username "jan"
+- **WHEN** an MCP client sends `X-Username: jan` and calls `list_items` with no arguments
 - **THEN** the tool returns up to 20 most recent items with their questions, answers, tags, and total count
 
 #### Scenario: List items with pagination
-- **WHEN** an MCP client calls `list_items` with username "jan", limit 10, and offset 10
+- **WHEN** an MCP client sends `X-Username: jan` and calls `list_items` with limit 10 and offset 10
 - **THEN** the tool returns items 11-20 and the total count for pagination
 
+#### Scenario: Missing X-Username header
+- **WHEN** no `X-Username` header is set and `list_items` is called
+- **THEN** the tool returns `isError: true` with a message indicating username is required
+
 ### Requirement: get_item tool
-The system SHALL provide a `get_item` MCP tool that retrieves a single item by its ID. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header) and a required `item_id` parameter. The tool SHALL return the full item including question, answer, tags, and timestamps. The tool SHALL NOT require authentication.
+The system SHALL provide a `get_item` MCP tool that retrieves a single item by its ID. The tool SHALL resolve the username exclusively from the `X-Username` request header. The tool schema SHALL NOT include a `username` argument. The tool SHALL accept a required `item_id` parameter. The tool SHALL return the full item including question, answer, tags, and timestamps. The tool SHALL NOT require authentication.
 
 #### Scenario: Get existing item
-- **WHEN** an MCP client calls `get_item` with a valid username and item_id
+- **WHEN** an MCP client sends `X-Username: jan` and calls `get_item` with a valid item_id
 - **THEN** the tool returns the complete item with question, answer, tags array, created_at, and updated_at
 
 #### Scenario: Get nonexistent item
-- **WHEN** an MCP client calls `get_item` with an item_id that does not exist for the given username
+- **WHEN** an MCP client sends `X-Username: jan` and calls `get_item` with an item_id that does not exist
 - **THEN** the tool returns an error indicating the item was not found
 
+#### Scenario: Missing X-Username header
+- **WHEN** no `X-Username` header is set and `get_item` is called
+- **THEN** the tool returns `isError: true` with a message indicating username is required
+
 ### Requirement: list_tags tool
-The system SHALL provide a `list_tags` MCP tool that returns all tags for a user with their item counts. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header). Tags SHALL be sorted alphabetically (case-insensitive). The tool SHALL NOT require authentication.
+The system SHALL provide a `list_tags` MCP tool that returns all tags for a user with their item counts. The tool SHALL resolve the username exclusively from the `X-Username` request header. The tool schema SHALL NOT include a `username` argument. Tags SHALL be sorted alphabetically (case-insensitive). The tool SHALL NOT require authentication.
 
 #### Scenario: List tags
-- **WHEN** an MCP client calls `list_tags` with username "jan"
+- **WHEN** an MCP client sends `X-Username: jan` and calls `list_tags`
 - **THEN** the tool returns all tags with name, color, and item_count, sorted alphabetically
 
 #### Scenario: List tags for user with no tags
-- **WHEN** an MCP client calls `list_tags` for a user who has no tags
+- **WHEN** the `X-Username` header identifies a user who has no tags
 - **THEN** the tool returns an empty array
+
+#### Scenario: Missing X-Username header
+- **WHEN** no `X-Username` header is set and `list_tags` is called
+- **THEN** the tool returns `isError: true` with a message indicating username is required
 
 ### Requirement: create_item tool with authentication
 The system SHALL provide a `create_item` MCP tool that creates a new knowledge base item. The tool SHALL accept a required `token` parameter (JWT), a required `question` parameter, an optional `answer` parameter, and an optional `tags` parameter (array of tag name strings). The tool SHALL verify the JWT token and create the item under the authenticated user. Tags that do not exist SHALL be created automatically.
@@ -118,10 +134,10 @@ The system SHALL provide an `update_item` MCP tool that updates an existing know
 - **THEN** the tool returns an error indicating the item was not found
 
 ### Requirement: get_related_items tool
-The system SHALL provide a `get_related_items` MCP tool that returns semantically similar items for a given item using KNN vector search on stored embeddings. The tool SHALL accept an optional `username` parameter (defaults to `X-Username` request header) and a required `item_id` parameter. The tool SHALL return up to 5 items with their `id`, `question`, `answer`, and `tags`, excluding the requested item itself. The tool SHALL NOT require authentication.
+The system SHALL provide a `get_related_items` MCP tool that returns semantically similar items for a given item using KNN vector search on stored embeddings. The tool SHALL resolve the username exclusively from the `X-Username` request header. The tool schema SHALL NOT include a `username` argument. The tool SHALL accept a required `item_id` parameter. The tool SHALL return up to 5 items with their `id`, `question`, `answer`, and `tags`, excluding the requested item itself. The tool SHALL NOT require authentication.
 
 #### Scenario: Returns related items
-- **WHEN** an MCP client calls `get_related_items` with a valid username and an item_id that has a stored embedding
+- **WHEN** an MCP client sends `X-Username: jan` and calls `get_related_items` with an item_id that has a stored embedding
 - **THEN** the tool returns up to 5 semantically similar items with id, question, answer, and tags
 
 #### Scenario: Returns empty array when item has no embedding
@@ -133,16 +149,20 @@ The system SHALL provide a `get_related_items` MCP tool that returns semanticall
 - **THEN** the tool returns `{ items: [] }` with no error
 
 #### Scenario: Returns error for non-existent item
-- **WHEN** an MCP client calls `get_related_items` with an item_id that does not exist for the given username
+- **WHEN** an MCP client sends `X-Username: jan` and calls `get_related_items` with an item_id that does not exist
 - **THEN** the tool returns an MCP error response indicating the item was not found
 
 #### Scenario: Returns error for non-existent user
-- **WHEN** an MCP client calls `get_related_items` with a username that does not exist
+- **WHEN** the `X-Username` header contains a username that does not exist
 - **THEN** the tool returns an MCP error response indicating the user was not found
 
 #### Scenario: No authentication required
 - **WHEN** an MCP client calls `get_related_items` without an Authorization header
 - **THEN** the tool executes successfully (public tool)
+
+#### Scenario: Missing X-Username header
+- **WHEN** no `X-Username` header is set and `get_related_items` is called
+- **THEN** the tool returns `isError: true` with a message indicating username is required
 
 ### Requirement: Tool response format
 All MCP tools SHALL return results as text content in JSON format. Successful responses SHALL include the requested data. Error responses SHALL use the MCP `isError: true` flag with a descriptive error message.

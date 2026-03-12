@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.78 - 2026-03-12
+---
+
+- MCP read tools (`search_items`, `list_items`, `get_item`, `list_tags`, `get_related_items`) no longer accept a `username` argument — the `X-Username` request header is now the sole source of user identity, simplifying tool schemas and reducing noise in LLM prompts
+
 ## 3.0.77 - 2026-03-11
 ---
 

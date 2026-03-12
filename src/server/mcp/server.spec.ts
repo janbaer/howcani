@@ -3,6 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
+import { ItemRepository } from '../repositories/item.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { createMcpServer } from './server';
 
@@ -22,11 +23,14 @@ async function createTestClient(options: { defaultUsername?: string } = {}) {
 
 describe('createMcpServer - username resolution', () => {
   let userRepo: UserRepository;
+  let itemRepo: ItemRepository;
   let testUsername: string;
+  let testUserId: number;
 
   beforeAll(() => {
     setupTestDatabase();
     userRepo = new UserRepository();
+    itemRepo = new ItemRepository();
   });
 
   beforeEach(() => {
@@ -37,6 +41,7 @@ describe('createMcpServer - username resolution', () => {
       passwordHash: 'hash',
     });
     testUsername = user.username;
+    testUserId = user.id;
   });
 
   afterEach(async () => {
@@ -46,7 +51,7 @@ describe('createMcpServer - username resolution', () => {
     currentServer = undefined;
   });
 
-  test('resolves username from X-Username header (via defaultUsername option) when not provided in args', async () => {
+  test('resolves username from X-Username header (via defaultUsername option)', async () => {
     const { client } = await createTestClient({ defaultUsername: testUsername });
 
     const result = await client.callTool({ name: 'list_items', arguments: {} });
@@ -56,17 +61,7 @@ describe('createMcpServer - username resolution', () => {
     expect(data).toHaveProperty('items');
   });
 
-  test('explicit username arg takes precedence over X-Username header', async () => {
-    const { client } = await createTestClient({ defaultUsername: 'other-user' });
-
-    const result = await client.callTool({ name: 'list_items', arguments: { username: testUsername } });
-
-    expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
-    expect(data).toHaveProperty('items');
-  });
-
-  test('returns error when no username provided and no X-Username header set', async () => {
+  test('returns error when no X-Username header set', async () => {
     const { client } = await createTestClient();
 
     const result = await client.callTool({ name: 'list_items', arguments: {} });
@@ -93,5 +88,16 @@ describe('createMcpServer - username resolution', () => {
     expect(result.isError).toBeFalsy();
     const data = JSON.parse((result.content[0] as { text: string }).text);
     expect(data).toHaveProperty('tags');
+  });
+
+  test('get_item resolves username from X-Username header', async () => {
+    const item = itemRepo.create({ userId: testUserId, question: 'Test question', answer: 'Test answer' });
+    const { client } = await createTestClient({ defaultUsername: testUsername });
+
+    const result = await client.callTool({ name: 'get_item', arguments: { item_id: item.id } });
+
+    expect(result.isError).toBeFalsy();
+    const data = JSON.parse((result.content[0] as { text: string }).text);
+    expect(data).toHaveProperty('question', 'Test question');
   });
 });
