@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Item, TagWithCount } from '../../lib/items.svelte';
+import Button from './Button.svelte';
 import MarkdownEditor from './MarkdownEditor.svelte';
 
 interface Props {
@@ -289,19 +290,19 @@ function removeTag(tagName: string) {
 
       <!-- Actions -->
       <div class="modal-actions">
-        <button
+        <Button
           type="button"
+          variant="cancel"
           onclick={handleCancel}
           disabled={loading}
-          class="modal-cancel"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="submit"
           onclick={handleSave}
           disabled={loading}
-          class="modal-submit"
         >
           {#if loading}
             <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -310,7 +311,7 @@ function removeTag(tagName: string) {
             </svg>
           {/if}
           Save
-        </button>
+        </Button>
       </div>
     </div>
   {/if}

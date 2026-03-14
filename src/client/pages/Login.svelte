@@ -1,4 +1,5 @@
 <script lang="ts">
+import Button from '../components/common/Button.svelte';
 import { clearError, getAuthState, login } from '../lib/auth.svelte';
 import { link } from '../lib/router.svelte';
 
@@ -63,13 +64,14 @@ async function handleSubmit(e: Event) {
       />
     </div>
 
-    <button
+    <Button
       type="submit"
       disabled={isSubmitting || !username || !password}
-      class="btn-primary w-full py-2.5"
+      size="lg"
+      class="w-full"
     >
       {isSubmitting ? "Logging in..." : "Login"}
-    </button>
+    </Button>
   </form>
 
     <div class="auth-footer">

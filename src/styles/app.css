@@ -31,201 +31,92 @@
 @source "../client/**/*.{svelte,ts}";
 @source "../index.html";
 
-/* ─── Component classes ────────────────────────────────────────────────────── */
+/* ─── Utility classes ──────────────────────────────────────────────────────── */
 
-@layer components {
-  /* Card container */
-  .card {
-    @apply rounded-xl border border-border bg-card;
-  }
+@utility card {
+  @apply rounded-xl border border-border bg-card;
+}
 
-  /* Form inputs */
-  .input {
-    @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm
-           placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring;
-  }
+@utility input {
+  @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm
+         placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring;
+}
 
-  /* Buttons */
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2
-           font-mono text-sm font-medium text-primary-foreground
-           hover:opacity-90 transition-opacity
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
+@utility page-title {
+  @apply font-mono text-2xl font-bold text-foreground;
+}
 
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-border px-4 py-2
-           font-mono text-sm font-medium text-foreground
-           hover:bg-muted transition-colors
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
+@utility section-header {
+  @apply font-mono text-lg font-semibold text-foreground;
+}
 
-  .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-lg px-3 py-2
-           text-sm text-muted-foreground
-           hover:text-foreground hover:bg-muted transition-colors;
-  }
+@utility alert-error {
+  @apply rounded-lg border border-red-300 bg-red-50
+         dark:bg-red-950/20 dark:border-red-800
+         p-3 text-sm text-red-700 dark:text-red-400;
+}
 
-  .btn-danger {
-    @apply inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2
-           font-mono text-sm font-medium text-white
-           hover:opacity-90 transition-opacity
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
+@utility form-error {
+  @apply rounded-lg border border-red-500/20 bg-red-500/10 p-3;
+}
 
-  /* Icon-only button (square, 32 px) */
-  .btn-icon {
-    @apply flex h-8 w-8 items-center justify-center rounded-lg
-           text-muted-foreground hover:text-foreground hover:bg-muted transition-colors;
-  }
+@utility form-label {
+  @apply block font-mono text-xs text-muted-foreground mb-2;
+}
 
-  /* Page-level headings */
-  .page-title {
-    @apply font-mono text-2xl font-bold text-foreground;
-  }
+@utility tag-chip {
+  @apply inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 font-mono text-xs text-primary;
+}
 
-  .section-header {
-    @apply font-mono text-lg font-semibold text-foreground;
-  }
+@utility dialog {
+  @apply m-auto rounded-xl border border-border bg-card p-0 shadow-2xl backdrop:bg-black/50;
+}
 
-  /* Error / alert banner */
-  .alert-error {
-    @apply rounded-lg border border-red-300 bg-red-50
-           dark:bg-red-950/20 dark:border-red-800
-           p-3 text-sm text-red-700 dark:text-red-400;
-  }
+@utility dialog-title {
+  @apply font-mono text-lg font-bold text-card-foreground;
+}
 
-  /* Subtle inline error box used inside forms/modals */
-  .form-error {
-    @apply rounded-lg border border-red-500/20 bg-red-500/10 p-3;
-  }
+@utility dialog-subtitle {
+  @apply mt-1 font-mono text-xs text-muted-foreground;
+}
 
-  /* Form field label */
-  .form-label {
-    @apply block font-mono text-xs text-muted-foreground mb-2;
-  }
+@utility dropdown-item {
+  @apply w-full text-left px-3 py-2 font-mono text-sm text-foreground
+         hover:bg-muted transition-colors;
+}
 
-  /* Selected tag chip (removable) */
-  .tag-chip {
-    @apply inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 font-mono text-xs text-primary;
-  }
+@utility auth-label {
+  @apply block font-mono text-xs font-medium text-muted-foreground mb-1.5;
+}
 
-  /* Modal footer action row */
-  .modal-actions {
-    @apply mt-6 flex justify-end gap-3;
-  }
+@utility auth-title {
+  @apply mb-6 font-mono text-xl font-bold text-card-foreground;
+}
 
-  /* Sticky back-navigation link */
-  .back-link {
-    @apply sticky top-14 z-10 -mx-4 -mt-6 mb-2 flex shrink-0 items-center gap-1.5
-           bg-background px-4 py-4
-           font-mono text-sm text-muted-foreground
-           hover:text-primary transition-colors;
-  }
+@utility auth-footer {
+  @apply mt-6 text-center text-sm text-muted-foreground;
+}
 
-  /* Small icon button — edit action (neutral hover) */
-  .btn-icon-edit {
-    @apply rounded-md p-1.5 text-muted-foreground transition-colors
-           hover:text-foreground hover:bg-muted active:bg-muted;
-  }
+@utility auth-link {
+  @apply text-primary hover:underline font-medium;
+}
 
-  /* Small icon button — delete/danger action (red hover) */
-  .btn-icon-delete {
-    @apply rounded-md p-1.5 text-muted-foreground transition-colors
-           hover:text-red-500 hover:bg-red-500/10 active:bg-red-500/10;
-  }
+@utility back-link {
+  @apply sticky top-14 z-10 -mx-4 -mt-6 mb-2 flex shrink-0 items-center gap-1.5
+         bg-background px-4 py-4
+         font-mono text-sm text-muted-foreground
+         hover:text-primary transition-colors;
+}
 
-  /* Modal dialog title heading */
-  .dialog-title {
-    @apply font-mono text-lg font-bold text-card-foreground;
-  }
+@utility modal-actions {
+  @apply mt-6 flex justify-end gap-3;
+}
 
-  /* Modal dialog element base */
-  .dialog {
-    @apply m-auto rounded-xl border border-border bg-card p-0 shadow-2xl backdrop:bg-black/50;
-  }
+@utility tag-nav-item {
+  @apply flex w-full items-center gap-2 rounded-md px-2 py-1.5
+         text-left text-sm transition-colors;
+}
 
-  /* Inline back/nav button (no background, text-only with icon) */
-  .btn-back {
-    @apply flex items-center gap-1.5 font-mono text-sm
-           text-muted-foreground hover:text-foreground transition-colors;
-  }
-
-  /* Mobile header icon button (sits on bg-primary) */
-  .btn-mobile-icon {
-    @apply flex h-8 w-8 items-center justify-center rounded-lg
-           text-primary-foreground/80 hover:text-primary-foreground transition-colors;
-  }
-
-  /* Mobile header user avatar button */
-  .btn-mobile-user {
-    @apply flex h-8 w-8 items-center justify-center rounded-full
-           bg-primary-foreground/20 text-primary-foreground;
-  }
-
-  /* Sidebar tag navigation item (base layout — group + selected/hover state applied inline) */
-  .tag-nav-item {
-    @apply flex w-full items-center gap-2 rounded-md px-2 py-1.5
-           text-left text-sm transition-colors;
-  }
-
-  /* Checkbox indicator inside .tag-nav-item (selected state applied inline) */
-  .tag-nav-checkbox {
-    @apply flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors;
-  }
-
-  /* Subtitle / description line immediately below .dialog-title */
-  .dialog-subtitle {
-    @apply mt-1 font-mono text-xs text-muted-foreground;
-  }
-
-  /* Modal cancel button — btn-ghost with wider padding and mono font */
-  .modal-cancel {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2
-           font-mono text-sm text-muted-foreground
-           hover:text-foreground hover:bg-muted transition-colors
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  /* Modal primary submit button — btn-primary with icon gap */
-  .modal-submit {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2
-           font-mono text-sm font-medium text-primary-foreground
-           hover:opacity-90 transition-opacity
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  /* Modal destructive button — btn-danger with icon gap */
-  .modal-delete {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2
-           font-mono text-sm font-medium text-white
-           hover:opacity-90 transition-opacity
-           disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-
-  /* Option row inside a dropdown list */
-  .dropdown-item {
-    @apply w-full text-left px-3 py-2 font-mono text-sm text-foreground
-           hover:bg-muted transition-colors;
-  }
-
-  /* Form field label on auth pages (slightly bolder than .form-label) */
-  .auth-label {
-    @apply block font-mono text-xs font-medium text-muted-foreground mb-1.5;
-  }
-
-  /* Page heading inside auth card */
-  .auth-title {
-    @apply mb-6 font-mono text-xl font-bold text-card-foreground;
-  }
-
-  /* Footer row below auth form */
-  .auth-footer {
-    @apply mt-6 text-center text-sm text-muted-foreground;
-  }
-
-  /* Inline link inside .auth-footer */
-  .auth-link {
-    @apply text-primary hover:underline font-medium;
-  }
+@utility tag-nav-checkbox {
+  @apply flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors;
 }

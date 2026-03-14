@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.80 - 2026-03-14
+---
+
+- Replaced all `@layer components` button classes with a reusable `Button.svelte` component (14 variants, 3 sizes, `href` support for SPA link rendering); migrated remaining simple CSS classes to Tailwind v4 `@utility` blocks; removed the `@layer components` block entirely from `app.css`
+
 ## 3.0.79 - 2026-03-12
 ---
 

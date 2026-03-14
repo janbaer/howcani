@@ -1,4 +1,5 @@
 <script lang="ts">
+import Button from '../components/common/Button.svelte';
 import BackupSection from '../components/settings/BackupSection.svelte';
 import DuplicatesSection from '../components/settings/DuplicatesSection.svelte';
 import { settings } from '../lib/api';
@@ -135,15 +136,15 @@ async function toggleSemanticSearch() {
 
 <div class="mx-auto max-w-2xl py-8 px-4">
   <div class="mb-6">
-    <button
+    <Button
+      variant="back"
       onclick={() => history.back()}
-      class="btn-back"
     >
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
       </svg>
       Back
-    </button>
+    </Button>
   </div>
   <h1 class="page-title mb-6">Settings</h1>
 

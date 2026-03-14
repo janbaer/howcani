@@ -1,6 +1,7 @@
 <script lang="ts">
+import Button from '../components/common/Button.svelte';
 import { getAuthState } from '../lib/auth.svelte';
-import { link, navigate } from '../lib/router.svelte';
+import { navigate } from '../lib/router.svelte';
 
 interface Props {
   params?: Record<string, string>;
@@ -32,20 +33,12 @@ $effect(() => {
       </p>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a
-          href="/login"
-          use:link
-          class="btn-primary px-6 py-2.5"
-        >
+        <Button href="/login" size="lg">
           Login
-        </a>
-        <a
-          href="/register"
-          use:link
-          class="btn-secondary px-6 py-2.5"
-        >
+        </Button>
+        <Button href="/register" variant="secondary" size="lg">
           Create Account
-        </a>
+        </Button>
       </div>
     </div>
   </div>

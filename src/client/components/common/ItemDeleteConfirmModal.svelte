@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Item } from '../../lib/items.svelte';
+import Button from './Button.svelte';
 
 interface Props {
   item: Item | null;
@@ -10,7 +11,6 @@ interface Props {
 const { item, onDelete, onClose }: Props = $props();
 
 let dialogElement: HTMLDialogElement;
-let cancelButton: HTMLButtonElement;
 
 let loading = $state(false);
 let error = $state('');
@@ -21,8 +21,7 @@ $effect(() => {
     loading = false;
     error = '';
     dialogElement?.showModal();
-    // Focus cancel button by default (safer)
-    setTimeout(() => cancelButton?.focus(), 100);
+    setTimeout(() => dialogElement?.querySelector<HTMLButtonElement>('button')?.focus(), 100);
   } else {
     dialogElement?.close();
   }
@@ -88,20 +87,19 @@ function handleCancel() {
 
       <!-- Actions -->
       <div class="modal-actions">
-        <button
-          bind:this={cancelButton}
+        <Button
           type="button"
+          variant="cancel"
           onclick={handleCancel}
           disabled={loading}
-          class="modal-cancel"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="delete-action"
           onclick={handleDelete}
           disabled={loading}
-          class="modal-delete"
         >
           {#if loading}
             <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -110,7 +108,7 @@ function handleCancel() {
             </svg>
           {/if}
           Delete
-        </button>
+        </Button>
       </div>
     </div>
   {/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { fade } from 'svelte/transition';
+import Button from '../components/common/Button.svelte';
 import ItemDeleteConfirmModal from '../components/common/ItemDeleteConfirmModal.svelte';
 import ItemFormModal from '../components/common/ItemFormModal.svelte';
 import ActiveFilters from '../components/itemlist/ActiveFilters.svelte';
@@ -207,12 +208,12 @@ $effect(() => {
               {/if}
             </p>
             {#if isOwner && !searchQuery && store.selectedTags.length === 0}
-              <button
+              <Button
                 onclick={openCreateModal}
-                class="btn-primary px-6 py-2.5"
+                size="lg"
               >
                 Add your first question
-              </button>
+              </Button>
             {/if}
           </div>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { TagWithCount } from '../../lib/items.svelte';
+import Button from '../common/Button.svelte';
 import ColorPicker from './ColorPicker.svelte';
 
 interface Props {
@@ -141,19 +142,19 @@ function handleKeydown(e: KeyboardEvent) {
 
       <!-- Actions -->
       <div class="modal-actions">
-        <button
+        <Button
           type="button"
+          variant="cancel"
           onclick={handleCancel}
           disabled={loading}
-          class="modal-cancel"
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="submit"
           onclick={handleSave}
           disabled={loading}
-          class="modal-submit"
         >
           {#if loading}
             <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -162,7 +163,7 @@ function handleKeydown(e: KeyboardEvent) {
             </svg>
           {/if}
           Save
-        </button>
+        </Button>
       </div>
     </div>
   {/if}
