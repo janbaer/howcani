@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import pkg from '../../../package.json';
+import { extractBearerToken, verifyToken } from '../auth/jwt.ts';
 import { createItem, getItem, getRelatedItems, listItems, listTags, searchItems, updateItem } from './tools.ts';
 
 interface McpServerOptions {
@@ -16,16 +17,22 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     version: pkg.version,
   });
 
-  function resolveUsername(): string | null {
-    return defaultUsername ?? null;
-  }
+  const usernamePromise: Promise<string | null> = (async () => {
+    if (defaultUsername) return defaultUsername;
+    const token = extractBearerToken(options.authHeader);
+    if (token) {
+      const payload = await verifyToken(token);
+      if (payload) return payload.username;
+    }
+    return null;
+  })();
 
   function missingUsernameError() {
     return {
       content: [
         {
           type: 'text' as const,
-          text: 'username is required: set the X-Username request header',
+          text: 'username is required: set the X-Username request header or provide a Bearer token',
         },
       ],
       isError: true,
@@ -41,7 +48,7 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       limit: z.number().min(1).max(100).optional().describe('Max results to return (default 20, max 100)'),
     },
     async (args) => {
-      const username = resolveUsername();
+      const username = await usernamePromise;
       if (!username) return missingUsernameError();
       return searchItems({ ...args, username });
     },
@@ -54,8 +61,8 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       limit: z.number().min(1).max(100).optional().describe('Max items to return (default 20, max 100)'),
       offset: z.number().min(0).optional().describe('Number of items to skip for pagination (default 0)'),
     },
-    (args) => {
-      const username = resolveUsername();
+    async (args) => {
+      const username = await usernamePromise;
       if (!username) return missingUsernameError();
       return listItems({ ...args, username });
     },
@@ -67,15 +74,15 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     {
       item_id: z.string().describe('The item ID to retrieve'),
     },
-    (args) => {
-      const username = resolveUsername();
+    async (args) => {
+      const username = await usernamePromise;
       if (!username) return missingUsernameError();
       return getItem({ ...args, username });
     },
   );
 
-  server.tool('list_tags', 'List all tags for a user with item counts', {}, () => {
-    const username = resolveUsername();
+  server.tool('list_tags', 'List all tags for a user with item counts', {}, async () => {
+    const username = await usernamePromise;
     if (!username) return missingUsernameError();
     return listTags({ username });
   });
@@ -86,8 +93,8 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     {
       item_id: z.string().describe('The item ID to find related items for'),
     },
-    (args) => {
-      const username = resolveUsername();
+    async (args) => {
+      const username = await usernamePromise;
       if (!username) return missingUsernameError();
       return getRelatedItems({ ...args, username });
     },

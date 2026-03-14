@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.81 - 2026-03-14
+---
+
+- MCP read tools (`search_items`, `list_items`, `get_item`, `list_tags`, `get_related_items`) now accept a Bearer token as an alternative to the `X-Username` header for user identification; username resolution is cached at construction time to avoid repeated JWT verification
+
 ## 3.0.80 - 2026-03-14
 ---
 
