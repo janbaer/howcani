@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -6,6 +6,16 @@ import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { ItemRepository } from '../repositories/item.repository';
 import { TagRepository } from '../repositories/tag.repository';
 import { UserRepository } from '../repositories/user.repository';
+
+// When another test file calls mock.module('../repositories', ...), the tagRepository
+// binding in '../repositories/tag.repository' is also replaced. Re-mock the direct
+// path with a fresh real instance to restore the original behavior.
+const freshTagRepository = new TagRepository();
+mock.module('../repositories/tag.repository', () => ({
+  TagRepository,
+  tagRepository: freshTagRepository,
+}));
+
 import {
   BackupRestoreError,
   fetchItemsForUser,

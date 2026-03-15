@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
+import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { type CreateItemDTO, ItemRepository, sanitizeFtsQuery } from './item.repository';
 import { TagRepository } from './tag.repository';
@@ -620,7 +621,7 @@ describe('ItemRepository Integration Tests', () => {
       itemBId = itemB.id;
 
       // Insert pre-computed embeddings directly (no API call)
-      const { db } = require('../db/database');
+
       const vectorA = new Float32Array(1536).fill(0.1);
       const vectorB = new Float32Array(1536).fill(0.9);
       db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
@@ -694,7 +695,6 @@ describe('ItemRepository Integration Tests', () => {
       const different = itemRepo.create({ userId: testUserId, question: 'Completely different topic', answer: '' });
       differentItemId = different.id;
 
-      const { db } = require('../db/database');
       const vectorSource = new Float32Array(1536).fill(0.5);
       const vectorSimilar = new Float32Array(1536).fill(0.51);
       const vectorDifferent = new Float32Array(1536).fill(0.0);
@@ -749,7 +749,7 @@ describe('ItemRepository Integration Tests', () => {
         passwordHash: 'hash',
       });
       const otherItem = itemRepo.create({ userId: otherUser.id, question: 'Other user item', answer: '' });
-      const { db } = require('../db/database');
+
       const vec = new Float32Array(1536).fill(0.5);
       db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
         otherItem.id,
@@ -777,7 +777,6 @@ describe('ItemRepository Integration Tests', () => {
       const different = itemRepo.create({ userId: testUserId, question: 'Completely different topic', answer: '' });
       differentItemId = different.id;
 
-      const { db } = require('../db/database');
       const vectorSource = new Float32Array(1536).fill(0.5);
       const vectorNearDuplicate = new Float32Array(1536).fill(0.5001);
       const vectorDifferent = new Float32Array(1536).fill(0.0);
@@ -835,7 +834,7 @@ describe('ItemRepository Integration Tests', () => {
         passwordHash: 'hash',
       });
       const otherItem = itemRepo.create({ userId: otherUser.id, question: 'Other user duplicate', answer: '' });
-      const { db } = require('../db/database');
+
       const vec = new Float32Array(1536).fill(0.5);
       db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
         otherItem.id,
@@ -863,7 +862,6 @@ describe('ItemRepository Integration Tests', () => {
       const itemC = itemRepo.create({ userId: testUserId, question: 'Item C completely different', answer: '' });
       itemCId = itemC.id;
 
-      const { db } = require('../db/database');
       const vecA = new Float32Array(1536).fill(0.5);
       const vecB = new Float32Array(1536).fill(0.51);
       const vecC = new Float32Array(1536).fill(0.0);

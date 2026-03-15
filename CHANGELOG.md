@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.82 - 2026-03-15
+---
+
+- Fixed 30 test failures caused by Bun `mock.module` leaks between service test files; preserved real class exports when mocking singletons and added defensive re-mocks for barrel import leaks
+- Added Biome `noCommonJs` lint rule and replaced all existing `require()` calls with ESM imports
+
 ## 3.0.81 - 2026-03-14
 ---
 

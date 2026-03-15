@@ -1,5 +1,7 @@
 import { describe, expect, mock, spyOn, test } from 'bun:test';
-import { embeddingService } from './embedding.service';
+import { EmbeddingService } from './embedding.service';
+
+const embeddingService = new EmbeddingService();
 
 describe('EmbeddingService', () => {
   describe('embedText', () => {

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import * as realDatabase from '../db/database';
 import type { Item } from '../domain/item';
 import type { Tag } from '../domain/tag';
+import { EmbeddingService as RealEmbeddingService } from './embedding.service';
 
 interface TestUser {
   id: string;
@@ -74,15 +76,23 @@ const mockItemRepository = {
 
 mock.module('../repositories', () => ({
   itemRepository: mockItemRepository,
+  tagRepository: {
+    findAllByUserId: mock(() => []),
+    getItemTagsForUser: mock(() => []),
+    create: mock(() => ({})),
+    findByNameAndUserId: mock(() => null),
+    findByIdAndUserId: mock(() => null),
+    findByUserId: mock(() => []),
+    findSuggestions: mock(() => []),
+    update: mock(() => null),
+    delete: mock(() => {}),
+    setItemTags: mock(() => {}),
+    findTagsForItem: mock(() => []),
+  },
 }));
 
 mock.module('./user.service', () => ({
   userService: mockUserService,
-}));
-
-mock.module('./tag.service', () => ({
-  TagService: class MockTagService {},
-  tagService: {},
 }));
 
 const mockEmbeddingService = {
@@ -91,11 +101,17 @@ const mockEmbeddingService = {
   deleteEmbedding: mock((_itemId: string) => {}),
 };
 
+// Preserve real EmbeddingService class so other test files can construct instances,
+// while replacing the singleton with a mock for this file's tests.
 mock.module('./embedding.service', () => ({
+  EmbeddingService: RealEmbeddingService,
   embeddingService: mockEmbeddingService,
 }));
 
+// Preserve real db exports so other test files (e.g. backup.service.spec.ts)
+// that use the real database are not affected.
 mock.module('../db/database', () => ({
+  ...realDatabase,
   runTransaction: (fn: () => unknown) => fn(),
 }));
 
