@@ -18,6 +18,15 @@ bun run lint:fix     # Auto-fix Biome issues
 
 Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build and tests. No manual invocation needed before committing or pushing.
 
+## Environment Variables
+
+| Variable | Required | Notes |
+|---|---|---|
+| `HOWCANI_JWT_SECRET` | Yes | Auth won't work without it |
+| `OPENROUTER_API_KEY` | For semantic search | Enables hybrid FTS5+KNN search |
+| `DATABASE_URL` | No | Default: `./data/howcani.db` |
+| `PORT` | No | Default: `3000` |
+
 ## Architecture
 
 ### Server (`src/server/`)
@@ -59,6 +68,7 @@ The client-side router is hash-based. SPA routes must also be declared in the `r
 **Svelte/Biome quirks:**
 - `$state()` requires `let` — Biome's `useConst` rule is disabled for `src/client/**/*.svelte`
 - Biome can't see variables used in templates, so `noUnusedVariables` and `noUnusedImports` are also disabled for Svelte files
+- Biome line width is **120 chars** (non-default)
 
 ## Spec System (OpenSpec)
 
