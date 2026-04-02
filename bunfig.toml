@@ -1,6 +1,8 @@
 [install]
 # Use exact versions for reproducibility
 exact = true
+# Only install package versions published at least 3 days ago (supply chain protection)
+minimumReleaseAge = 259200
 
 [test]
 # Test configuration
