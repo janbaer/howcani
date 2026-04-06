@@ -28,7 +28,7 @@
     "bun-plugin-svelte": "0.0.6",
     "simple-git-hooks": "2.13.1",
     "svelte": "5.55.1",
-    "svelte-check": "4.4.5",
+    "svelte-check": "4.4.6",
     "typescript": "6.0.2"
   },
   "dependencies": {
@@ -42,6 +42,6 @@
     "http-status-codes": "2.3.0",
     "jose": "6.2.2",
     "marked": "17.0.5",
-    "sqlite-vec": "0.1.8"
+    "sqlite-vec": "0.1.9"
   }
 }
