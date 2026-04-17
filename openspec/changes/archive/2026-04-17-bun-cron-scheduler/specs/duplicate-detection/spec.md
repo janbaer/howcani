@@ -1,8 +1,5 @@
-# duplicate-detection Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change duplicate-detection. Update Purpose after archive.
-## Requirements
 ### Requirement: Fetch duplicate candidates via API
 
 The system SHALL provide a public endpoint to retrieve semantically near-duplicate items for a given item. Items whose cosine similarity to the queried item is at or above the global `app_settings.duplicate_threshold` (expressed as a percentage) SHALL be returned, up to a maximum of 10 results. Each item in the response SHALL include a `relevance` field — an integer percentage (0–100) representing cosine similarity to the queried item.
@@ -42,33 +39,3 @@ The system SHALL provide a public endpoint to retrieve semantically near-duplica
 
 - **WHEN** GET `/api/:username/items/:id/duplicates` is called without an Authorization header
 - **THEN** the system returns HTTP 200 (public endpoint)
-
-### Requirement: Possible Duplicates panel on detail page
-
-The item detail page SHALL display a "Possible Duplicates" panel below the Related Items panel in the right sidebar. The panel SHALL only be visible on desktop and tablet (hidden on mobile). Its behaviour SHALL mirror the Related Items panel: it auto-loads on page load, shows each duplicate as a clickable link with a relevance badge, and shows an empty-state message when no duplicates are found.
-
-#### Scenario: Panel is hidden on mobile
-
-- **WHEN** the item detail page is viewed on a mobile viewport
-- **THEN** the Possible Duplicates panel is not rendered or is visually hidden
-
-#### Scenario: Panel auto-loads on page load
-
-- **WHEN** a user navigates to an item detail page on a desktop or tablet viewport
-- **THEN** the duplicates panel fetches and displays results without requiring user interaction
-
-#### Scenario: Each duplicate links to its detail page
-
-- **WHEN** duplicate items are displayed in the panel
-- **THEN** each item renders as a link that navigates to that item's detail page
-
-#### Scenario: Relevance badge shown for each duplicate
-
-- **WHEN** duplicate items are displayed in the panel
-- **THEN** each item shows a muted percentage badge (e.g. "95%") indicating its similarity score
-
-#### Scenario: Empty state shown when no duplicates
-
-- **WHEN** the API returns an empty array
-- **THEN** the panel displays a message indicating no duplicates were found
-

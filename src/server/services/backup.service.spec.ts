@@ -23,7 +23,7 @@ import {
   pruneOldBackups,
   restoreBackup,
   runBackupForUser,
-  runScheduledBackups,
+  runBackupJob,
 } from './backup.service';
 
 function todayStr(): string {
@@ -35,11 +35,6 @@ function dateStrDaysAgo(daysAgo: number): string {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function currentHHMM(): string {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
 beforeAll(() => {
@@ -174,18 +169,18 @@ describe('runBackupForUser', () => {
 
   test('writes a backup file for today', async () => {
     itemRepo.create({ userId, question: 'Q?', answer: 'A' });
-    const scheduledUser = { id: userId, username: 'alice', backup_retention_days: 7, backup_time: '20:00' };
+    const backupUser = { id: userId, username: 'alice' };
 
-    await runBackupForUser(scheduledUser, tmpDir);
+    await runBackupForUser(backupUser, 7, tmpDir);
 
     expect(existsSync(join(tmpDir, `alice-backup-${todayStr()}.json`))).toBe(true);
   });
 
   test('backup file contains correct structure and items', async () => {
     itemRepo.create({ userId, question: 'What is Bun?', answer: 'A fast runtime.' });
-    const scheduledUser = { id: userId, username: 'alice', backup_retention_days: 7, backup_time: '20:00' };
+    const backupUser = { id: userId, username: 'alice' };
 
-    await runBackupForUser(scheduledUser, tmpDir);
+    await runBackupForUser(backupUser, 7, tmpDir);
 
     const content = JSON.parse(readFileSync(join(tmpDir, `alice-backup-${todayStr()}.json`), 'utf-8'));
     expect(content.version).toBe(1);
@@ -198,9 +193,9 @@ describe('runBackupForUser', () => {
   test('skips write when today backup file already exists', async () => {
     const existingPath = join(tmpDir, `alice-backup-${todayStr()}.json`);
     writeFileSync(existingPath, '{"version":1,"username":"alice","exportedAt":"sentinel","items":[]}');
-    const scheduledUser = { id: userId, username: 'alice', backup_retention_days: 7, backup_time: '20:00' };
+    const backupUser = { id: userId, username: 'alice' };
 
-    await runBackupForUser(scheduledUser, tmpDir);
+    await runBackupForUser(backupUser, 7, tmpDir);
 
     const content = JSON.parse(readFileSync(existingPath, 'utf-8'));
     expect(content.exportedAt).toBe('sentinel');
@@ -209,9 +204,9 @@ describe('runBackupForUser', () => {
   test('prunes old backup files after writing', async () => {
     const oldFile = join(tmpDir, `alice-backup-${dateStrDaysAgo(10)}.json`);
     writeFileSync(oldFile, '{}');
-    const scheduledUser = { id: userId, username: 'alice', backup_retention_days: 7, backup_time: '20:00' };
+    const backupUser = { id: userId, username: 'alice' };
 
-    await runBackupForUser(scheduledUser, tmpDir);
+    await runBackupForUser(backupUser, 7, tmpDir);
 
     expect(existsSync(oldFile)).toBe(false);
     expect(existsSync(join(tmpDir, `alice-backup-${todayStr()}.json`))).toBe(true);
@@ -383,49 +378,36 @@ describe('restoreBackup', () => {
   });
 });
 
-describe('runScheduledBackups', () => {
+describe('runBackupJob', () => {
   let tmpDir: string;
   let userRepo: UserRepository;
+  let itemRepo: ItemRepository;
 
   beforeEach(() => {
     clearTestDatabase();
     tmpDir = mkdtempSync(join(tmpdir(), 'howcani-backup-'));
     userRepo = new UserRepository();
+    itemRepo = new ItemRepository();
   });
 
   afterEach(() => {
     rmSync(tmpDir, { recursive: true });
   });
 
-  test('runs backup for users whose backup_time matches the given time', async () => {
-    const time = currentHHMM();
-    const user = userRepo.create({ username: 'alice', email: 'alice@example.com', passwordHash: 'hash' });
-    userRepo.updateBackupEnabled(user.id, true);
-    userRepo.updateBackupTime(user.id, time);
+  test('iterates all users and writes one backup per user', async () => {
+    const alice = userRepo.create({ username: 'alice', email: 'alice@example.com', passwordHash: 'hash' });
+    const bob = userRepo.create({ username: 'bob', email: 'bob@example.com', passwordHash: 'hash' });
+    itemRepo.create({ userId: alice.id, question: 'Alice?', answer: 'A' });
+    itemRepo.create({ userId: bob.id, question: 'Bob?', answer: 'B' });
 
-    await runScheduledBackups(tmpDir, time);
+    await runBackupJob(7, tmpDir);
 
     expect(existsSync(join(tmpDir, `alice-backup-${todayStr()}.json`))).toBe(true);
+    expect(existsSync(join(tmpDir, `bob-backup-${todayStr()}.json`))).toBe(true);
   });
 
-  test('skips users with backup_enabled = false', async () => {
-    const time = currentHHMM();
-    const user = userRepo.create({ username: 'alice', email: 'alice@example.com', passwordHash: 'hash' });
-    userRepo.updateBackupTime(user.id, time);
-    // backup_enabled defaults to false — no updateBackupEnabled call
-
-    await runScheduledBackups(tmpDir, time);
-
-    expect(readdirSync(tmpDir)).toHaveLength(0);
-  });
-
-  test('skips users whose backup_time does not match', async () => {
-    const user = userRepo.create({ username: 'alice', email: 'alice@example.com', passwordHash: 'hash' });
-    userRepo.updateBackupEnabled(user.id, true);
-    userRepo.updateBackupTime(user.id, '03:00');
-
-    await runScheduledBackups(tmpDir, '04:00');
-
+  test('runs without error when no users exist', async () => {
+    await expect(runBackupJob(7, tmpDir)).resolves.toBeUndefined();
     expect(readdirSync(tmpDir)).toHaveLength(0);
   });
 });

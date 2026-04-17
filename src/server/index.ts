@@ -2,17 +2,17 @@ import { resolve } from 'node:path';
 import { Elysia } from 'elysia';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import index from '../index.html';
-import { startCron } from './cron';
 import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
 import { authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
+import { schedulerService } from './services/scheduler.service';
 
 declare const APP_VERSION: string | undefined;
 const appVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : Bun.env.npm_package_version;
 console.log(`[howcani] v${appVersion}`);
 
 runMigrations();
-startCron();
+schedulerService.init();
 
 const api = new Elysia()
   .onError(({ code, error, set }) => {

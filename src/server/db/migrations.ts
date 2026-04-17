@@ -216,6 +216,28 @@ const MIGRATIONS: Migration[] = [
     name: 'add_backup_time_to_users',
     up: `ALTER TABLE users ADD COLUMN backup_time TEXT NOT NULL DEFAULT '20:00';`,
   },
+  {
+    version: 13,
+    name: 'create_app_settings_and_drop_user_settings_columns',
+    up: `
+      CREATE TABLE app_settings (
+        id INTEGER PRIMARY KEY CHECK(id = 1),
+        semantic_search_enabled INTEGER NOT NULL DEFAULT 1,
+        duplicate_threshold INTEGER NOT NULL DEFAULT 80,
+        backup_enabled INTEGER NOT NULL DEFAULT 0,
+        backup_time TEXT NOT NULL DEFAULT '20:00',
+        backup_retention_days INTEGER NOT NULL DEFAULT 7
+      );
+
+      INSERT INTO app_settings (id) VALUES (1);
+
+      ALTER TABLE users DROP COLUMN semantic_search_enabled;
+      ALTER TABLE users DROP COLUMN duplicate_threshold;
+      ALTER TABLE users DROP COLUMN backup_enabled;
+      ALTER TABLE users DROP COLUMN backup_retention_days;
+      ALTER TABLE users DROP COLUMN backup_time;
+    `,
+  },
 ];
 
 const VEC_ITEMS_DDL = `
@@ -246,13 +268,6 @@ export function runMigrations(): void {
 
       console.log(`[db] Migration ${migration.version} complete`);
     }
-  }
-
-  // Recovery: ensure duplicate_threshold column exists even if migration 10 was missed.
-  try {
-    db.exec(`ALTER TABLE users ADD COLUMN duplicate_threshold INTEGER NOT NULL DEFAULT 80`);
-  } catch {
-    // Column already exists — expected in the normal case
   }
 
   // Recovery: if the extension is available but vec_items is missing (inconsistent state),

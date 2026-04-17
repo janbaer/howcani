@@ -6,11 +6,6 @@ export interface User {
   username: string;
   email: string;
   password_hash: string;
-  semantic_search_enabled: number;
-  duplicate_threshold: number;
-  backup_enabled: number;
-  backup_retention_days: number;
-  backup_time: string;
   created_at: string;
   updated_at: string;
 }
@@ -83,36 +78,16 @@ export class UserRepository extends BaseRepository<User> {
     return db.query<User, [string]>(`SELECT * FROM users WHERE username = ?`).get(username);
   }
 
+  findAll(): User[] {
+    return db.query<User, []>(`SELECT * FROM users`).all();
+  }
+
   emailExists(email: string): boolean {
     return this.findByEmail(email) !== null;
   }
 
   usernameExists(username: string): boolean {
     return this.findByUsername(username) !== null;
-  }
-
-  updateSemanticSearch(id: string, enabled: boolean): void {
-    db.run(`UPDATE users SET semantic_search_enabled = ?, updated_at = ? WHERE id = ?`, [
-      enabled ? 1 : 0,
-      this.now(),
-      id,
-    ]);
-  }
-
-  updateDuplicateThreshold(id: string, threshold: number): void {
-    db.run(`UPDATE users SET duplicate_threshold = ?, updated_at = ? WHERE id = ?`, [threshold, this.now(), id]);
-  }
-
-  updateBackupEnabled(id: string, enabled: boolean): void {
-    db.run(`UPDATE users SET backup_enabled = ?, updated_at = ? WHERE id = ?`, [enabled ? 1 : 0, this.now(), id]);
-  }
-
-  updateBackupRetentionDays(id: string, days: number): void {
-    db.run(`UPDATE users SET backup_retention_days = ?, updated_at = ? WHERE id = ?`, [days, this.now(), id]);
-  }
-
-  updateBackupTime(id: string, time: string): void {
-    db.run(`UPDATE users SET backup_time = ?, updated_at = ? WHERE id = ?`, [time, this.now(), id]);
   }
 
   updatePassword(id: string, passwordHash: string): boolean {

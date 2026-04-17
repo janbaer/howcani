@@ -1,4 +1,9 @@
+# vector-embeddings Specification
 
+## Purpose
+
+Defines how items are represented as float32 embedding vectors, how the backfill cron keeps them in sync, and how hybrid FTS5+KNN search consumes them.
+## Requirements
 ### Requirement: Embedding Storage Schema
 
 The system SHALL store one float32 embedding vector per item in a dedicated table and ANN index.
@@ -42,27 +47,41 @@ The system SHALL generate an embedding for an item after it is created or update
 
 ### Requirement: Embedding Backfill Cron Job
 
-The system SHALL automatically generate embeddings for items that are missing or stale.
+The system SHALL automatically generate embeddings for items that are missing or stale. The cron SHALL be registered via `Bun.cron` with the expression `*/5 * * * *` — not `setInterval` — and SHALL run only when both `app_settings.semantic_search_enabled = 1` and `OPENROUTER_API_KEY` is set. Toggling `semantic_search_enabled` via `PATCH /api/settings` SHALL re-apply the scheduler so the cron starts or stops without a server restart.
 
-#### Scenario: Cron job runs on configured interval
+#### Scenario: Cron registered when toggle is on and API key is present
 
-- **WHEN** the server is running with `OPENROUTER_API_KEY` set
-- **THEN** the cron job SHALL run every 5 minutes and query for items where either no `item_embeddings` row exists, or the existing embedding's `created_at` is older than the item's `updated_at`
+- **GIVEN** `app_settings.semantic_search_enabled = 1` and `OPENROUTER_API_KEY` is set
+- **WHEN** `SchedulerService.init()` runs
+- **THEN** `Bun.cron` is called with the expression `*/5 * * * *`
 
-#### Scenario: Cron job processes missing and stale embeddings in batches
+#### Scenario: Cron not registered when the toggle is off
 
-- **WHEN** the cron job finds items without embeddings or with stale embeddings
-- **THEN** the system SHALL process them in batches of 20, calling the OpenRouter API and upserting results into `item_embeddings` and `vec_items`
+- **GIVEN** `app_settings.semantic_search_enabled = 0`
+- **WHEN** `SchedulerService.init()` runs
+- **THEN** no embedding cron is registered
 
-#### Scenario: Embedding refreshed by cron job after failed update
+#### Scenario: Cron not registered without the API key
+
+- **GIVEN** `app_settings.semantic_search_enabled = 1` and `OPENROUTER_API_KEY` is unset
+- **WHEN** `SchedulerService.init()` runs
+- **THEN** no embedding cron is registered, and a warning is logged
+
+#### Scenario: Toggling off stops the cron without a restart
+
+- **GIVEN** the embedding cron is running
+- **WHEN** the user toggles `semantic_search_enabled` to `0` via `PATCH /api/settings`
+- **THEN** `schedulerService.applyEmbeddingSettings({ enabled: false })` is called and the embedding cron is stopped
+
+#### Scenario: Cron processes missing and stale embeddings in batches
+
+- **WHEN** the cron fires and finds items without embeddings or with stale embeddings
+- **THEN** the system processes them in batches of 20, calling the OpenRouter API and upserting results into `item_embeddings` and `vec_items`
+
+#### Scenario: Embedding refreshed by cron after a failed update
 
 - **WHEN** the OpenRouter API call fails during an item update, leaving the item's `updated_at` newer than its embedding's `created_at`
-- **THEN** the cron job SHALL detect the stale embedding and regenerate it on the next run
-
-#### Scenario: Cron job skipped when API key absent
-
-- **WHEN** `OPENROUTER_API_KEY` is not set
-- **THEN** the cron job SHALL not run
+- **THEN** the cron detects the stale embedding and regenerates it on the next run
 
 ### Requirement: Embedding Configuration
 
@@ -77,3 +96,4 @@ The system SHALL use environment variables to configure the embedding model.
 
 - **WHEN** `EMBEDDING_MODEL` is set to a valid OpenRouter model identifier
 - **THEN** the system SHALL use that model for all embedding generation calls
+

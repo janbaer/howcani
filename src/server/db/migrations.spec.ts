@@ -35,19 +35,48 @@ describe('migrations', () => {
     expect(result?.name).toBe('vec_items');
   });
 
-  test('users table has semantic_search_enabled column after migration 8', () => {
-    const cols = db.query<{ name: string }, []>('PRAGMA table_info(users)').all();
-    const names = cols.map((c) => c.name);
-    expect(names).toContain('semantic_search_enabled');
+  test('app_settings table exists after migration 13', () => {
+    const result = db
+      .query<{ name: string }, [string]>("SELECT name FROM sqlite_master WHERE type='table' AND name=?")
+      .get('app_settings');
+    expect(result?.name).toBe('app_settings');
   });
 
-  test('semantic_search_enabled defaults to 0 for new users', () => {
-    db.run(
-      "INSERT INTO users (id, username, email, password_hash) VALUES ('test-migration', 'migtest', 'mig@test.com', 'hash')",
-    );
+  test('app_settings has one row with expected defaults', () => {
     const row = db
-      .query<{ semantic_search_enabled: number }, [string]>('SELECT semantic_search_enabled FROM users WHERE id = ?')
-      .get('test-migration');
-    expect(row?.semantic_search_enabled).toBe(0);
+      .query<
+        {
+          id: number;
+          semantic_search_enabled: number;
+          duplicate_threshold: number;
+          backup_enabled: number;
+          backup_time: string;
+          backup_retention_days: number;
+        },
+        []
+      >('SELECT * FROM app_settings')
+      .get();
+    expect(row).toEqual({
+      id: 1,
+      semantic_search_enabled: 1,
+      duplicate_threshold: 80,
+      backup_enabled: 0,
+      backup_time: '20:00',
+      backup_retention_days: 7,
+    });
+  });
+
+  test('app_settings rejects a second row via CHECK(id = 1)', () => {
+    expect(() => db.run('INSERT INTO app_settings (id) VALUES (2)')).toThrow();
+  });
+
+  test('users no longer has the migrated settings columns', () => {
+    const cols = db.query<{ name: string }, []>('PRAGMA table_info(users)').all();
+    const names = cols.map((c) => c.name);
+    expect(names).not.toContain('semantic_search_enabled');
+    expect(names).not.toContain('duplicate_threshold');
+    expect(names).not.toContain('backup_enabled');
+    expect(names).not.toContain('backup_retention_days');
+    expect(names).not.toContain('backup_time');
   });
 });

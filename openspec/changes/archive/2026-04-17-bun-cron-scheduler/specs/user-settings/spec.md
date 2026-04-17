@@ -1,9 +1,5 @@
-# user-settings Specification
+## MODIFIED Requirements
 
-## Purpose
-
-Defines how application settings (semantic search, duplicate threshold, and backup configuration) are stored, exposed via the API, and surfaced in the UI.
-## Requirements
 ### Requirement: User Settings Storage
 
 The system SHALL store application settings in a single global `app_settings` singleton table, not on individual `users` rows. The table SHALL hold `semantic_search_enabled`, `duplicate_threshold`, `backup_enabled`, `backup_time`, and `backup_retention_days`. Singleton invariant SHALL be enforced via `CHECK(id = 1)` on the primary key. The five corresponding columns SHALL be removed from `users`.
@@ -71,4 +67,3 @@ The system SHALL provide a settings page in the frontend for managing the global
 
 - **WHEN** the user changes a control
 - **THEN** the system sends PATCH `/api/settings` with the new value and updates the control state on success
-

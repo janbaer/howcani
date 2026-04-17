@@ -9,14 +9,33 @@ const TEST_USER_ID = 'user-123';
 const TEST_TOKEN = 'mock-token-testuser';
 
 const mockSettingsService = {
-  getSettings: mock((_userId: string) => ({ semanticSearchEnabled: false })),
-  updateSettings: mock((_userId: string, patch: { semanticSearchEnabled?: boolean }) => ({
+  getSettings: mock(() => ({
+    semanticSearchEnabled: false,
+    duplicateThreshold: 80,
+    backupEnabled: false,
+    backupRetentionDays: 7,
+    backupTime: '20:00',
+  })),
+  updateSettings: mock((patch: { semanticSearchEnabled?: boolean }) => ({
     semanticSearchEnabled: patch.semanticSearchEnabled ?? false,
+    duplicateThreshold: 80,
+    backupEnabled: false,
+    backupRetentionDays: 7,
+    backupTime: '20:00',
   })),
 };
 
 mock.module('../services/settings.service', () => ({
   settingsService: mockSettingsService,
+}));
+
+const mockSchedulerService = {
+  applyBackupSettings: mock(() => {}),
+  applyEmbeddingSettings: mock(() => {}),
+};
+
+mock.module('../services/scheduler.service', () => ({
+  schedulerService: mockSchedulerService,
 }));
 
 mock.module('../services/session', () => ({
@@ -63,19 +82,21 @@ describe('GET /settings', () => {
     expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
   });
 
-  test('calls settingsService.getSettings with userId', async () => {
+  test('calls settingsService.getSettings', async () => {
     await app.handle(
       new Request('http://localhost/settings', {
         headers: { Authorization: `Bearer ${TEST_TOKEN}` },
       }),
     );
-    expect(mockSettingsService.getSettings).toHaveBeenCalledWith(TEST_USER_ID);
+    expect(mockSettingsService.getSettings).toHaveBeenCalled();
   });
 });
 
 describe('PATCH /settings', () => {
   beforeEach(() => {
     mockSettingsService.updateSettings.mockClear();
+    mockSchedulerService.applyBackupSettings.mockClear();
+    mockSchedulerService.applyEmbeddingSettings.mockClear();
   });
 
   test('updates semanticSearchEnabled and returns updated settings', async () => {
@@ -105,7 +126,7 @@ describe('PATCH /settings', () => {
     expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
   });
 
-  test('calls settingsService.updateSettings with userId and patch', async () => {
+  test('calls settingsService.updateSettings with patch', async () => {
     await app.handle(
       new Request('http://localhost/settings', {
         method: 'PATCH',
@@ -116,9 +137,45 @@ describe('PATCH /settings', () => {
         body: JSON.stringify({ semanticSearchEnabled: true }),
       }),
     );
-    expect(mockSettingsService.updateSettings).toHaveBeenCalledWith(TEST_USER_ID, {
+    expect(mockSettingsService.updateSettings).toHaveBeenCalledWith({
       semanticSearchEnabled: true,
     });
+  });
+
+  test('calls schedulerService.applyEmbeddingSettings after PATCH with semanticSearchEnabled', async () => {
+    await app.handle(
+      new Request('http://localhost/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${TEST_TOKEN}`,
+        },
+        body: JSON.stringify({ semanticSearchEnabled: true }),
+      }),
+    );
+    expect(mockSchedulerService.applyEmbeddingSettings).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  test('returns 400 when scheduler throws RangeError (e.g. invalid backup time)', async () => {
+    mockSchedulerService.applyBackupSettings.mockImplementationOnce(() => {
+      throw new RangeError('Invalid backup time: "bogus" (expected HH:MM in 24h format)');
+    });
+
+    const res = await app.handle(
+      new Request('http://localhost/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${TEST_TOKEN}`,
+        },
+        body: JSON.stringify({ backupEnabled: true, backupTime: '20:00' }),
+      }),
+    );
+
+    expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+    const body = await res.json();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(mockSettingsService.updateSettings).toHaveBeenCalled();
   });
 });
 

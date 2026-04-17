@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } f
 import { join } from 'node:path';
 import { db, isSqliteVecAvailable, runTransaction } from '../db/database';
 import { tagRepository } from '../repositories/tag.repository';
+import { userRepository } from '../repositories/user.repository';
 
 const BACKUP_DIR = process.env.BACKUP_DIR || '/data/backups';
 
@@ -179,20 +180,6 @@ export function listBackupsForUser(username: string, dir?: string): BackupEntry[
   return entries.sort((a, b) => b.date.localeCompare(a.date));
 }
 
-interface ScheduledUser {
-  id: string;
-  username: string;
-  backup_retention_days: number;
-  backup_time: string;
-}
-
-function currentHHMM(): string {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2, '0');
-  const m = String(now.getMinutes()).padStart(2, '0');
-  return `${h}:${m}`;
-}
-
 function todayString(): string {
   const now = new Date();
   const y = now.getFullYear();
@@ -201,7 +188,11 @@ function todayString(): string {
   return `${y}-${mo}-${d}`;
 }
 
-export async function runBackupForUser(user: ScheduledUser, dir = BACKUP_DIR): Promise<void> {
+export async function runBackupForUser(
+  user: { id: string; username: string },
+  retentionDays: number,
+  dir = BACKUP_DIR,
+): Promise<void> {
   const today = todayString();
   const filename = `${user.username}-backup-${today}.json`;
   const filepath = join(dir, filename);
@@ -221,38 +212,23 @@ export async function runBackupForUser(user: ScheduledUser, dir = BACKUP_DIR): P
   };
   writeFileSync(filepath, JSON.stringify(backup, null, 2));
   console.log(`[backup] Wrote ${filename} (${items.length} items)`);
-  pruneOldBackups(user.username, user.backup_retention_days, dir);
+  pruneOldBackups(user.username, retentionDays, dir);
 }
 
-export async function runScheduledBackups(dir = BACKUP_DIR, time = currentHHMM()): Promise<void> {
-  const dueUsers = db
-    .query<ScheduledUser, [string]>(
-      `SELECT id, username, backup_retention_days, backup_time FROM users WHERE backup_enabled = 1 AND backup_time = ?`,
-    )
-    .all(time);
+export async function runBackupJob(retentionDays: number, dir = BACKUP_DIR): Promise<void> {
+  const users = userRepository.findAll();
 
-  for (const user of dueUsers) {
+  let succeeded = 0;
+  let failed = 0;
+  for (const user of users) {
     try {
-      await runBackupForUser(user, dir);
+      await runBackupForUser(user, retentionDays, dir);
+      succeeded++;
     } catch (err) {
+      failed++;
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[backup] Failed for user ${user.username}:`, message);
     }
   }
-}
-
-const TICK_INTERVAL_MS = 60 * 1000; // 1 minute
-
-let backupInterval: ReturnType<typeof setInterval> | null = null;
-
-export function startBackupCron(): void {
-  if (backupInterval !== null) {
-    clearInterval(backupInterval);
-  }
-
-  console.info('[backup] Starting daily backup cron (checks every minute)');
-
-  backupInterval = setInterval(() => {
-    runScheduledBackups().catch((err) => console.error('[backup] Scheduler error:', err));
-  }, TICK_INTERVAL_MS);
+  console.log(`[backup] Job complete: ${succeeded} succeeded, ${failed} failed (${users.length} users)`);
 }

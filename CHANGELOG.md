@@ -2,6 +2,17 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.83 - 2026-04-17
+---
+
+- Migrated scheduled jobs (daily backup and 5-minute embedding backfill) from `setInterval` to `Bun.cron` (Bun 1.3.12+)
+- Collapsed five per-user scheduling columns on `users` into a new global `app_settings` singleton table (enforced via `CHECK(id = 1)`)
+- Introduced `SchedulerService` singleton that owns both cron handles and re-registers them on `PATCH /api/settings` without a server restart
+- Worked around Bun.cron 1.3.12's silently-ignored `timezone` option by converting server-local `HH:MM` to a UTC cron expression at registration time
+- Rejected invalid `backup_time` values with `RangeError`; per-user backup failures are tolerated and a succeeded/failed summary is logged
+- Read `semantic_search_enabled` and `duplicate_threshold` from `app_settings` in `ItemService` and the MCP tool
+- Settings are now global: any authenticated user can read and update them via `/api/settings`
+
 ## 3.0.82 - 2026-03-15
 ---
 

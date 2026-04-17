@@ -1,9 +1,5 @@
-# scheduled-backup Specification
+## MODIFIED Requirements
 
-## Purpose
-
-Defines the automatic daily backup job that exports each user's items to a JSON file under the backup directory, and the retention rules for those files.
-## Requirements
 ### Requirement: Daily backup cron
 
 The system SHALL register a single global backup cron via `Bun.cron`, derived from `app_settings.backup_time`. The application SHALL NOT use `setInterval` or any polling loop for backup scheduling. When the cron fires, a single handler SHALL iterate every row in `users` and write a per-user backup file under the backup directory. The handler SHALL skip a user if their `{username}-backup-{date}.json` already exists for today, preventing double-runs across restarts.
@@ -45,14 +41,6 @@ The system SHALL register a single global backup cron via `Bun.cron`, derived fr
 - **WHEN** the handler runs for users `alice` and `bob`
 - **THEN** `alice`'s failure is logged, `bob`'s file is still written, and the handler logs a summary of successes and failures
 
-### Requirement: Backup file format
-Each backup file SHALL be a valid JSON document with version, username, export timestamp, and a flat array of items.
-
-#### Scenario: Backup file structure
-- **WHEN** a backup file is written
-- **THEN** the top-level object SHALL contain `version` (integer 1), `username` (string), `exportedAt` (ISO 8601 string), and `items` (array)
-- **AND** each item SHALL contain `id`, `question`, `answer`, `tags` (array of tag name strings), `createdAt`, `updatedAt`
-
 ### Requirement: Automatic retention pruning
 
 The backup handler SHALL delete backup files older than `app_settings.backup_retention_days`.
@@ -67,3 +55,8 @@ The backup handler SHALL delete backup files older than `app_settings.backup_ret
 - **WHEN** the backup handler completes
 - **THEN** backup files within the retention window SHALL NOT be deleted
 
+## REMOVED Requirements
+
+### Requirement: Backup settings per user
+**Reason:** Backup scheduling is now global. `backup_enabled`, `backup_time`, and `backup_retention_days` move from the `users` table to the singleton `app_settings` row (see `user-settings` spec). The cron no longer matches per-user `HH:MM` in application code.
+**Migration:** Existing per-user values are not preserved. Defaults after migration: `backup_enabled=0`, `backup_time='20:00'`, `backup_retention_days=7`. The operator re-toggles and re-sets values through the Settings page after deploy.

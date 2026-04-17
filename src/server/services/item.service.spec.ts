@@ -74,6 +74,18 @@ const mockItemRepository = {
   findDuplicates: mock((_itemId: string, _userId: string, _threshold: number) => []),
 };
 
+mock.module('../repositories/app-settings.repository', () => ({
+  appSettingsRepository: {
+    get: mock(() => ({
+      semanticSearchEnabled: false,
+      duplicateThreshold: 80,
+      backupEnabled: false,
+      backupRetentionDays: 7,
+      backupTime: '20:00',
+    })),
+  },
+}));
+
 mock.module('../repositories', () => ({
   itemRepository: mockItemRepository,
   tagRepository: {

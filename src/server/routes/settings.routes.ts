@@ -3,6 +3,7 @@ import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { assertAuthenticated, authPlugin } from '../middleware';
 import { BackupRestoreError, getBackupDir, listBackupsForUser, restoreBackup } from '../services/backup.service';
+import { schedulerService } from '../services/scheduler.service';
 import { settingsService } from '../services/settings.service';
 
 export const settingsRoutes = new Elysia({ prefix: '/settings' })
@@ -11,7 +12,7 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
     '/',
     ({ user }) => {
       assertAuthenticated(user);
-      return settingsService.getSettings(user.userId);
+      return settingsService.getSettings();
     },
     { auth: true },
   )
@@ -19,8 +20,9 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
     '/',
     ({ user, body, set }) => {
       assertAuthenticated(user);
+      let updated: ReturnType<typeof settingsService.updateSettings>;
       try {
-        return settingsService.updateSettings(user.userId, body);
+        updated = settingsService.updateSettings(body);
       } catch (err) {
         if (err instanceof RangeError) {
           set.status = StatusCodes.BAD_REQUEST;
@@ -28,6 +30,22 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
         }
         throw err;
       }
+      try {
+        if (body.backupEnabled !== undefined || body.backupTime !== undefined) {
+          schedulerService.applyBackupSettings({ enabled: updated.backupEnabled, time: updated.backupTime });
+        }
+        if (body.semanticSearchEnabled !== undefined) {
+          schedulerService.applyEmbeddingSettings({ enabled: updated.semanticSearchEnabled });
+        }
+      } catch (err) {
+        console.error('[settings] Scheduler re-apply failed after successful DB write:', err);
+        if (err instanceof RangeError) {
+          set.status = StatusCodes.BAD_REQUEST;
+          return { error: { code: 'VALIDATION_ERROR', message: err.message } };
+        }
+        throw err;
+      }
+      return updated;
     },
     {
       auth: true,
