@@ -4,6 +4,10 @@
       "type": "sse",
       "url": "https://forgejo.home.janbaer.de/sse"
     },
+    "gitnexus-mcp": {
+      "command": "gitnexus",
+      "args": ["mcp"]
+    },
     "chrome-devtools-mcp": {
       "command": "npx",
       "args": [
@@ -13,4 +17,3 @@
     }
   }
 }
-

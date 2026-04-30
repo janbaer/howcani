@@ -57,3 +57,5 @@ pnpm-lock.yaml
 screenshots
 .claude/commands/opsx
 .claude/skills/openspec-*
+.gitnexus
+.claude/skills/gitnexus
