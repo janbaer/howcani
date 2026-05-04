@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.85 - 2026-05-04
+---
+
+- Integrated GitNexus MCP server for code-intelligence tooling: impact analysis, execution flow tracing, and rename-aware refactoring; added guidance to `CLAUDE.md` on when to use each GitNexus tool
+- Updated npm packages to their latest versions
+- Bumped Bun runtime from 1.3.10 to 1.3.13 in `Dockerfile`
+- Added YAML document start marker (`---`) to `docker-compose.yml`
+
 ## 3.0.83 - 2026-04-17
 ---
 

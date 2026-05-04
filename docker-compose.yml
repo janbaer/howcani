@@ -1,3 +1,4 @@
+---
 services:
   howcani:
     image: forgejo.home.janbaer.de/jan/howcani:latest

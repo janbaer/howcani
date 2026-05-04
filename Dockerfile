@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Bun version (can be overridden with --build-arg BUN_VERSION=x.y.z)
-ARG BUN_VERSION=1.3.10
+ARG BUN_VERSION=1.3.13
 
 # Build stage
 FROM oven/bun:${BUN_VERSION} AS builder
