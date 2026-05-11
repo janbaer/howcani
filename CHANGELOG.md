@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.88 - 2026-05-11
+---
+
+- Upgraded eight npm packages: `@codemirror/language` 6.12.2 → 6.12.3, `@codemirror/state` 6.5.4 → 6.6.0, `@codemirror/view` 6.39.15 → 6.42.1, `dompurify` 3.4.1 → 3.4.2, `jose` 6.2.2 → 6.2.3, `marked` 18.0.2 → 18.0.3, `svelte` 5.55.4 → 5.55.5, `zod` 4.3.6 → 4.4.3
+- Reviewed the changelogs for the three minor bumps (`@codemirror/state`, `@codemirror/view`, `zod`) and confirmed none of the stricter behaviors affect the current call sites
+
 ## 3.0.87 - 2026-05-11
 ---
 
