@@ -6,7 +6,7 @@ interface ItemWithoutEmbedding {
   answer: string;
 }
 
-export class EmbeddingRepository {
+class EmbeddingRepository {
   upsert(itemId: string, vector: Float32Array, model: string): void {
     const now = new Date().toISOString();
     db.transaction(() => {

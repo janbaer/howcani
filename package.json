@@ -1,7 +1,7 @@
 {
   "name": "howcani",
   "private": true,
-  "version": "3.0.85",
+  "version": "3.0.87",
   "type": "module",
   "scripts": {
     "dev": "bun --hot run src/server/index.ts",
@@ -14,6 +14,7 @@
     "test:watch": "bun test --watch",
     "lint": "bunx @biomejs/biome check ./src/",
     "lint:fix": "bunx @biomejs/biome check --fix ./src/",
+    "lint:dead": "bunx fallow dead-code",
     "db:migrate": "bun run src/server/db/migrate.ts",
     "mcp-inspect": "bunx @modelcontextprotocol/inspector",
     "postinstall": "bunx simple-git-hooks"
@@ -28,20 +29,25 @@
     "bun-plugin-svelte": "0.0.6",
     "simple-git-hooks": "2.13.1",
     "svelte": "5.55.4",
-    "svelte-check": "4.4.6",
+    "tailwindcss": "4.2.4",
     "typescript": "6.0.3"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "6.5.0",
+    "@codemirror/language": "6.12.2",
+    "@codemirror/language-data": "6.5.2",
+    "@codemirror/state": "6.5.4",
+    "@codemirror/view": "6.39.15",
+    "@lezer/highlight": "1.2.3",
     "@modelcontextprotocol/sdk": "1.29.0",
     "@types/dompurify": "3.2.0",
-    "@codemirror/lang-markdown": "6.5.0",
-    "@codemirror/language-data": "6.5.2",
     "codemirror": "6.0.2",
     "dompurify": "3.4.1",
     "elysia": "1.4.28",
     "http-status-codes": "2.3.0",
     "jose": "6.2.2",
     "marked": "18.0.2",
-    "sqlite-vec": "0.1.9"
+    "sqlite-vec": "0.1.9",
+    "zod": "4.3.6"
   }
 }

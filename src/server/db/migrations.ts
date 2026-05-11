@@ -283,7 +283,7 @@ export function runMigrations(): void {
   console.log(`[db] Schema version: ${getCurrentVersion()}`);
 }
 
-export function getCurrentVersion(): number {
+function getCurrentVersion(): number {
   const result = db.query<{ user_version: number }, []>('PRAGMA user_version').get();
   return result?.user_version ?? 0;
 }

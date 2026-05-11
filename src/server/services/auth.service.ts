@@ -1,4 +1,4 @@
-import { createToken, hashPassword, type TokenPayload, verifyPassword, verifyToken } from '../auth';
+import { createToken, hashPassword, verifyPassword } from '../auth';
 import { type User, userRepository } from '../repositories';
 
 export interface RegisterInput {
@@ -141,27 +141,6 @@ export class AuthService {
       success: true,
       data: await generateAuthResult(user),
     };
-  }
-
-  async getCurrentUser(accessToken: string): Promise<Result<Omit<User, 'password_hash'>>> {
-    const payload = await verifyToken(accessToken);
-    if (!payload) {
-      return createError('INVALID_TOKEN', 'Invalid or expired token');
-    }
-
-    const user = userRepository.findById(payload.userId);
-    if (!user) {
-      return createError('USER_NOT_FOUND', 'User not found');
-    }
-
-    return {
-      success: true,
-      data: sanitizeUser(user),
-    };
-  }
-
-  async validateToken(token: string): Promise<TokenPayload | null> {
-    return verifyToken(token);
   }
 
   getUserById(userId: string): Omit<User, 'password_hash'> | null {

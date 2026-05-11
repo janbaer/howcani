@@ -106,10 +106,6 @@ export function getCurrentPath(): string {
   return _currentPath;
 }
 
-export function getCurrentQuery(): Record<string, string> {
-  return _currentQuery;
-}
-
 export function subscribe(fn: () => void) {
   listeners.add(fn);
   return () => listeners.delete(fn);

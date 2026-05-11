@@ -16,18 +16,6 @@ export abstract class BaseRepository<T extends { id: string }> {
     return result.changes > 0;
   }
 
-  exists(id: string): boolean {
-    const result = db
-      .query<{ count: number }, [string]>(`SELECT COUNT(*) as count FROM ${this.tableName} WHERE id = ?`)
-      .get(id);
-    return (result?.count ?? 0) > 0;
-  }
-
-  count(): number {
-    const result = db.query<{ count: number }, []>(`SELECT COUNT(*) as count FROM ${this.tableName}`).get();
-    return result?.count ?? 0;
-  }
-
   protected generateId(): string {
     return crypto.randomUUID();
   }

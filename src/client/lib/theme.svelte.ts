@@ -16,10 +16,6 @@ function applyTheme(theme: Theme) {
 
 applyTheme(current);
 
-export function getTheme(): Theme {
-  return current;
-}
-
 export function isDark(): boolean {
   return current === 'dark';
 }

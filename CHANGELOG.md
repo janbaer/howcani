@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.87 - 2026-05-11
+---
+
+- Adopted `fallow` as a static dead-code analyzer; added `.fallowrc.json` with spec files and orchestration scripts as entry points, and ignored `codemirror` as a transitive dependency
+- Promoted six previously transitive packages to direct dependencies: `@codemirror/language`, `@codemirror/state`, `@codemirror/view`, `@lezer/highlight`, `tailwindcss`, `zod`
+- Swept the initial fallow baseline to zero: removed 21 unused exports, 5 unused class members, 7 orphan functions, 12 type exports demoted to private, 2 orphan interfaces, and a dead `services/index.ts` barrel
+- Removed the unused `svelte-check` dev-dependency
+- Added `bun run lint:dead` script and ignored `public/index.html` so fallow no longer warns about its build-output asset paths
+- Documented the fallow configuration and zero-baseline policy in the new `dead-code-analysis` OpenSpec capability
+
 ## 3.0.85 - 2026-05-04
 ---
 

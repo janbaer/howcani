@@ -23,10 +23,6 @@ export function setAccessToken(token: string | null) {
   }
 }
 
-export function getAccessToken(): string | null {
-  return accessToken;
-}
-
 function authHeaders(): Record<string, string> {
   return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 }
@@ -70,7 +66,7 @@ export interface User {
   updated_at: string;
 }
 
-export interface AuthResponse {
+interface AuthResponse {
   user: User;
   token: string;
 }
@@ -142,11 +138,11 @@ export interface ItemUpdateData {
   tags?: string[];
 }
 
-export interface ItemCreateResponse {
+interface ItemCreateResponse {
   item: Item;
 }
 
-export interface ItemUpdateResponse {
+interface ItemUpdateResponse {
   item: Item;
 }
 
@@ -219,22 +215,20 @@ export interface TagWithCount extends Tag {
   item_count: number;
 }
 
-export interface TagListResponse {
+interface TagListResponse {
   tags: TagWithCount[];
 }
 
-export interface TagUpdateData {
+interface TagUpdateData {
   name?: string;
   color?: string;
 }
 
-export interface TagUpdateResponse {
+interface TagUpdateResponse {
   tag: Tag;
 }
 
-// --- Settings types ---
-
-export interface Settings {
+interface Settings {
   semanticSearchEnabled: boolean;
   duplicateThreshold: number;
 }

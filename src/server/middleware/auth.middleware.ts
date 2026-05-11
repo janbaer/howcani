@@ -41,5 +41,3 @@ export const authPlugin = new Elysia({ name: 'auth' })
       },
     },
   });
-
-export type AuthPlugin = typeof authPlugin;

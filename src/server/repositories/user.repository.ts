@@ -1,14 +1,8 @@
 import { db } from '../db/database';
+import type { User } from '../domain/user';
 import { BaseRepository } from './base.repository';
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  password_hash: string;
-  created_at: string;
-  updated_at: string;
-}
+export type { User };
 
 export interface CreateUserDTO {
   username: string;
@@ -88,15 +82,6 @@ export class UserRepository extends BaseRepository<User> {
 
   usernameExists(username: string): boolean {
     return this.findByUsername(username) !== null;
-  }
-
-  updatePassword(id: string, passwordHash: string): boolean {
-    const result = db.run(`UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?`, [
-      passwordHash,
-      this.now(),
-      id,
-    ]);
-    return result.changes > 0;
   }
 }
 

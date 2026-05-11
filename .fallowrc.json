@@ -1,0 +1,11 @@
+{
+  "$schema": "https://docs.fallow.tools/schemas/fallow-config.schema.json",
+  "entry": [
+    "**/*.spec.ts",
+    "build-client.ts",
+    "scripts/bump-version.ts",
+    "public/sw.js"
+  ],
+  "ignorePatterns": ["public/index.html"],
+  "ignoreDependencies": ["codemirror"]
+}

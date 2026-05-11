@@ -1,11 +1,11 @@
 import { type AppSettings, appSettingsRepository } from '../repositories/app-settings.repository';
 import { validateBackupTime } from './scheduler.service';
 
-export type Settings = AppSettings;
+type Settings = AppSettings;
 
-export type SettingsPatch = Partial<AppSettings>;
+type SettingsPatch = Partial<AppSettings>;
 
-export class SettingsService {
+class SettingsService {
   getSettings(): Settings {
     return appSettingsRepository.get();
   }
