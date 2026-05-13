@@ -49,7 +49,7 @@ export async function searchItems(args: {
 
   let queryVector: Float32Array | null = null;
   if (resolved.semanticSearchEnabled && args.query) {
-    queryVector = await embeddingService.embedText(args.query);
+    queryVector = await embeddingService.embedQuery(args.query);
   }
 
   const result = itemRepo.searchItems(resolved.userId, {

@@ -1,4 +1,5 @@
 import { db, isSqliteVecAvailable } from './database';
+import { getEmbeddingDimension } from './embedding-dimension';
 
 interface Migration {
   version: number;
@@ -6,7 +7,16 @@ interface Migration {
   up: string;
 }
 
-const MIGRATIONS: Migration[] = [
+const VEC_ITEMS_MIGRATION_VERSION = 7;
+
+function getMigrations(): Migration[] {
+  const dim = getEmbeddingDimension();
+  return MIGRATIONS_TEMPLATE.map((m) =>
+    m.version === VEC_ITEMS_MIGRATION_VERSION ? { ...m, up: m.up.replace('__EMBEDDING_DIMENSION__', String(dim)) } : m,
+  );
+}
+
+const MIGRATIONS_TEMPLATE: Migration[] = [
   {
     version: 1,
     name: 'create_users_table',
@@ -149,7 +159,7 @@ const MIGRATIONS: Migration[] = [
     up: `
       CREATE VIRTUAL TABLE IF NOT EXISTS vec_items USING vec0(
         item_id TEXT PRIMARY KEY,
-        embedding float[1536]
+        embedding float[__EMBEDDING_DIMENSION__]
       );
     `,
   },
@@ -240,19 +250,21 @@ const MIGRATIONS: Migration[] = [
   },
 ];
 
-const VEC_ITEMS_DDL = `
+function vecItemsDdl(): string {
+  return `
   CREATE VIRTUAL TABLE IF NOT EXISTS vec_items USING vec0(
     item_id TEXT PRIMARY KEY,
-    embedding float[1536]
+    embedding float[${getEmbeddingDimension()}]
   )
 `;
+}
 
 export function runMigrations(): void {
   const currentVersion = getCurrentVersion();
 
   console.log(`[db] Current schema version: ${currentVersion}`);
 
-  for (const migration of MIGRATIONS) {
+  for (const migration of getMigrations()) {
     if (migration.version > currentVersion) {
       if (migration.name === 'create_vec_items_virtual_table' && !isSqliteVecAvailable()) {
         console.warn('[db] Skipping migration 7: sqlite-vec extension not available');
@@ -274,7 +286,7 @@ export function runMigrations(): void {
   // create it now regardless of the recorded schema version.
   if (isSqliteVecAvailable()) {
     try {
-      db.exec(VEC_ITEMS_DDL);
+      db.exec(vecItemsDdl());
     } catch (err) {
       console.warn('[db] Could not ensure vec_items table exists:', err);
     }

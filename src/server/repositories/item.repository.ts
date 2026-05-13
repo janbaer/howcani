@@ -585,6 +585,66 @@ export class ItemRepository extends BaseRepository<Item> {
       .get(userId);
     return result?.count ?? 0;
   }
+
+  searchDebug(
+    userId: string,
+    search: string,
+    limit: number,
+    queryVector: Float32Array | null,
+  ): {
+    fts: Array<{ id: string; question: string; rank: number }>;
+    knn: Array<{ id: string; question: string; distance: number }>;
+    rrf: Array<{ id: string; question: string; score: number }>;
+  } {
+    const RRF_K = 60;
+    const sanitized = sanitizeFtsQuery(search);
+
+    const ftsRows = db
+      .query<{ id: string; question: string }, [string, string, number]>(
+        `SELECT items.id, items.question FROM items
+         JOIN items_fts ON items.rowid = items_fts.rowid
+         WHERE items.user_id = ? AND items_fts MATCH ?
+         ORDER BY bm25(items_fts, 10.0, 1.0)
+         LIMIT ?`,
+      )
+      .all(userId, sanitized, limit);
+
+    const fts = ftsRows.map((row, i) => ({ id: row.id, question: row.question, rank: i + 1 }));
+
+    let knn: Array<{ id: string; question: string; distance: number }> = [];
+    if (queryVector && isSqliteVecAvailable()) {
+      const vecRows = db
+        .query<{ id: string; question: string; distance: number }, [string, Uint8Array, number]>(
+          `SELECT items.id, items.question, vec_items.distance FROM vec_items
+           JOIN items ON vec_items.item_id = items.id
+           WHERE items.user_id = ?
+             AND vec_items.embedding MATCH ?
+             AND k = ?`,
+        )
+        .all(userId, queryVector as unknown as Uint8Array, limit);
+      knn = vecRows;
+    }
+
+    let rrf: Array<{ id: string; question: string; score: number }> = [];
+    if (queryVector && isSqliteVecAvailable()) {
+      const scores = new Map<string, number>();
+      const questions = new Map<string, string>();
+      for (const [rank, row] of ftsRows.entries()) {
+        scores.set(row.id, (scores.get(row.id) ?? 0) + 1 / (RRF_K + rank + 1));
+        questions.set(row.id, row.question);
+      }
+      for (const [rank, row] of knn.entries()) {
+        scores.set(row.id, (scores.get(row.id) ?? 0) + 1 / (RRF_K + rank + 1));
+        questions.set(row.id, row.question);
+      }
+      rrf = [...scores.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([id, score]) => ({ id, question: questions.get(id) ?? '', score }));
+    }
+
+    return { fts, knn, rrf };
+  }
 }
 
 export const itemRepository = new ItemRepository();

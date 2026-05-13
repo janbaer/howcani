@@ -1,5 +1,6 @@
 import { appSettingsRepository } from '../repositories/app-settings.repository';
 import { runBackupJob } from './backup.service';
+import { embeddingService } from './embedding.service';
 import { backfillEmbeddings } from './embedding-backfill';
 
 export interface CronHandle {
@@ -80,10 +81,18 @@ export class SchedulerService {
       console.info('[scheduler] Embedding backfill cron disabled');
       return;
     }
-    if (!process.env.OPENROUTER_API_KEY) {
-      console.warn('[scheduler] OPENROUTER_API_KEY not set — embedding backfill not registered');
+    if (!embeddingService.provider) {
+      console.warn('[scheduler] No embedding provider configured — embedding backfill not registered');
       return;
     }
+
+    // Self-check runs in background; do not block scheduler init on it.
+    // A wrong-dimension result throws and crashes the process (intended).
+    // A network failure logs a warning and lets backfill retry on the next tick.
+    embeddingService.selfCheck().catch((err) => {
+      console.error('[scheduler] Embedding self-check failed fatally:', err);
+      process.exit(1);
+    });
 
     console.info(
       `[scheduler] Registering embedding backfill cron "*/5 * * * *" — fires every 5 minutes in UTC (server tz: ${runtimeTimezone()})`,

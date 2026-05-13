@@ -1,21 +1,25 @@
 import { embeddingRepository } from '../repositories/embedding.repository';
 import { embeddingService } from './embedding.service';
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 100;
 
 export async function backfillEmbeddings(): Promise<void> {
   const rows = embeddingRepository.findItemsWithoutEmbeddings(BATCH_SIZE);
-  console.log(`[backfill] Found ${rows.length} items without embeddings`);
-  if (rows.length === 0) return;
+  if (rows.length === 0) {
+    console.log('[backfill] No items missing embeddings');
+    return;
+  }
 
-  console.log(`[backfill] Backfilling embeddings for ${rows.length} items`);
+  console.log(`[backfill] Embedding ${rows.length} items in one batch`);
+  const texts = rows.map((row) => `${row.question}\n${row.answer}`);
+  const vectors = await embeddingService.embedDocumentBatch(texts);
 
-  for (const [i, row] of rows.entries()) {
-    if (i > 0) await Bun.sleep(200);
-    const vector = await embeddingService.embedText(`${row.question}\n${row.answer}`);
+  let succeeded = 0;
+  for (const [i, vector] of vectors.entries()) {
     if (vector) {
-      embeddingService.upsertEmbedding(row.id, vector);
-      console.log(`[backfill] Embedded item ${row.id}`);
+      embeddingService.upsertEmbedding(rows[i].id, vector);
+      succeeded++;
     }
   }
+  console.log(`[backfill] Embedded ${succeeded}/${rows.length} items`);
 }

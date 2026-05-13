@@ -122,4 +122,56 @@ describe('EmbeddingRepository', () => {
       expect(rows.length).toBe(1);
     });
   });
+
+  describe('detectStoredShape', () => {
+    test('returns null when no embeddings exist', () => {
+      embeddingRepository.delete('item-1');
+      embeddingRepository.delete('item-2');
+
+      expect(embeddingRepository.detectStoredShape()).toBeNull();
+    });
+
+    test('returns model and dimension inferred from byte length', () => {
+      embeddingRepository.delete('item-1');
+      embeddingRepository.delete('item-2');
+      embeddingRepository.upsert('item-1', new Float32Array(1536).fill(0.1), 'openai/text-embedding-3-small');
+
+      const shape = embeddingRepository.detectStoredShape();
+
+      expect(shape).toEqual({ models: ['openai/text-embedding-3-small'], dimension: 1536 });
+    });
+
+    test('returns all distinct stored models', () => {
+      embeddingRepository.delete('item-1');
+      embeddingRepository.delete('item-2');
+      embeddingRepository.upsert('item-1', new Float32Array(1536).fill(0.1), 'model-a');
+
+      // Insert a second row with a different model without going through upsert
+      // (vec_items doesn't matter for detectStoredShape).
+      db.run(`INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES ('item-2', ?, 'model-b', ?)`, [
+        new Float32Array(1536).fill(0.2),
+        new Date().toISOString(),
+      ]);
+
+      const shape = embeddingRepository.detectStoredShape();
+
+      expect(shape?.models.sort()).toEqual(['model-a', 'model-b']);
+    });
+  });
+
+  describe('wipeAndRebuildVecItems', () => {
+    test('clears item_embeddings and recreates vec_items at new dimension', () => {
+      embeddingRepository.delete('item-1');
+      embeddingRepository.delete('item-2');
+      embeddingRepository.upsert('item-1', new Float32Array(1536).fill(0.1), 'old');
+
+      embeddingRepository.wipeAndRebuildVecItems(768);
+
+      const count = db.query<{ c: number }, []>('SELECT COUNT(*) AS c FROM item_embeddings').get();
+      expect(count?.c).toBe(0);
+
+      const vec = new Float32Array(768).fill(0.1);
+      expect(() => db.run("INSERT INTO vec_items (item_id, embedding) VALUES ('item-1', ?)", [vec])).not.toThrow();
+    });
+  });
 });

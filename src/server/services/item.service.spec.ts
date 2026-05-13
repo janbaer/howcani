@@ -108,7 +108,9 @@ mock.module('./user.service', () => ({
 }));
 
 const mockEmbeddingService = {
-  embedText: mock(async (_text: string) => new Float32Array(1536)),
+  embedDocument: mock(async (_text: string) => new Float32Array(1536)),
+  embedQuery: mock(async (_text: string) => new Float32Array(1536)),
+  embedDocumentBatch: mock(async (texts: string[]) => texts.map(() => new Float32Array(1536))),
   upsertEmbedding: mock((_itemId: string, _vector: Float32Array) => {}),
   deleteEmbedding: mock((_itemId: string) => {}),
 };
@@ -538,7 +540,7 @@ describe('ItemService', () => {
 
   describe('embedding integration', () => {
     test('createItem triggers embedding generation', async () => {
-      mockEmbeddingService.embedText.mockClear();
+      mockEmbeddingService.embedDocument.mockClear();
       const user = createTestUser('embed-user');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
@@ -546,11 +548,11 @@ describe('ItemService', () => {
       itemService.createItem({ question: 'How to embed?', answer: 'Use vectors.' });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockEmbeddingService.embedText).toHaveBeenCalledWith('How to embed?\nUse vectors.');
+      expect(mockEmbeddingService.embedDocument).toHaveBeenCalledWith('How to embed?\nUse vectors.');
     });
 
     test('updateItem triggers embedding regeneration', async () => {
-      mockEmbeddingService.embedText.mockClear();
+      mockEmbeddingService.embedDocument.mockClear();
       const user = createTestUser('embed-user-2');
       const mockTagService = createMockTagService(user.id);
       const itemService = new ItemService(user.id, mockTagService as unknown as TagService);
@@ -559,11 +561,11 @@ describe('ItemService', () => {
       if (!created.success) throw new Error('create failed');
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      mockEmbeddingService.embedText.mockClear();
+      mockEmbeddingService.embedDocument.mockClear();
       itemService.updateItem(created.data.id, { question: 'Updated', answer: 'New answer' });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(mockEmbeddingService.embedText).toHaveBeenCalledWith('Updated\nNew answer');
+      expect(mockEmbeddingService.embedDocument).toHaveBeenCalledWith('Updated\nNew answer');
     });
 
     test('deleteItem triggers embedding deletion', () => {

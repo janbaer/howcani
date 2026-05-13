@@ -1,3 +1,4 @@
+export { adminRoutes } from './admin.routes';
 export { authRoutes } from './auth.routes';
 export { duplicateRoutes } from './duplicate.routes';
 export { itemRoutes } from './item.routes';

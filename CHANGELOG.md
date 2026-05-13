@@ -2,6 +2,19 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.90 - 2026-05-13
+---
+
+- Added support for self-hosted llama.cpp as an embedding provider alongside OpenRouter, selectable at startup via `EMBEDDING_PROVIDER` (`openrouter` | `llamacpp`); `EMBEDDING_MODEL`, `EMBEDDING_DIMENSION`, and `EMBEDDING_ENDPOINT` (llama.cpp only) are now configurable
+- Vector dimension is no longer hardcoded; migration 7 declares `vec_items` at the dimension configured via `EMBEDDING_DIMENSION`
+- Added startup mismatch detection: if the stored embeddings differ from the configured provider/dimension, the server refuses to boot unless `EMBEDDING_ALLOW_DIMENSION_RESET=true` is set, in which case it wipes `item_embeddings` and recreates `vec_items` at the new dimension; detection also inspects the `vec_items` DDL so the wipe still fires when `item_embeddings` is empty after an interrupted previous reset
+- Added a one-time startup self-check that verifies the live endpoint returns vectors of the configured dimension; wrong dimension is a fatal exit, network failure is a warning and the backfill cron retries
+- Added model-aware task-prefix support: `nomic-embed-text-*` models automatically receive `search_query: ` / `search_document: ` prefixes; the document-prefix mode is encoded into the stored model identifier so a prefix-mode change triggers the same wipe path as a model or dimension change
+- Backfill cron now sends up to 100 items per tick in one batched call via the provider's `embedBatch`; `LlamaCppProvider` chunks the wire request at 16 inputs to stay within proxy and llama.cpp request timeouts, `OpenRouterProvider` chunks at 100
+- Added owner-auth debug route `GET /api/admin/search-debug?q=&limit=` returning FTS5, KNN, and RRF rankings side-by-side for embedding-quality comparison between providers
+- Fixed ItemList regression where clearing the search input restored the previously saved value (pre-existing bug from PR #58)
+- Refactored both providers onto a shared `BaseHttpEmbeddingProvider` for OpenAI-compatible `/v1/embeddings` endpoints (~80 lines deduplicated)
+
 ## 3.0.89 - 2026-05-13
 ---
 

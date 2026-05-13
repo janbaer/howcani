@@ -24,6 +24,8 @@ export class ItemListStore {
   editingItem = $state<Item | null | undefined>(undefined);
   deletingItem = $state<Item | null | undefined>(undefined);
 
+  private searchRestoredForUser: string | null = null;
+
   get pageSize() {
     return Math.max(10, Math.floor(window.innerHeight / 200) * 6);
   }
@@ -199,10 +201,15 @@ export class ItemListStore {
     const stored = this.readFilter(username);
     const initialTags = stored.tags;
 
-    // On fresh app open with no active search, restore saved search via the global singleton
-    // (deferred to avoid writing reactive state inside an effect)
-    if (!searchQuery && stored.search) {
-      setTimeout(() => setSearchQuery(stored.search), 0);
+    // Restore the saved search only on the first load for this user. After that,
+    // an empty searchQuery means the user actively cleared the input.
+    let effectiveSearch = searchQuery;
+    if (this.searchRestoredForUser !== username) {
+      if (!searchQuery && stored.search) {
+        effectiveSearch = stored.search;
+        setTimeout(() => setSearchQuery(stored.search), 0);
+      }
+      this.searchRestoredForUser = username;
     }
 
     this.offset = 0;
@@ -211,13 +218,14 @@ export class ItemListStore {
     this.error = null;
     this.tagError = null;
 
-    // Always keep localStorage in sync with current state
-    this.saveFilter(username, initialTags, searchQuery || stored.search);
+    // Persist the actual current search verbatim — including an empty string when
+    // the user clears it, so the next load doesn't surface stale state.
+    this.saveFilter(username, initialTags, effectiveSearch);
 
     fetchItems(username, {
       limit: this.pageSize,
       offset: 0,
-      search: searchQuery || stored.search || undefined,
+      search: effectiveSearch || undefined,
       tags: initialTags.length > 0 ? initialTags : undefined,
     })
       .then((data) => {

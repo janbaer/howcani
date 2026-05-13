@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -160,6 +160,7 @@ describe('PATCH /settings', () => {
     mockSchedulerService.applyBackupSettings.mockImplementationOnce(() => {
       throw new RangeError('Invalid backup time: "bogus" (expected HH:MM in 24h format)');
     });
+    const errSpy = spyOn(console, 'error').mockImplementation(() => {});
 
     const res = await app.handle(
       new Request('http://localhost/settings', {
@@ -172,6 +173,7 @@ describe('PATCH /settings', () => {
       }),
     );
 
+    errSpy.mockRestore();
     expect(res.status).toBe(StatusCodes.BAD_REQUEST);
     const body = await res.json();
     expect(body.error.code).toBe('VALIDATION_ERROR');

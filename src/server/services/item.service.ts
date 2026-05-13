@@ -85,7 +85,7 @@ export class ItemService {
     });
 
     embeddingService
-      .embedText(`${itemWithTags.question}\n${itemWithTags.answer}`)
+      .embedDocument(`${itemWithTags.question}\n${itemWithTags.answer}`)
       .then((v) => v && embeddingService.upsertEmbedding(itemWithTags.id, v))
       .catch((err) => console.warn('[embedding] create failed:', err));
 
@@ -122,7 +122,7 @@ export class ItemService {
     });
 
     embeddingService
-      .embedText(`${itemWithTags.question}\n${itemWithTags.answer}`)
+      .embedDocument(`${itemWithTags.question}\n${itemWithTags.answer}`)
       .then((v) => v && embeddingService.upsertEmbedding(itemWithTags.id, v))
       .catch((err) => console.warn('[embedding] update failed:', err));
 
@@ -175,7 +175,7 @@ export class ItemService {
       const useHybrid = appSettingsRepository.get().semanticSearchEnabled;
       let queryVector: Float32Array | null = null;
       if (useHybrid && filters.search) {
-        queryVector = await embeddingService.embedText(filters.search);
+        queryVector = await embeddingService.embedQuery(filters.search);
       }
       result = itemRepository.searchItems(user.id, {
         limit,

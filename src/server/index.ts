@@ -4,7 +4,9 @@ import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import index from '../index.html';
 import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
-import { authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
+import { adminRoutes, authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
+import { embeddingService } from './services/embedding.service';
+import { verifyEmbeddingShape } from './services/embedding-startup';
 import { schedulerService } from './services/scheduler.service';
 
 declare const APP_VERSION: string | undefined;
@@ -12,6 +14,7 @@ const appVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : Bun.env.np
 console.log(`[howcani] v${appVersion}`);
 
 runMigrations();
+verifyEmbeddingShape(embeddingService);
 schedulerService.init();
 
 const api = new Elysia()
@@ -30,6 +33,7 @@ const api = new Elysia()
   })
   .group('/api', (app) =>
     app
+      .use(adminRoutes)
       .use(authRoutes)
       .use(duplicateRoutes)
       .use(itemRoutes)

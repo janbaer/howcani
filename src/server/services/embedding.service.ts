@@ -1,52 +1,68 @@
 import { embeddingRepository } from '../repositories/embedding.repository';
+import type { EmbeddingProvider } from './embedding-providers/embedding-provider';
+import { createEmbeddingProvider } from './embedding-providers/factory';
+import { getModelPrefixes, type ModelPrefixes } from './embedding-providers/model-prefixes';
 
-const DEFAULT_MODEL = 'openai/text-embedding-3-small';
-const OPENROUTER_EMBEDDINGS_URL = 'https://openrouter.ai/api/v1/embeddings';
+const SELF_CHECK_TEXT = 'howcani-startup-check';
 
 export class EmbeddingService {
-  private get apiKey(): string | undefined {
-    return process.env.OPENROUTER_API_KEY;
+  readonly prefixes: ModelPrefixes;
+
+  constructor(public readonly provider: EmbeddingProvider | null = createEmbeddingProvider()) {
+    this.prefixes = provider ? getModelPrefixes(provider.model) : { query: '', document: '' };
   }
 
-  private get model(): string {
-    return process.env.EMBEDDING_MODEL ?? DEFAULT_MODEL;
+  // Identifier persisted in item_embeddings.model. Encodes the document-prefix
+  // mode so that adding/removing prefixes triggers the startup mismatch path.
+  get storageModelId(): string {
+    if (!this.provider) return '';
+    if (this.prefixes.document) {
+      const tag = this.prefixes.document.trim().replace(/:$/, '');
+      return `${this.provider.model}+${tag}`;
+    }
+    return this.provider.model;
   }
 
-  async embedText(text: string): Promise<Float32Array | null> {
-    if (!this.apiKey) {
-      return null;
-    }
+  async embedDocument(text: string): Promise<Float32Array | null> {
+    if (!this.provider) return null;
+    return this.provider.embed(this.prefixes.document + text);
+  }
 
-    try {
-      const response = await fetch(OPENROUTER_EMBEDDINGS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({ model: this.model, input: text }),
-      });
+  async embedQuery(text: string): Promise<Float32Array | null> {
+    if (!this.provider) return null;
+    return this.provider.embed(this.prefixes.query + text);
+  }
 
-      if (!response.ok) {
-        console.warn(`[embedding] API returned ${response.status} — skipping embedding`);
-        return null;
-      }
-
-      const json = (await response.json()) as { data: Array<{ embedding: number[] }> };
-      return new Float32Array(json.data[0].embedding);
-    } catch (err) {
-      console.warn('[embedding] Failed to generate embedding:', err);
-      return null;
-    }
+  async embedDocumentBatch(texts: string[]): Promise<Array<Float32Array | null>> {
+    if (!this.provider) return texts.map(() => null);
+    return this.provider.embedBatch(texts.map((t) => this.prefixes.document + t));
   }
 
   upsertEmbedding(itemId: string, vector: Float32Array): void {
-    embeddingRepository.upsert(itemId, vector, this.model);
-    console.log(`[embedding] Stored embedding for item ${itemId} (model: ${this.model})`);
+    if (!this.provider) return;
+    embeddingRepository.upsert(itemId, vector, this.storageModelId);
+    console.log(`[embedding] Stored embedding for item ${itemId} (model: ${this.storageModelId})`);
   }
 
   deleteEmbedding(itemId: string): void {
     embeddingRepository.delete(itemId);
+  }
+
+  async selfCheck(): Promise<'ok' | 'unreachable'> {
+    if (!this.provider) return 'ok';
+    const vector = await this.provider.embed(SELF_CHECK_TEXT);
+    if (vector === null) {
+      console.warn('[embedding] Self-check could not reach provider — backfill will retry');
+      return 'unreachable';
+    }
+    if (vector.length !== this.provider.dimension) {
+      throw new Error(
+        `[embedding] Self-check dimension mismatch: configured ${this.provider.dimension}, provider returned ${vector.length}. ` +
+          'Check EMBEDDING_MODEL and EMBEDDING_DIMENSION match the model your endpoint serves.',
+      );
+    }
+    console.info(`[embedding] Self-check passed (model: ${this.storageModelId}, dim: ${this.provider.dimension})`);
+    return 'ok';
   }
 }
 

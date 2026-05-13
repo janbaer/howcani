@@ -12,12 +12,28 @@ function expectedExpression(time: string): string {
 const mockRunBackupJob = mock(async () => {});
 const mockBackfillEmbeddings = mock(async () => {});
 
+const mockProvider = {
+  model: 'test-model',
+  dimension: 1536,
+  maxBatchSize: 100,
+  embed: async () => new Float32Array(1536),
+  embedBatch: async (texts: string[]) => texts.map(() => new Float32Array(1536)),
+};
+const mockEmbeddingService = {
+  provider: mockProvider as typeof mockProvider | null,
+  selfCheck: mock(async () => 'ok'),
+};
+
 mock.module('./backup.service', () => ({
   runBackupJob: mockRunBackupJob,
 }));
 
 mock.module('./embedding-backfill', () => ({
   backfillEmbeddings: mockBackfillEmbeddings,
+}));
+
+mock.module('./embedding.service', () => ({
+  embeddingService: mockEmbeddingService,
 }));
 
 mock.module('../repositories/app-settings.repository', () => ({
@@ -123,17 +139,17 @@ describe('SchedulerService.applyBackupSettings', () => {
 describe('SchedulerService.applyEmbeddingSettings', () => {
   let registered: Registered[];
   let service: SchedulerService;
-  const originalKey = process.env.OPENROUTER_API_KEY;
 
   beforeEach(() => {
     const { factory, registered: r } = makeCronFactory();
     registered = r;
     service = new SchedulerService(factory);
     mockBackfillEmbeddings.mockClear();
-    process.env.OPENROUTER_API_KEY = 'test-key';
+    mockEmbeddingService.selfCheck.mockClear();
+    mockEmbeddingService.provider = mockProvider;
   });
 
-  test('registers a */5 cron when enabled and API key is set', () => {
+  test('registers a */5 cron when enabled and provider is configured', () => {
     service.applyEmbeddingSettings({ enabled: true });
     expect(registered).toHaveLength(1);
     expect(registered[0].expression).toBe('*/5 * * * *');
@@ -144,11 +160,10 @@ describe('SchedulerService.applyEmbeddingSettings', () => {
     expect(registered).toHaveLength(0);
   });
 
-  test('does not register when OPENROUTER_API_KEY is missing', () => {
-    delete process.env.OPENROUTER_API_KEY;
+  test('does not register when no provider is configured', () => {
+    mockEmbeddingService.provider = null;
     service.applyEmbeddingSettings({ enabled: true });
     expect(registered).toHaveLength(0);
-    if (originalKey !== undefined) process.env.OPENROUTER_API_KEY = originalKey;
   });
 
   test('stops the previous handle when re-applied', () => {
@@ -164,13 +179,18 @@ describe('SchedulerService.applyEmbeddingSettings', () => {
     await registered[0].handler();
     expect(mockBackfillEmbeddings).toHaveBeenCalled();
   });
+
+  test('triggers self-check when registering', () => {
+    service.applyEmbeddingSettings({ enabled: true });
+    expect(mockEmbeddingService.selfCheck).toHaveBeenCalled();
+  });
 });
 
 describe('SchedulerService.init', () => {
   test('reads app_settings and registers both crons', () => {
     const { factory, registered } = makeCronFactory();
     const service = new SchedulerService(factory);
-    process.env.OPENROUTER_API_KEY = 'test-key';
+    mockEmbeddingService.provider = mockProvider;
     service.init();
     expect(registered.map((r) => r.expression)).toContain(expectedExpression('03:30'));
     expect(registered.map((r) => r.expression)).toContain('*/5 * * * *');
