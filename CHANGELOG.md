@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.89 - 2026-05-13
+---
+
+- Fixed CodeMirror editor failing to load by pinning sub-dependency versions via npm `overrides` (`@codemirror/state` 6.6.0, `@codemirror/view` 6.42.1, `@codemirror/language` 6.12.3) and removing the now-redundant top-level `codemirror` package
+
 ## 3.0.88 - 2026-05-11
 ---
 
