@@ -20,12 +20,19 @@ Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks
 
 ## Environment Variables
 
+Secrets only — all other operator configuration lives in `config.yaml` (see below).
+
 | Variable | Required | Notes |
 |---|---|---|
 | `HOWCANI_JWT_SECRET` | Yes | Auth won't work without it |
-| `OPENROUTER_API_KEY` | For semantic search | Enables hybrid FTS5+KNN search |
+| `OPENROUTER_API_KEY` | When `embedding.provider: openrouter` | Read from env, never from `config.yaml` |
+| `HOWCANI_CONFIG_PATH` | No | Path to `config.yaml`. Default: `./config.yaml` |
 | `DATABASE_URL` | No | Default: `./data/howcani.db` |
 | `PORT` | No | Default: `3000` |
+
+## Operator Config (`config.yaml`)
+
+Operator settings (embedding provider/model/dimension, backup schedule/retention, duplicate threshold) live in a single Zod-validated `config.yaml`, loaded once at startup by `configService` (`src/server/config/`). The server **refuses to start** if the file is missing or fails validation — no silent defaults. Changing config means edit the file and restart; there is no runtime mutation and no `PATCH /api/settings`. Copy `config.example.yaml` to get started. Secrets stay in env and are never read from the YAML.
 
 ## Architecture
 
@@ -50,10 +57,10 @@ The server is a **Bun HTTP server** that delegates to three subsystems:
 
 ### Search
 
-Two modes, selected per-user via `semantic_search_enabled` flag:
+Two modes, selected by whether `config.yaml` configures an `embedding.provider` (null ⇒ FTS5 only):
 
 - **FTS5 only**: `searchOnly()` — BM25 ranked full-text search on `items_fts`
-- **Hybrid** (FTS5 + KNN + RRF): `searchHybrid()` — top-50 FTS5 results merged with top-50 KNN vector results using Reciprocal Rank Fusion (k=60). Embeddings are 1536-dim float32 vectors stored in `vec_items` (sqlite-vec virtual table) via OpenRouter's `text-embedding-3-small` model. Embeddings are generated fire-and-forget on create/update, and backfilled by a cron job every 5 minutes in batches of 20.
+- **Hybrid** (FTS5 + KNN + RRF): `searchHybrid()` — top-50 FTS5 results merged with top-50 KNN vector results using Reciprocal Rank Fusion (k=60). Embeddings are float32 vectors (dimension from `config.yaml`) stored in `vec_items` (sqlite-vec virtual table). Embeddings are generated fire-and-forget on create/update, and backfilled by a cron job every 5 minutes in batches of 20.
 
 ### MCP Server (`src/server/mcp/`)
 

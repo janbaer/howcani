@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 
 // Mirror of expressionFromBackupTime in scheduler.service.ts — deliberately
 // duplicated so the test fails if that conversion drifts without intent.
@@ -36,18 +36,7 @@ mock.module('./embedding.service', () => ({
   embeddingService: mockEmbeddingService,
 }));
 
-mock.module('../repositories/app-settings.repository', () => ({
-  appSettingsRepository: {
-    get: () => ({
-      semanticSearchEnabled: true,
-      duplicateThreshold: 80,
-      backupEnabled: true,
-      backupTime: '03:30',
-      backupRetentionDays: 7,
-    }),
-  },
-}));
-
+import { __setConfigForTests } from '../config/config.service';
 import { type CronFactory, type CronHandle, SchedulerService } from './scheduler.service';
 
 interface Registered {
@@ -187,7 +176,15 @@ describe('SchedulerService.applyEmbeddingSettings', () => {
 });
 
 describe('SchedulerService.init', () => {
-  test('reads app_settings and registers both crons', () => {
+  afterEach(() => {
+    __setConfigForTests({});
+  });
+
+  test('reads config and registers both crons', () => {
+    __setConfigForTests({
+      embedding: { enabled: true, provider: 'openrouter', model: 'openai/text-embedding-3-small' },
+      backup: { enabled: true, time: '03:30' },
+    });
     const { factory, registered } = makeCronFactory();
     const service = new SchedulerService(factory);
     mockEmbeddingService.provider = mockProvider;

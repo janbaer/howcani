@@ -3,7 +3,6 @@ import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { assertAuthenticated, authPlugin } from '../middleware';
 import { BackupRestoreError, getBackupDir, listBackupsForUser, restoreBackup } from '../services/backup.service';
-import { schedulerService } from '../services/scheduler.service';
 import { settingsService } from '../services/settings.service';
 
 export const settingsRoutes = new Elysia({ prefix: '/settings' })
@@ -15,48 +14,6 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
       return settingsService.getSettings();
     },
     { auth: true },
-  )
-  .patch(
-    '/',
-    ({ user, body, set }) => {
-      assertAuthenticated(user);
-      let updated: ReturnType<typeof settingsService.updateSettings>;
-      try {
-        updated = settingsService.updateSettings(body);
-      } catch (err) {
-        if (err instanceof RangeError) {
-          set.status = StatusCodes.BAD_REQUEST;
-          return { error: { code: 'VALIDATION_ERROR', message: err.message } };
-        }
-        throw err;
-      }
-      try {
-        if (body.backupEnabled !== undefined || body.backupTime !== undefined) {
-          schedulerService.applyBackupSettings({ enabled: updated.backupEnabled, time: updated.backupTime });
-        }
-        if (body.semanticSearchEnabled !== undefined) {
-          schedulerService.applyEmbeddingSettings({ enabled: updated.semanticSearchEnabled });
-        }
-      } catch (err) {
-        console.error('[settings] Scheduler re-apply failed after successful DB write:', err);
-        if (err instanceof RangeError) {
-          set.status = StatusCodes.BAD_REQUEST;
-          return { error: { code: 'VALIDATION_ERROR', message: err.message } };
-        }
-        throw err;
-      }
-      return updated;
-    },
-    {
-      auth: true,
-      body: t.Object({
-        semanticSearchEnabled: t.Optional(t.Boolean()),
-        duplicateThreshold: t.Optional(t.Number()),
-        backupEnabled: t.Optional(t.Boolean()),
-        backupRetentionDays: t.Optional(t.Number()),
-        backupTime: t.Optional(t.String()),
-      }),
-    },
   )
   .get(
     '/backups',

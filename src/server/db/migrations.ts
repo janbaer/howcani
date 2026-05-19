@@ -248,6 +248,11 @@ const MIGRATIONS_TEMPLATE: Migration[] = [
       ALTER TABLE users DROP COLUMN backup_time;
     `,
   },
+  {
+    version: 14,
+    name: 'drop_app_settings',
+    up: `DROP TABLE IF EXISTS app_settings;`,
+  },
 ];
 
 function vecItemsDdl(): string {

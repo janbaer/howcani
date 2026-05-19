@@ -4,10 +4,10 @@ import { db, isSqliteVecAvailable, runTransaction } from '../db/database';
 import { tagRepository } from '../repositories/tag.repository';
 import { userRepository } from '../repositories/user.repository';
 
-const BACKUP_DIR = process.env.BACKUP_DIR || '/data/backups';
+const BACKUP_DIR = process.env.BACKUP_DIR || './data/backups';
 
 export function getBackupDir(): string {
-  return process.env.BACKUP_DIR || '/data/backups';
+  return process.env.BACKUP_DIR || './data/backups';
 }
 
 interface BackupItem {
@@ -158,7 +158,7 @@ export interface BackupEntry {
 }
 
 export function listBackupsForUser(username: string, dir?: string): BackupEntry[] {
-  const backupDir = dir ?? process.env.BACKUP_DIR ?? '/data/backups';
+  const backupDir = dir ?? process.env.BACKUP_DIR ?? './data/backups';
   let files: string[];
   try {
     files = readdirSync(backupDir);

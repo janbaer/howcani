@@ -1,0 +1,52 @@
+# HowCanI operator configuration
+#
+# Copy this file to config.yaml and adjust the values. The server refuses to
+# start if config.yaml is missing or fails validation — there are no silent
+# defaults. The file path can be overridden with HOWCANI_CONFIG_PATH.
+#
+# Secrets are NOT configured here. OPENROUTER_API_KEY and HOWCANI_JWT_SECRET
+# stay in environment variables (see .env.example).
+---
+
+embedding:
+  # Set to true to enable semantic (vector) search alongside FTS5 full-text
+  # search. When false (default), only FTS5 is used.
+  #
+  # When enabled is true, `provider` and `model` are REQUIRED (no defaults),
+  # and `endpoint` is REQUIRED when provider is "llamacpp". Pick ONE of the
+  # complete blocks below, uncomment it, and set enabled: true.
+  enabled: false
+
+  # --- OpenRouter example -------------------------------------------------
+  # enabled: true
+  # provider: openrouter
+  # model: openai/text-embedding-3-small
+  # dimension: 1536            # text-embedding-3-small = 1536
+
+  # --- llama.cpp example --------------------------------------------------
+  # enabled: true
+  # provider: llamacpp
+  # model: jina-embeddings-v2-base-de
+  # dimension: 768             # jina-embeddings-v2-base-de = 768
+  # endpoint: https://llm.home.example.de/v1/embeddings  # OpenAI-compatible /v1/embeddings, no auth header sent
+  # ------------------------------------------------------------------------
+
+  # One-shot wipe of stored embeddings. Set to true when switching providers
+  # or changing `dimension`. Without it, a model/dimension mismatch at startup
+  # is fatal. Set back to false after the next successful deploy.
+  allowDimensionReset: false
+
+duplicate:
+  # Minimum similarity percentage (50-100) to treat two items as duplicates.
+  threshold: 80
+
+backup:
+  # Enable the daily backup cron.
+  enabled: false
+
+  # Time of day to run the backup (HH:MM, 24h, server local time).
+  time: "20:00"
+
+  # Number of days to keep backup files (1-30).
+  retentionDays: 7
+

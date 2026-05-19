@@ -1,54 +1,31 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
+import { __seedDefaultConfigForTests, __setConfigForTests } from '../../config/config.service';
 import { createEmbeddingProvider } from './factory';
 import { LlamaCppProvider } from './llamacpp.provider';
 import { OpenRouterProvider } from './openrouter.provider';
 
-const SAVED = {
-  provider: process.env.EMBEDDING_PROVIDER,
-  model: process.env.EMBEDDING_MODEL,
-  dim: process.env.EMBEDDING_DIMENSION,
-  endpoint: process.env.EMBEDDING_ENDPOINT,
-  key: process.env.OPENROUTER_API_KEY,
-};
+const SAVED_KEY = process.env.OPENROUTER_API_KEY;
 
 function restore(): void {
-  for (const [k, v] of [
-    ['EMBEDDING_PROVIDER', SAVED.provider],
-    ['EMBEDDING_MODEL', SAVED.model],
-    ['EMBEDDING_DIMENSION', SAVED.dim],
-    ['EMBEDDING_ENDPOINT', SAVED.endpoint],
-    ['OPENROUTER_API_KEY', SAVED.key],
-  ] as const) {
-    if (v === undefined) delete process.env[k];
-    else process.env[k] = v;
-  }
+  if (SAVED_KEY === undefined) delete process.env.OPENROUTER_API_KEY;
+  else process.env.OPENROUTER_API_KEY = SAVED_KEY;
+  __seedDefaultConfigForTests();
 }
 
 describe('createEmbeddingProvider', () => {
   afterEach(restore);
 
-  test('returns null when EMBEDDING_PROVIDER is unset', () => {
-    delete process.env.EMBEDDING_PROVIDER;
-    const consoleSpy = spyOn(console, 'warn').mockImplementation(() => {});
+  test('returns null when embeddings are disabled', () => {
+    __setConfigForTests({ embedding: { enabled: false } });
 
     expect(createEmbeddingProvider()).toBeNull();
-
-    consoleSpy.mockRestore();
-  });
-
-  test('returns null on unknown provider value', () => {
-    process.env.EMBEDDING_PROVIDER = 'bogus';
-    const consoleSpy = spyOn(console, 'warn').mockImplementation(() => {});
-
-    expect(createEmbeddingProvider()).toBeNull();
-
-    consoleSpy.mockRestore();
   });
 
   test('returns OpenRouterProvider when configured', () => {
-    process.env.EMBEDDING_PROVIDER = 'openrouter';
+    __setConfigForTests({
+      embedding: { enabled: true, provider: 'openrouter', model: 'openai/text-embedding-3-small', dimension: 1536 },
+    });
     process.env.OPENROUTER_API_KEY = 'test-key';
-    process.env.EMBEDDING_DIMENSION = '1536';
 
     const provider = createEmbeddingProvider();
 
@@ -58,7 +35,9 @@ describe('createEmbeddingProvider', () => {
   });
 
   test('returns null when openrouter selected but API key missing', () => {
-    process.env.EMBEDDING_PROVIDER = 'openrouter';
+    __setConfigForTests({
+      embedding: { enabled: true, provider: 'openrouter', model: 'openai/text-embedding-3-small' },
+    });
     delete process.env.OPENROUTER_API_KEY;
     const consoleSpy = spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -68,23 +47,27 @@ describe('createEmbeddingProvider', () => {
   });
 
   test('returns LlamaCppProvider when configured', () => {
-    process.env.EMBEDDING_PROVIDER = 'llamacpp';
-    process.env.EMBEDDING_ENDPOINT = 'https://llm.example/v1/embeddings';
-    process.env.EMBEDDING_MODEL = 'nomic-embed-text-v1.5';
-    process.env.EMBEDDING_DIMENSION = '768';
+    __setConfigForTests({
+      embedding: {
+        enabled: true,
+        provider: 'llamacpp',
+        endpoint: 'https://llm.example/v1/embeddings',
+        model: 'jina-embeddings-v2-base-de',
+        dimension: 768,
+      },
+    });
 
     const provider = createEmbeddingProvider();
 
     expect(provider).toBeInstanceOf(LlamaCppProvider);
-    expect(provider?.model).toBe('nomic-embed-text-v1.5');
+    expect(provider?.model).toBe('jina-embeddings-v2-base-de');
     expect(provider?.dimension).toBe(768);
     expect(provider?.maxBatchSize).toBe(16);
   });
 
-  test('throws when llamacpp selected but EMBEDDING_ENDPOINT is missing', () => {
-    process.env.EMBEDDING_PROVIDER = 'llamacpp';
-    delete process.env.EMBEDDING_ENDPOINT;
-
-    expect(() => createEmbeddingProvider()).toThrow(/EMBEDDING_ENDPOINT/);
+  test('rejects llamacpp config without an endpoint at config-load time', () => {
+    expect(() =>
+      __setConfigForTests({ embedding: { enabled: true, provider: 'llamacpp', model: 'jina-embeddings-v2-base-de' } }),
+    ).toThrow(/endpoint is required/);
   });
 });

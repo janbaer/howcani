@@ -1,9 +1,13 @@
-# user-settings Specification
+## REMOVED Requirements
 
-## Purpose
+### Requirement: User Settings Storage
 
-Defines how application settings (semantic search, duplicate threshold, and backup configuration) are stored, exposed via the API, and surfaced in the UI.
-## Requirements
+**Reason**: Operator configuration moves from the `app_settings` SQLite singleton to `config.yaml` (see `operator-config`). Migration 14 drops the `app_settings` table.
+
+**Migration**: Operators author `config.yaml` (copy `config.example.yaml`) with `embedding`, `backup`, and `duplicate` sections. Previous `app_settings` values are discarded — the same precedent set by migration 13. The server fails fast if `config.yaml` is missing.
+
+## MODIFIED Requirements
+
 ### Requirement: Settings API
 
 The system SHALL expose a read-only REST endpoint for the Settings UI to display current operator configuration. `GET /api/settings` SHALL return the effective values derived from `config.yaml`. There SHALL be no `PATCH /api/settings` endpoint; operator configuration is changed by editing `config.yaml` and restarting, not at runtime.
@@ -46,4 +50,3 @@ The system SHALL provide a settings page in the frontend that surfaces user-faci
 
 - **WHEN** the settings page renders the duplicates overview
 - **THEN** it SHALL use the duplicate threshold from `config.yaml` (obtained via `GET /api/settings`) without offering an editable control
-

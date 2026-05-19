@@ -17,6 +17,9 @@ dist/
 !.env.example
 !.env.test
 
+# Operator config (secrets stay in env; only the example is committed)
+config.yaml
+
 # Database
 data/
 *.db

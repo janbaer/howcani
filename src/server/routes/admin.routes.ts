@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { getConfig } from '../config/config.service';
 import { assertAuthenticated, authPlugin } from '../middleware';
-import { appSettingsRepository } from '../repositories/app-settings.repository';
 import { itemRepository } from '../repositories/item.repository';
 import { embeddingService } from '../services/embedding.service';
 
@@ -22,7 +22,7 @@ export const adminRoutes = new Elysia({ prefix: '/admin' }).use(authPlugin).get(
       return { error: { code: 'VALIDATION_ERROR', message: '`limit` must be an integer between 1 and 100' } };
     }
 
-    const semanticEnabled = appSettingsRepository.get().semanticSearchEnabled;
+    const semanticEnabled = getConfig().embedding.enabled;
     const queryVector = semanticEnabled ? await embeddingService.embedQuery(q) : null;
 
     const debug = itemRepository.searchDebug(user.userId, q, limit, queryVector);

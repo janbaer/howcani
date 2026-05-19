@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.91 - 2026-05-19
+---
+
+- Consolidated all operator-level configuration into a single Zod-validated `config.yaml` (`embedding`, `backup`, `duplicate` sections), replacing the `app_settings` SQLite table and the scattered `EMBEDDING_*` environment variables; the server refuses to start if the file is missing or fails validation — no silent defaults. Migration 14 drops the `app_settings` table
+- Replaced the implicit `EMBEDDING_PROVIDER`-unset toggle with an explicit `embedding.enabled` boolean; when enabled, `provider` and `model` are mandatory with no defaults, removing stale per-provider model defaults that could silently produce a dimension mismatch
+- Removed the `PATCH /api/settings` endpoint and all operator toggles from the Settings UI; `GET /api/settings` is now read-only and `appSettingsRepository` was deleted, with all call sites rewired to the new `configService`
+- Secrets stay environment-only (`OPENROUTER_API_KEY`, `HOWCANI_JWT_SECRET`); `config.yaml` is git-ignored and never contains secrets, and no `${VAR}` interpolation is performed
+- Aligned path defaults for consistency: `DATABASE_URL`, `HOWCANI_CONFIG_PATH`, and `BACKUP_DIR` all default relative to the working directory and are pinned to `/data` by docker-compose; the compose `environment:` block was trimmed to only the four genuinely required variables (`NODE_ENV`/`PORT` are provided by the image)
+- `docker-compose.yml`: dropped the `${HOWCANI_*}` interpolation knobs, removed the redundant `./data/backups` mount, and documented the pre-flight step of creating `config.yaml` before `docker compose up`
+
 ## 3.0.90 - 2026-05-13
 ---
 

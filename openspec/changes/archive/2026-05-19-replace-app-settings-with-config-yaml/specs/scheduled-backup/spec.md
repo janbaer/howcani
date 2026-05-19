@@ -1,9 +1,5 @@
-# scheduled-backup Specification
+## MODIFIED Requirements
 
-## Purpose
-
-Defines the automatic daily backup job that exports each user's items to a JSON file under the backup directory, and the retention rules for those files.
-## Requirements
 ### Requirement: Daily backup cron
 
 The system SHALL register a single global backup cron via `Bun.cron`, derived from `config.yaml`'s `backup.time`. The application SHALL NOT use `setInterval` or any polling loop for backup scheduling. When the cron fires, a single handler SHALL iterate every row in `users` and write a per-user backup file under the backup directory. The handler SHALL skip a user if their `{username}-backup-{date}.json` already exists for today, preventing double-runs across restarts. Backup configuration is read once at startup; changing it requires editing `config.yaml` and restarting.
@@ -45,14 +41,6 @@ The system SHALL register a single global backup cron via `Bun.cron`, derived fr
 - **WHEN** the handler runs for users `alice` and `bob`
 - **THEN** `alice`'s failure is logged, `bob`'s file is still written, and the handler logs a summary of successes and failures
 
-### Requirement: Backup file format
-Each backup file SHALL be a valid JSON document with version, username, export timestamp, and a flat array of items.
-
-#### Scenario: Backup file structure
-- **WHEN** a backup file is written
-- **THEN** the top-level object SHALL contain `version` (integer 1), `username` (string), `exportedAt` (ISO 8601 string), and `items` (array)
-- **AND** each item SHALL contain `id`, `question`, `answer`, `tags` (array of tag name strings), `createdAt`, `updatedAt`
-
 ### Requirement: Automatic retention pruning
 
 The backup handler SHALL delete backup files older than `config.yaml`'s `backup.retentionDays`.
@@ -67,6 +55,8 @@ The backup handler SHALL delete backup files older than `config.yaml`'s `backup.
 - **WHEN** the backup handler completes
 - **THEN** backup files within the retention window SHALL NOT be deleted
 
+## ADDED Requirements
+
 ### Requirement: Backup directory resolution
 
 The backup directory SHALL be resolved from the `BACKUP_DIR` environment variable, defaulting to the **relative** path `./data/backups` when unset. This default SHALL be consistent with the other path defaults (`DATABASE_URL` → `./data/howcani.db`, `HOWCANI_CONFIG_PATH` → `./config.yaml`): all default relative to the process working directory and are pinned to absolute `/data/...` paths by docker-compose. `BACKUP_DIR` is a path/bootstrap pointer, not operator config — it is NOT part of `config.yaml`.
@@ -80,4 +70,3 @@ The backup directory SHALL be resolved from the `BACKUP_DIR` environment variabl
 
 - **WHEN** the container sets `BACKUP_DIR=/data/backups` and mounts the backup volume there
 - **THEN** backups SHALL be written to the mounted `/data/backups` volume
-

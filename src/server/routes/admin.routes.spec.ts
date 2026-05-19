@@ -23,18 +23,6 @@ mock.module('../services/session', () => ({
   createSession: () => ({ userId: TEST_USER_ID, username: 'testuser' }),
 }));
 
-mock.module('../repositories/app-settings.repository', () => ({
-  appSettingsRepository: {
-    get: () => ({
-      semanticSearchEnabled: true,
-      duplicateThreshold: 80,
-      backupEnabled: false,
-      backupTime: '20:00',
-      backupRetentionDays: 7,
-    }),
-  },
-}));
-
 mock.module('../services/embedding.service', () => ({
   embeddingService: {
     provider: null,

@@ -1,9 +1,12 @@
 import { Database } from 'bun:sqlite';
 import { load } from 'sqlite-vec';
+import { __setConfigForTests } from '../config/config.service';
 import { db, setDatabase } from './database';
 import { runMigrations } from './migrations';
 
 export function setupTestDatabase(): void {
+  __setConfigForTests({});
+
   const memDb = new Database(':memory:', { strict: true });
   memDb.run('PRAGMA foreign_keys = ON');
   load(memDb);

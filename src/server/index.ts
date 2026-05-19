@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { Elysia } from 'elysia';
 import { getReasonPhrase, StatusCodes } from 'http-status-codes';
 import index from '../index.html';
+import { loadConfig } from './config/config.service';
 import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
 import { adminRoutes, authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
@@ -13,6 +14,7 @@ declare const APP_VERSION: string | undefined;
 const appVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : Bun.env.npm_package_version;
 console.log(`[howcani] v${appVersion}`);
 
+loadConfig();
 runMigrations();
 verifyEmbeddingShape(embeddingService);
 schedulerService.init();

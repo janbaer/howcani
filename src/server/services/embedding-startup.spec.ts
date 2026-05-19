@@ -1,4 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, spyOn, test } from 'bun:test';
+import { __setConfigForTests } from '../config/config.service';
 import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { EmbeddingService } from './embedding.service';
@@ -37,7 +38,7 @@ describe('verifyEmbeddingShape', () => {
 
   beforeEach(() => {
     clearTestDatabase();
-    delete process.env.EMBEDDING_ALLOW_DIMENSION_RESET;
+    __setConfigForTests({ embedding: { allowDimensionReset: false } });
   });
 
   test('returns no-embeddings when provider is null', () => {
@@ -98,7 +99,7 @@ describe('verifyEmbeddingShape', () => {
   test('wipes and rebuilds when mismatch and reset flag is set', () => {
     seedItem();
     seedEmbedding('openai/text-embedding-3-small', 1536);
-    process.env.EMBEDDING_ALLOW_DIMENSION_RESET = 'true';
+    __setConfigForTests({ embedding: { allowDimensionReset: true } });
     const warnSpy = spyOn(console, 'warn').mockImplementation(() => {});
 
     const result = verifyEmbeddingShape(makeService('nomic-embed-text-v1.5', 768));
@@ -135,7 +136,7 @@ describe('verifyEmbeddingShape', () => {
   test('wipes when vec_items dimension differs and reset flag is set', () => {
     db.exec('DROP TABLE IF EXISTS vec_items');
     db.exec('CREATE VIRTUAL TABLE vec_items USING vec0(item_id TEXT PRIMARY KEY, embedding float[1024])');
-    process.env.EMBEDDING_ALLOW_DIMENSION_RESET = 'true';
+    __setConfigForTests({ embedding: { allowDimensionReset: true } });
     const warnSpy = spyOn(console, 'warn').mockImplementation(() => {});
 
     const result = verifyEmbeddingShape(makeService('any-model', 768));

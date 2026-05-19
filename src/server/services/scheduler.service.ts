@@ -1,4 +1,4 @@
-import { appSettingsRepository } from '../repositories/app-settings.repository';
+import { getConfig } from '../config/config.service';
 import { runBackupJob } from './backup.service';
 import { embeddingService } from './embedding.service';
 import { backfillEmbeddings } from './embedding-backfill';
@@ -17,7 +17,7 @@ function runtimeTimezone(): string {
 
 const BACKUP_TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-export function validateBackupTime(time: string): void {
+function validateBackupTime(time: string): void {
   if (!BACKUP_TIME_RE.test(time)) {
     throw new RangeError(`Invalid backup time: "${time}" (expected HH:MM in 24h format)`);
   }
@@ -45,9 +45,9 @@ export class SchedulerService {
   constructor(private readonly cronFactory: CronFactory = defaultCronFactory) {}
 
   init(): void {
-    const settings = appSettingsRepository.get();
-    this.applyBackupSettings({ enabled: settings.backupEnabled, time: settings.backupTime });
-    this.applyEmbeddingSettings({ enabled: settings.semanticSearchEnabled });
+    const config = getConfig();
+    this.applyBackupSettings({ enabled: config.backup.enabled, time: config.backup.time });
+    this.applyEmbeddingSettings({ enabled: config.embedding.enabled });
   }
 
   applyBackupSettings({ enabled, time }: { enabled: boolean; time: string }): void {
@@ -65,8 +65,8 @@ export class SchedulerService {
     );
     this.backupHandle = this.cronFactory(expression, async () => {
       try {
-        const { backupRetentionDays } = appSettingsRepository.get();
-        await runBackupJob(backupRetentionDays);
+        const { retentionDays } = getConfig().backup;
+        await runBackupJob(retentionDays);
       } catch (err) {
         console.error('[scheduler] Backup job failed:', err);
       }

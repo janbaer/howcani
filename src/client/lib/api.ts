@@ -229,7 +229,6 @@ interface TagUpdateResponse {
 }
 
 interface Settings {
-  semanticSearchEnabled: boolean;
   duplicateThreshold: number;
 }
 
@@ -242,13 +241,6 @@ export interface BackupEntry {
 export const settings = {
   async get(): Promise<ApiResponse<Settings>> {
     return request<Settings>('/settings');
-  },
-
-  async update(patch: Partial<Settings>): Promise<ApiResponse<Settings>> {
-    return request<Settings>('/settings', {
-      method: 'PATCH',
-      body: JSON.stringify(patch),
-    });
   },
 
   async listBackups(): Promise<ApiResponse<BackupEntry[]>> {

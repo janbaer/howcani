@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { extractBearerToken, verifyToken } from '../auth/jwt.ts';
-import { appSettingsRepository } from '../repositories/app-settings.repository.ts';
+import { getConfig } from '../config/config.service.ts';
 import { ItemRepository } from '../repositories/item.repository.ts';
 import { TagRepository } from '../repositories/tag.repository.ts';
 import { UserRepository } from '../repositories/user.repository.ts';
@@ -21,7 +21,7 @@ function error(message: string): CallToolResult {
 function resolveUser(username: string): { userId: string; semanticSearchEnabled: boolean } | CallToolResult {
   const user = userRepo.findByUsername(username);
   if (!user) return error(`User "${username}" not found`);
-  return { userId: user.id, semanticSearchEnabled: appSettingsRepository.get().semanticSearchEnabled };
+  return { userId: user.id, semanticSearchEnabled: getConfig().embedding.enabled };
 }
 
 function attachTags(items: { id: string }[]) {

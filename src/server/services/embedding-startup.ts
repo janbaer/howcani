@@ -1,3 +1,4 @@
+import { getConfig } from '../config/config.service';
 import { embeddingRepository, type StoredEmbeddingShape } from '../repositories/embedding.repository';
 import type { EmbeddingService } from './embedding.service';
 
@@ -14,10 +15,10 @@ function describeRowMismatch(stored: StoredEmbeddingShape, expectedModel: string
 }
 
 function applyMismatch(detail: string, expectedDimension: number): VerifyResult {
-  if (process.env.EMBEDDING_ALLOW_DIMENSION_RESET !== 'true') {
+  if (!getConfig().embedding.allowDimensionReset) {
     console.error(
       `[embedding] Stored embeddings do not match configured provider: ${detail}.\n` +
-        '          To wipe and re-embed under the new configuration, set EMBEDDING_ALLOW_DIMENSION_RESET=true and restart.',
+        '          To wipe and re-embed under the new configuration, set embedding.allowDimensionReset: true in config.yaml and restart.',
     );
     process.exit(1);
   }

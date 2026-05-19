@@ -5,17 +5,20 @@ services:
     container_name: howcani
     env_file: .env
     environment:
-      PORT: ${HOWCANI_PORT:-3000}
       DATABASE_URL: /data/howcani.db
-      NODE_ENV: production
       BACKUP_DIR: /data/backups
-      TZ: ${HOWCANI_TZ:-Europe/Berlin}
-    user: ${HOWCANI_UID:-1000}:${HOWCANI_GID:-1000}
+      HOWCANI_CONFIG_PATH: /data/config.yaml
+      TZ: Europe/Berlin
+    user: 1000:1000
     volumes:
-      - ${HOWCANI_DATA_DIR:-./data}:/data
-      - ${HOWCANI_BACKUP_DIR:-./data/backups}:/data/backups
+      - ./data:/data
+      # IMPORTANT: copy config.example.yaml to ./config.yaml BEFORE `docker compose up`.
+      # If ./config.yaml does not exist, Docker creates it as an empty *directory*
+      # for this bind mount, and the server fails to read it instead of giving the
+      # clear "Configuration file not found" message.
+      - ./config.yaml:/data/config.yaml:ro
     ports:
-      - ${HOWCANI_PORT:-3000}:${HOWCANI_PORT:-3000}
+      - 3000:3000
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "bun", "-e", "fetch('http://localhost:' + (process.env.PORT || 3000) + '/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]

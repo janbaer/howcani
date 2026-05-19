@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -16,26 +16,10 @@ const mockSettingsService = {
     backupRetentionDays: 7,
     backupTime: '20:00',
   })),
-  updateSettings: mock((patch: { semanticSearchEnabled?: boolean }) => ({
-    semanticSearchEnabled: patch.semanticSearchEnabled ?? false,
-    duplicateThreshold: 80,
-    backupEnabled: false,
-    backupRetentionDays: 7,
-    backupTime: '20:00',
-  })),
 };
 
 mock.module('../services/settings.service', () => ({
   settingsService: mockSettingsService,
-}));
-
-const mockSchedulerService = {
-  applyBackupSettings: mock(() => {}),
-  applyEmbeddingSettings: mock(() => {}),
-};
-
-mock.module('../services/scheduler.service', () => ({
-  schedulerService: mockSchedulerService,
 }));
 
 mock.module('../services/session', () => ({
@@ -63,7 +47,6 @@ const app = new Elysia().use(authPlugin).use(settingsRoutes);
 describe('GET /settings', () => {
   beforeEach(() => {
     mockSettingsService.getSettings.mockClear();
-    mockSettingsService.updateSettings.mockClear();
   });
 
   test('returns current settings for authenticated user', async () => {
@@ -93,13 +76,7 @@ describe('GET /settings', () => {
 });
 
 describe('PATCH /settings', () => {
-  beforeEach(() => {
-    mockSettingsService.updateSettings.mockClear();
-    mockSchedulerService.applyBackupSettings.mockClear();
-    mockSchedulerService.applyEmbeddingSettings.mockClear();
-  });
-
-  test('updates semanticSearchEnabled and returns updated settings', async () => {
+  test('is no longer a registered route (returns 404)', async () => {
     const res = await app.handle(
       new Request('http://localhost/settings', {
         method: 'PATCH',
@@ -110,74 +87,7 @@ describe('PATCH /settings', () => {
         body: JSON.stringify({ semanticSearchEnabled: true }),
       }),
     );
-    expect(res.status).toBe(StatusCodes.OK);
-    const body = await res.json();
-    expect(body.semanticSearchEnabled).toBe(true);
-  });
-
-  test('returns 401 for unauthenticated request', async () => {
-    const res = await app.handle(
-      new Request('http://localhost/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ semanticSearchEnabled: true }),
-      }),
-    );
-    expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
-  });
-
-  test('calls settingsService.updateSettings with patch', async () => {
-    await app.handle(
-      new Request('http://localhost/settings', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${TEST_TOKEN}`,
-        },
-        body: JSON.stringify({ semanticSearchEnabled: true }),
-      }),
-    );
-    expect(mockSettingsService.updateSettings).toHaveBeenCalledWith({
-      semanticSearchEnabled: true,
-    });
-  });
-
-  test('calls schedulerService.applyEmbeddingSettings after PATCH with semanticSearchEnabled', async () => {
-    await app.handle(
-      new Request('http://localhost/settings', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${TEST_TOKEN}`,
-        },
-        body: JSON.stringify({ semanticSearchEnabled: true }),
-      }),
-    );
-    expect(mockSchedulerService.applyEmbeddingSettings).toHaveBeenCalledWith({ enabled: true });
-  });
-
-  test('returns 400 when scheduler throws RangeError (e.g. invalid backup time)', async () => {
-    mockSchedulerService.applyBackupSettings.mockImplementationOnce(() => {
-      throw new RangeError('Invalid backup time: "bogus" (expected HH:MM in 24h format)');
-    });
-    const errSpy = spyOn(console, 'error').mockImplementation(() => {});
-
-    const res = await app.handle(
-      new Request('http://localhost/settings', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${TEST_TOKEN}`,
-        },
-        body: JSON.stringify({ backupEnabled: true, backupTime: '20:00' }),
-      }),
-    );
-
-    errSpy.mockRestore();
-    expect(res.status).toBe(StatusCodes.BAD_REQUEST);
-    const body = await res.json();
-    expect(body.error.code).toBe('VALIDATION_ERROR');
-    expect(mockSettingsService.updateSettings).toHaveBeenCalled();
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
   });
 });
 

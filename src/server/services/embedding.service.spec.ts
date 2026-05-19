@@ -1,4 +1,5 @@
-import { describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { __seedDefaultConfigForTests, __setConfigForTests } from '../config/config.service';
 import { EmbeddingService } from './embedding.service';
 import type { EmbeddingProvider } from './embedding-providers/embedding-provider';
 
@@ -139,6 +140,14 @@ describe('EmbeddingService.selfCheck', () => {
 });
 
 describe('OpenRouterProvider integration through service', () => {
+  const SAVED_KEY = process.env.OPENROUTER_API_KEY;
+
+  afterEach(() => {
+    if (SAVED_KEY === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = SAVED_KEY;
+    __seedDefaultConfigForTests();
+  });
+
   test('embeds via factory-built provider with mocked fetch', async () => {
     const fakeVector = new Array(1536).fill(0.1);
     globalThis.fetch = mock(
@@ -149,9 +158,10 @@ describe('OpenRouterProvider integration through service', () => {
         }),
     );
 
-    process.env.EMBEDDING_PROVIDER = 'openrouter';
+    __setConfigForTests({
+      embedding: { enabled: true, provider: 'openrouter', model: 'openai/text-embedding-3-small', dimension: 1536 },
+    });
     process.env.OPENROUTER_API_KEY = 'test-key';
-    process.env.EMBEDDING_DIMENSION = '1536';
 
     const { createEmbeddingProvider } = await import('./embedding-providers/factory');
     const provider = createEmbeddingProvider();
@@ -161,9 +171,5 @@ describe('OpenRouterProvider integration through service', () => {
 
     expect(result).toBeInstanceOf(Float32Array);
     expect(result?.length).toBe(1536);
-
-    delete process.env.EMBEDDING_PROVIDER;
-    delete process.env.OPENROUTER_API_KEY;
-    delete process.env.EMBEDDING_DIMENSION;
   });
 });

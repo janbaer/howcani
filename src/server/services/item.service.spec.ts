@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { __setConfigForTests } from '../config/config.service';
 import * as realDatabase from '../db/database';
 import type { Item } from '../domain/item';
 import type { Tag } from '../domain/tag';
@@ -73,18 +74,6 @@ const mockItemRepository = {
   findAllDuplicates: mock((_userId: string, _threshold: number) => []),
   findDuplicates: mock((_itemId: string, _userId: string, _threshold: number) => []),
 };
-
-mock.module('../repositories/app-settings.repository', () => ({
-  appSettingsRepository: {
-    get: mock(() => ({
-      semanticSearchEnabled: false,
-      duplicateThreshold: 80,
-      backupEnabled: false,
-      backupRetentionDays: 7,
-      backupTime: '20:00',
-    })),
-  },
-}));
 
 mock.module('../repositories', () => ({
   itemRepository: mockItemRepository,
@@ -187,6 +176,7 @@ function createTestUser(username: string): TestUser {
 
 describe('ItemService', () => {
   beforeEach(() => {
+    __setConfigForTests({});
     testUsers.clear();
     testItems.clear();
     testTags.clear();

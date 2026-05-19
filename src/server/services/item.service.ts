@@ -1,8 +1,8 @@
+import { getConfig } from '../config/config.service';
 import { runTransaction } from '../db/database';
 import { validateCreateItemData, validateUpdateItemData } from '../domain/item';
 import type { Tag } from '../domain/tag';
 import { type Item, itemRepository, type PaginatedResult } from '../repositories';
-import { appSettingsRepository } from '../repositories/app-settings.repository';
 import { embeddingService } from './embedding.service';
 import type { TagService } from './tag.service';
 import { userService } from './user.service';
@@ -172,7 +172,7 @@ export class ItemService {
 
     let result: PaginatedResult<Item>;
     if (hasFilters) {
-      const useHybrid = appSettingsRepository.get().semanticSearchEnabled;
+      const useHybrid = getConfig().embedding.enabled;
       let queryVector: Float32Array | null = null;
       if (useHybrid && filters.search) {
         queryVector = await embeddingService.embedQuery(filters.search);
@@ -213,7 +213,7 @@ export class ItemService {
       return createError('USER_NOT_FOUND', 'User not found');
     }
 
-    const threshold = appSettingsRepository.get().duplicateThreshold;
+    const threshold = getConfig().duplicate.threshold;
     const rawGroups = itemRepository.findAllDuplicates(user.id, threshold);
 
     return {
@@ -243,7 +243,7 @@ export class ItemService {
       return createError('NOT_FOUND', 'Item not found');
     }
 
-    const threshold = appSettingsRepository.get().duplicateThreshold;
+    const threshold = getConfig().duplicate.threshold;
     const duplicates = itemRepository.findDuplicates(itemId, user.id, threshold);
     return {
       success: true,
