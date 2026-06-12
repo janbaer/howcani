@@ -1,15 +1,11 @@
 {
   "mcpServers": {
-    "forgejo-mcp": {
-      "type": "http",
-      "url": "https://forgejo.home.janbaer.de/mcp"
-    },
     "gitnexus-mcp": {
       "command": "gitnexus",
       "args": ["mcp"]
     },
     "chrome-devtools-mcp": {
-      "command": "npx",
+      "command": "bunx",
       "args": [
         "chrome-devtools-mcp@latest",
         "--executablePath=/etc/profiles/per-user/jan/bin/chromium"
