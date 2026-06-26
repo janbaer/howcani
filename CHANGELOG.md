@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.92 - 2026-06-26
+---
+
+- Reworked the landing, login, and register pages around a shared `LogoMark` component and a vertically centered card, giving signed-out users a more finished first impression; the home page now explains the product through a Collect/Organize/Find feature grid
+- Redesigned the mobile header to use a light card surface with a bottom border instead of the solid primary bar, so it reads as part of the page chrome rather than a coloured banner; the brand wordmark moved to IBM Plex Sans for consistency with the rest of the type
+- Item card previews now fade their last lines out only when the content actually overflows, instead of hard-clipping mid-line, and cards lift on hover on pointer devices to make the grid feel interactive
+- Rendered code blocks show a language label that steps aside for the copy button on hover, making fenced snippets easier to scan
+- The `theme-color` browser chrome now follows the in-app light/dark toggle rather than only the OS preference, so the address bar matches the theme the user actually selected
+
 ## 3.0.91 - 2026-05-19
 ---
 
