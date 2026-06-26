@@ -16,6 +16,15 @@ interface Props {
 
 const { item, username, isOwner, onEdit, onDelete, onKeyDown }: Props = $props();
 
+// Marks the preview as clipped when its content overflows the max-height,
+// so the fade-out mask only appears when something is actually cut off.
+function clipFade(node: HTMLElement) {
+  const update = () => node.classList.toggle('clipped', node.scrollHeight > node.clientHeight + 1);
+  const observer = new ResizeObserver(update);
+  observer.observe(node);
+  return { destroy: () => observer.disconnect() };
+}
+
 function handleCardClick(e: MouseEvent) {
   if ((e.target as HTMLElement).closest('a, button, input, select, textarea, [role="button"]')) return;
   navigate(`/${username}/items/${item.id}`);
@@ -23,7 +32,7 @@ function handleCardClick(e: MouseEvent) {
 </script>
 
 <article
-  class="item-card group card flex flex-col p-4 shadow-sm transition-shadow hover:shadow-md cursor-pointer"
+  class="item-card group card flex flex-col p-4 shadow-sm cursor-pointer"
   onclick={handleCardClick}
   tabindex={isOwner ? 0 : -1}
   onkeydown={(e) => onKeyDown(item, e)}
@@ -38,7 +47,7 @@ function handleCardClick(e: MouseEvent) {
     </a>
 
     {#if item.answer}
-      <div class="answer-preview mb-3">
+      <div class="answer-preview mb-3" use:clipFade>
         <MarkdownRenderer content={item.answer} />
       </div>
     {/if}
@@ -96,12 +105,30 @@ function handleCardClick(e: MouseEvent) {
 <style>
   .item-card {
     break-inside: avoid;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .item-card:hover {
+      border-color: hsl(var(--primary) / 0.45);
+      box-shadow: 0 6px 20px -6px hsl(var(--primary) / 0.25);
+      transform: translateY(-2px);
+    }
   }
 
   .answer-preview {
     max-height: 15rem;
     overflow: hidden;
     position: relative;
+  }
+
+  /* Fade the last lines out instead of hard-clipping mid-line (set by clipFade) */
+  .answer-preview:global(.clipped) {
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 3rem), transparent);
+    mask-image: linear-gradient(to bottom, black calc(100% - 3rem), transparent);
   }
 
   .answer-preview :global(.prose) {

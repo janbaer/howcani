@@ -89,10 +89,6 @@
   @apply block font-mono text-xs font-medium text-muted-foreground mb-1.5;
 }
 
-@utility auth-title {
-  @apply mb-6 font-mono text-xl font-bold text-card-foreground;
-}
-
 @utility auth-footer {
   @apply mt-6 text-center text-sm text-muted-foreground;
 }

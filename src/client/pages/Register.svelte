@@ -1,5 +1,6 @@
 <script lang="ts">
 import Button from '../components/common/Button.svelte';
+import LogoMark from '../components/common/LogoMark.svelte';
 import { clearError, getAuthState, register } from '../lib/auth.svelte';
 import { link } from '../lib/router.svelte';
 
@@ -43,9 +44,12 @@ async function handleSubmit(e: Event) {
 }
 </script>
 
-<div class="max-w-md w-full mx-auto py-8">
-  <div class="card p-6 md:p-8">
-    <h2 class="auth-title">Create Account</h2>
+<div class="mx-auto flex min-h-[calc(100dvh-10rem)] max-w-md w-full items-center">
+  <div class="card fade-in w-full p-6 md:p-8">
+    <div class="mb-6 flex flex-col items-center gap-3">
+      <LogoMark class="h-12 w-12" />
+      <h2 class="font-mono text-xl font-bold text-card-foreground">Create Account</h2>
+    </div>
 
     {#if authState.error || validationError}
       <div class="mb-4 alert-error">

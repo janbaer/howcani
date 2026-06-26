@@ -52,10 +52,19 @@ $effect(() => {
   for (const pre of preElements) {
     // Wrap pre in a non-scrolling container so the button stays in the
     // top-right corner of the visible area when the code is scrolled sideways.
+    if (!pre.parentNode) continue;
     const wrapper = document.createElement('div');
     wrapper.className = 'code-block-wrapper';
-    pre.parentNode!.insertBefore(wrapper, pre);
+    pre.parentNode.insertBefore(wrapper, pre);
     wrapper.appendChild(pre);
+
+    const lang = pre.querySelector('code')?.className.match(/language-([\w+-]+)/)?.[1];
+    if (lang) {
+      const label = document.createElement('span');
+      label.className = 'code-lang';
+      label.textContent = lang;
+      wrapper.appendChild(label);
+    }
 
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -137,5 +146,33 @@ $effect(() => {
 
   :global(.copy-btn:hover) {
     background-color: rgba(0, 0, 0, 0.65);
+  }
+
+  /* Code blocks render on a fixed dark background in both themes,
+     so the label colors are intentionally theme-independent. */
+  :global(.code-lang) {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.625rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  /* The copy button takes the same corner on hover — fade the label out of its way.
+     Gated to hover-capable devices: on touch, :hover sticks after a tap and would
+     hide the label without the copy button (mouseenter-only) ever replacing it. */
+  @media (hover: hover) {
+    :global(.code-block-wrapper:hover .code-lang) {
+      opacity: 0;
+    }
   }
 </style>

@@ -11,7 +11,6 @@ type Variant =
   | 'icon'
   | 'icon-edit'
   | 'icon-delete'
-  | 'mobile-icon'
   | 'mobile-user'
   | 'back'
   | 'cancel'
@@ -51,10 +50,7 @@ const variantStyles: Record<Variant, string> = {
   'icon-edit': `rounded-md p-1.5 text-muted-foreground ${mutedHover} active:bg-muted`,
   'icon-delete':
     'rounded-md p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 active:bg-red-500/10 transition-colors',
-  'mobile-icon':
-    'flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground/80 hover:text-primary-foreground transition-colors',
-  'mobile-user':
-    'flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground',
+  'mobile-user': 'flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary',
   back: `flex items-center gap-1.5 font-mono text-sm text-muted-foreground ${mutedHover}`,
   cancel: `${base} font-mono text-muted-foreground ${mutedHover} ${disabledStyles}`,
   submit: `${base} gap-2 ${primaryColors} ${disabledStyles}`,
@@ -67,7 +63,7 @@ const sizeStyles: Record<Size, string> = {
   lg: 'px-6 py-2.5 text-sm',
 };
 
-const fixedSizeVariants = new Set<Variant>(['icon', 'icon-edit', 'icon-delete', 'mobile-icon', 'mobile-user', 'back']);
+const fixedSizeVariants = new Set<Variant>(['icon', 'icon-edit', 'icon-delete', 'mobile-user', 'back']);
 
 let classes = $derived(
   fixedSizeVariants.has(variant)

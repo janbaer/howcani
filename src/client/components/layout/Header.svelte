@@ -72,8 +72,8 @@ function clearSearch() {
           <rect x="38" y="35" width="14" height="50"/>
           <path d="M 82 35 L 82 85 L 68 85 L 68 62 C 68 62 60 68 52 64 L 52 52 C 60 55 68 45 68 35 Z" />
         </g> 
-        <text x="130" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="currentColor">How</text>
-        <text x="285" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="hsl(var(--primary))">CanI</text>
+        <text x="130" y="85" style="font-size:72px;font-family:'IBM Plex Sans',ui-sans-serif,sans-serif;font-weight:bold" fill="currentColor">How</text>
+        <text x="285" y="85" style="font-size:72px;font-family:'IBM Plex Sans',ui-sans-serif,sans-serif;font-weight:bold" fill="hsl(var(--primary))">CanI</text>
       </svg>
     </a>
 
@@ -176,15 +176,15 @@ function clearSearch() {
 </header>
 
 <!-- Mobile header -->
-<header class="sticky top-0 z-50 md:hidden bg-primary">
+<header class="sticky top-0 z-50 md:hidden border-b border-border bg-card">
   <div class="flex h-14 items-center justify-between px-4">
     <div class="flex items-center gap-3">
       <!-- Hamburger button (only shown on items pages with tags) -->
       {#if isItemsPage && overlayState.isAvailable}
         <Button
-          variant="mobile-icon"
+          variant="icon"
           onclick={toggleTagOverlay}
-          class="hover:bg-primary-foreground/10 lg:hidden"
+          class="lg:hidden"
           aria-label="Toggle tag menu"
         >
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -195,17 +195,17 @@ function clearSearch() {
 
       <a href="/" use:link>
         <svg class="h-7" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
-        <rect fill="hsl(var(--primary-foreground))" x="10" y="10" width="100" height="100" rx="25" ry="25"/>
-        <rect fill="hsl(var(--primary))" x="38" y="35" width="14" height="50"/>
-        <path fill="hsl(var(--primary))" d="M 82 35 L 82 85 L 68 85 L 68 62 C 68 62 60 68 52 64 L 52 52 C 60 55 68 45 68 35 Z" />
-        <text x="130" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="hsl(var(--primary-foreground))">How</text>
-        <text x="285" y="85" style="font-size:72px;font-family:Arial,Helvetica,sans-serif;font-weight:bold" fill="hsl(var(--primary-foreground))">CanI</text>
+        <rect fill="hsl(var(--primary))" x="10" y="10" width="100" height="100" rx="25" ry="25"/>
+        <rect fill="hsl(var(--primary-foreground))" x="38" y="35" width="14" height="50"/>
+        <path fill="hsl(var(--primary-foreground))" d="M 82 35 L 82 85 L 68 85 L 68 62 C 68 62 60 68 52 64 L 52 52 C 60 55 68 45 68 35 Z" />
+        <text x="130" y="85" style="font-size:72px;font-family:'IBM Plex Sans',ui-sans-serif,sans-serif;font-weight:bold" fill="currentColor">How</text>
+        <text x="285" y="85" style="font-size:72px;font-family:'IBM Plex Sans',ui-sans-serif,sans-serif;font-weight:bold" fill="hsl(var(--primary))">CanI</text>
       </svg>
       </a>
     </div>
     <div class="flex items-center gap-2">
       <Button
-        variant="mobile-icon"
+        variant="icon"
         onclick={toggleTheme}
       >
         {#if isDark()}
@@ -219,7 +219,7 @@ function clearSearch() {
         {/if}
       </Button>
       {#if authState.isAuthenticated}
-        <Button href="/settings" variant="mobile-icon" title="Settings">
+        <Button href="/settings" variant="icon" title="Settings">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -251,7 +251,7 @@ function clearSearch() {
 
   <!-- Mobile search bar (below header on items pages) -->
   {#if isItemsPage}
-    <div class="border-t border-primary-foreground/10 bg-background px-4 py-2 pb-1">
+    <div class="border-t border-border bg-background px-4 py-2 pb-1">
       <div class="relative">
         <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
