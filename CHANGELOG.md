@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.93 - 2026-07-18
+---
+
+- Made the login session lifetime operator-configurable through a new `auth.tokenExpiration` setting in `config.yaml`; it defaults to `7d` so existing behaviour is unchanged, but operators can now shorten or lengthen sessions without a code change and rebuild. Invalid duration strings are rejected at startup like the rest of the config
+
 ## 3.0.92 - 2026-06-26
 ---
 

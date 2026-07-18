@@ -3,9 +3,7 @@
 ## Purpose
 
 The authentication system provides JWT-based authentication for the HowCanI application. It allows users to register, login, and maintain authenticated sessions for performing write operations on their knowledge base.
-
 ## Requirements
-
 ### Requirement: User Registration
 
 The system MUST allow new users to register with username, email, and password.
@@ -86,7 +84,7 @@ The system MUST authenticate existing users and provide JWT tokens for authorize
 
 **Then** the system should:
 - Verify password against stored hash
-- Generate new JWT token with 7-day expiration
+- Generate new JWT token whose lifetime is the configured `auth.tokenExpiration` (default 7 days)
 - Return status `StatusCodes.OK`
 - Return JSON: `{ user: { id, username, email }, token: "jwt..." }`
 
@@ -128,9 +126,11 @@ JWT tokens MUST contain necessary information for authorization and have appropr
 - `user_id`: 42
 - `username`: "john"
 - `iat`: Issued at timestamp
-- `exp`: Expiration timestamp (7 days from issue)
+- `exp`: Expiration timestamp, set to the configured `auth.tokenExpiration` from issue time (default 7 days)
 
 ### Requirement: Token is signed with server secret
+
+The system MUST sign every JWT with the secret from `HOWCANI_JWT_SECRET` and verify tokens using the same secret via the `jose` library.
 
 **Given** the server has environment variable `HOWCANI_JWT_SECRET`
 

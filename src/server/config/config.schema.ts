@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 const BACKUP_TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const TOKEN_EXPIRATION_RE =
+  /^\d+(\.\d+)? ?(seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)$/i;
 
 const embeddingSchema = z
   .object({
@@ -46,10 +48,18 @@ const duplicateSchema = z.object({
   threshold: z.number().int().min(50).max(100).default(80),
 });
 
+const authSchema = z.object({
+  tokenExpiration: z
+    .string()
+    .regex(TOKEN_EXPIRATION_RE, 'auth.tokenExpiration must be a duration like "7d", "24h" or "30m"')
+    .default('7d'),
+});
+
 export const configSchema = z.object({
   embedding: embeddingSchema.prefault({}),
   backup: backupSchema.prefault({}),
   duplicate: duplicateSchema.prefault({}),
+  auth: authSchema.prefault({}),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;

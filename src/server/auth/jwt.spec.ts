@@ -1,7 +1,12 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
+import { __setConfigForTests } from '../config/config.service';
 import { createToken, extractBearerToken, verifyToken } from './jwt';
 
 describe('JWT', () => {
+  afterEach(() => {
+    __setConfigForTests({});
+  });
+
   describe('createToken + verifyToken', () => {
     test('creates and verifies a valid token', async () => {
       const payload = { userId: 'u1', username: 'john', email: 'john@example.com' };
@@ -13,6 +18,17 @@ describe('JWT', () => {
       expect(result?.userId).toBe('u1');
       expect(result?.username).toBe('john');
       expect(result?.email).toBe('john@example.com');
+    });
+
+    test('applies the configured token expiration', async () => {
+      __setConfigForTests({ auth: { tokenExpiration: '1m' } });
+
+      const token = await createToken({ userId: 'u1', username: 'john', email: 'john@example.com' });
+      const result = await verifyToken(token);
+
+      expect(result?.exp).toBeDefined();
+      expect(result?.iat).toBeDefined();
+      expect((result?.exp as number) - (result?.iat as number)).toBe(60);
     });
 
     test('returns null for invalid token', async () => {

@@ -50,3 +50,8 @@ backup:
   # Number of days to keep backup files (1-30).
   retentionDays: 7
 
+auth:
+  # Lifetime of a login JWT, as a duration string (e.g. 7d, 24h, 30m).
+  # Applies to browser login tokens only; API tokens set their own expiry.
+  tokenExpiration: "7d"
+

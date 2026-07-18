@@ -132,23 +132,21 @@ describe('AuthService', () => {
       expect(result.error.message).toContain('3-30 characters');
     });
 
-    test.each([
-      'john@doe',
-      'john.doe',
-      'john doe',
-      'john!',
-    ])('rejects username with invalid characters: %s', async (username) => {
-      const result = await authService.register({
-        username,
-        email: 'test@example.com',
-        password: 'secure123',
-      });
+    test.each(['john@doe', 'john.doe', 'john doe', 'john!'])(
+      'rejects username with invalid characters: %s',
+      async (username) => {
+        const result = await authService.register({
+          username,
+          email: 'test@example.com',
+          password: 'secure123',
+        });
 
-      expect(result.success).toBe(false);
-      if (result.success) return;
+        expect(result.success).toBe(false);
+        if (result.success) return;
 
-      expect(result.error.code).toBe('VALIDATION_ERROR');
-    });
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+      },
+    );
 
     test('rejects password shorter than 8 characters', async () => {
       const result = await authService.register({
@@ -163,23 +161,21 @@ describe('AuthService', () => {
       expect(result.error.message).toContain('at least 8 characters');
     });
 
-    test.each([
-      'notanemail',
-      'missing@domain',
-      '@nodomain.com',
-      'no@domain',
-    ])('rejects invalid email format: %s', async (email) => {
-      const result = await authService.register({
-        ...validUser,
-        email,
-      });
+    test.each(['notanemail', 'missing@domain', '@nodomain.com', 'no@domain'])(
+      'rejects invalid email format: %s',
+      async (email) => {
+        const result = await authService.register({
+          ...validUser,
+          email,
+        });
 
-      expect(result.success).toBe(false);
-      if (result.success) return;
+        expect(result.success).toBe(false);
+        if (result.success) return;
 
-      expect(result.error.code).toBe('VALIDATION_ERROR');
-      expect(result.error.message).toContain('email');
-    });
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.message).toContain('email');
+      },
+    );
   });
 
   describe('login', () => {

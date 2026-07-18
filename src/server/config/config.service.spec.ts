@@ -78,6 +78,23 @@ describe('configService', () => {
     expect(cfg.backup.time).toBe('20:00');
     expect(cfg.backup.retentionDays).toBe(7);
     expect(cfg.duplicate.threshold).toBe(80);
+    expect(cfg.auth.tokenExpiration).toBe('7d');
+  });
+
+  test('auth.tokenExpiration defaults to 7d when omitted', () => {
+    writeConfig('backup:\n  enabled: true\n');
+    expect(loadConfig().auth.tokenExpiration).toBe('7d');
+  });
+
+  test('accepts a custom auth.tokenExpiration duration', () => {
+    writeConfig('auth:\n  tokenExpiration: 1m\n');
+    expect(loadConfig().auth.tokenExpiration).toBe('1m');
+  });
+
+  test('rejects an invalid auth.tokenExpiration string', () => {
+    writeConfig('auth:\n  tokenExpiration: banana\n');
+    expect(() => loadConfig()).toThrow(/Invalid configuration/);
+    expect(() => loadConfig()).toThrow(/tokenExpiration/);
   });
 
   test('enabled defaults to false when embedding section is omitted', () => {

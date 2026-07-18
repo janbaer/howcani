@@ -1,13 +1,12 @@
 import type { JWTPayload } from 'jose';
 import { jwtVerify, SignJWT } from 'jose';
+import { getConfig } from '../config/config.service';
 
 const HOWCANI_JWT_SECRET = process.env.HOWCANI_JWT_SECRET;
 if (!HOWCANI_JWT_SECRET) {
   throw new Error('HOWCANI_JWT_SECRET environment variable is required');
 }
 const secret = new TextEncoder().encode(HOWCANI_JWT_SECRET);
-
-const TOKEN_EXPIRATION = '7d';
 
 export interface TokenPayload extends JWTPayload {
   userId: string;
@@ -18,7 +17,7 @@ export interface TokenPayload extends JWTPayload {
 export async function createToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
-    .setExpirationTime(TOKEN_EXPIRATION)
+    .setExpirationTime(getConfig().auth.tokenExpiration)
     .setIssuedAt()
     .sign(secret);
 }
