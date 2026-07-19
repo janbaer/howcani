@@ -9,6 +9,8 @@ interface McpServerOptions {
   defaultUsername?: string;
 }
 
+type UserResolution = { ok: true; username: string } | { ok: false; reason: 'invalid_token' | 'missing_username' };
+
 export function createMcpServer(options: McpServerOptions = {}): McpServer {
   const defaultUsername = options.defaultUsername;
 
@@ -17,26 +19,23 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
     version: pkg.version,
   });
 
-  const usernamePromise: Promise<string | null> = (async () => {
-    if (defaultUsername) return defaultUsername;
+  const userResolution: Promise<UserResolution> = (async () => {
     const token = extractBearerToken(options.authHeader);
     if (token) {
       const payload = await verifyToken(token);
-      if (payload) return payload.username;
+      if (!payload) return { ok: false, reason: 'invalid_token' };
+      return { ok: true, username: payload.username };
     }
-    return null;
+    if (defaultUsername) return { ok: true, username: defaultUsername };
+    return { ok: false, reason: 'missing_username' };
   })();
 
-  function missingUsernameError() {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'username is required: set the X-Username request header or provide a Bearer token',
-        },
-      ],
-      isError: true,
-    };
+  function authError(reason: 'invalid_token' | 'missing_username') {
+    const text =
+      reason === 'invalid_token'
+        ? 'authentication failed: the provided Bearer token is invalid or expired'
+        : 'username is required: set the X-Username request header or provide a Bearer token';
+    return { content: [{ type: 'text' as const, text }], isError: true };
   }
 
   server.tool(
@@ -48,9 +47,9 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       limit: z.number().min(1).max(100).optional().describe('Max results to return (default 20, max 100)'),
     },
     async (args) => {
-      const username = await usernamePromise;
-      if (!username) return missingUsernameError();
-      return searchItems({ ...args, username });
+      const resolved = await userResolution;
+      if (!resolved.ok) return authError(resolved.reason);
+      return searchItems({ ...args, username: resolved.username });
     },
   );
 
@@ -62,9 +61,9 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       offset: z.number().min(0).optional().describe('Number of items to skip for pagination (default 0)'),
     },
     async (args) => {
-      const username = await usernamePromise;
-      if (!username) return missingUsernameError();
-      return listItems({ ...args, username });
+      const resolved = await userResolution;
+      if (!resolved.ok) return authError(resolved.reason);
+      return listItems({ ...args, username: resolved.username });
     },
   );
 
@@ -75,16 +74,16 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       item_id: z.string().describe('The item ID to retrieve'),
     },
     async (args) => {
-      const username = await usernamePromise;
-      if (!username) return missingUsernameError();
-      return getItem({ ...args, username });
+      const resolved = await userResolution;
+      if (!resolved.ok) return authError(resolved.reason);
+      return getItem({ ...args, username: resolved.username });
     },
   );
 
   server.tool('list_tags', 'List all tags for a user with item counts', {}, async () => {
-    const username = await usernamePromise;
-    if (!username) return missingUsernameError();
-    return listTags({ username });
+    const resolved = await userResolution;
+    if (!resolved.ok) return authError(resolved.reason);
+    return listTags({ username: resolved.username });
   });
 
   server.tool(
@@ -94,9 +93,9 @@ export function createMcpServer(options: McpServerOptions = {}): McpServer {
       item_id: z.string().describe('The item ID to find related items for'),
     },
     async (args) => {
-      const username = await usernamePromise;
-      if (!username) return missingUsernameError();
-      return getRelatedItems({ ...args, username });
+      const resolved = await userResolution;
+      if (!resolved.ok) return authError(resolved.reason);
+      return getRelatedItems({ ...args, username: resolved.username });
     },
   );
 

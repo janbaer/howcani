@@ -2,20 +2,9 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import { StatusCodes } from 'http-status-codes';
 import { createMcpServer } from './server.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Username',
-};
-
 export async function handleMcpRequest(req: Request): Promise<Response> {
   if (req.method === 'OPTIONS') {
-    const requestedHeaders =
-      req.headers.get('access-control-request-headers') ?? corsHeaders['Access-Control-Allow-Headers'];
-    return new Response(null, {
-      status: StatusCodes.NO_CONTENT,
-      headers: { ...corsHeaders, 'Access-Control-Allow-Headers': requestedHeaders },
-    });
+    return new Response(null, { status: StatusCodes.NO_CONTENT });
   }
 
   const authHeader = req.headers.get('authorization') ?? undefined;
@@ -32,7 +21,7 @@ export async function handleMcpRequest(req: Request): Promise<Response> {
     const response = await transport.handleRequest(req);
     return new Response(response.body, {
       status: response.status,
-      headers: { ...Object.fromEntries(response.headers), ...corsHeaders },
+      headers: Object.fromEntries(response.headers),
     });
   } finally {
     await transport.close();

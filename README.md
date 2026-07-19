@@ -138,6 +138,16 @@ HowCanI exposes an MCP endpoint at `/mcp` for AI clients (Claude Code, Claude De
 | `list_tags` | No | All tags with item counts |
 | `create_item` | Bearer token | Create an item (auto-creates tags) |
 
+### Authentication model
+
+Reads are public, resolved per request in this order:
+
+- **Bearer token present** — it is authoritative. The token is verified and its user is used; any `X-Username` header is ignored. An invalid or expired token is rejected (the request does not fall back to `X-Username`).
+- **No token** — the `X-Username` header selects the user (public read).
+- **Neither** — the tool returns a "username is required" error.
+
+Writes (`create_item`, `update_item`) always require a valid Bearer token. The `/mcp` endpoint does not send a wildcard `Access-Control-Allow-Origin`, so it cannot be called cross-origin from a browser; use a server-side MCP client.
+
 ### Getting an API token
 
 ```bash

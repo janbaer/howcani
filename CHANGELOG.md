@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.94 - 2026-07-19
+---
+
+- Closed an MCP auth gap where the `X-Username` header overrode a valid bearer token, letting a caller read another user's knowledge base by spoofing the header. The token is now authoritative when present (its user wins, `X-Username` is ignored) and an invalid or expired token is rejected instead of silently falling back to `X-Username`; reads without a token stay public via `X-Username`, matching the REST API. Also removed the wildcard `Access-Control-Allow-Origin` from `/mcp`, so it can no longer be called cross-origin from a browser
+
 ## 3.0.93 - 2026-07-18
 ---
 

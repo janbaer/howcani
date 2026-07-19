@@ -5,6 +5,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { ItemRepository } from '../repositories/item.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { handleMcpRequest } from './index';
 import { createMcpServer } from './server';
 
 // Override any test-suite-level jwt mock (from auth.routes.spec.ts bleed) so
@@ -100,7 +101,31 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_items', arguments: {} });
 
     expect(result.isError).toBe(true);
-    expect((result.content[0] as { text: string }).text).toContain('username is required');
+    expect((result.content[0] as { text: string }).text).toContain('invalid or expired');
+  });
+
+  test('bearer token takes precedence over X-Username header', async () => {
+    const item = itemRepo.create({ userId: testUserId, question: 'Alice question', answer: 'A' });
+    const bob = userRepo.create({ username: 'bob', email: 'bob@example.com', passwordHash: 'hash' });
+    const { client } = await createTestClient({
+      authHeader: `Bearer ${testBearerToken}`,
+      defaultUsername: bob.username,
+    });
+
+    const result = await client.callTool({ name: 'get_item', arguments: { item_id: item.id } });
+
+    expect(result.isError).toBeFalsy();
+    const data = JSON.parse((result.content[0] as { text: string }).text);
+    expect(data).toHaveProperty('question', 'Alice question');
+  });
+
+  test('rejects an invalid token even when X-Username is set', async () => {
+    const { client } = await createTestClient({ authHeader: 'Bearer invalid-garbage', defaultUsername: testUsername });
+
+    const result = await client.callTool({ name: 'list_items', arguments: {} });
+
+    expect(result.isError).toBe(true);
+    expect((result.content[0] as { text: string }).text).toContain('invalid or expired');
   });
 
   test('returns error when neither X-Username header nor Bearer token is set', async () => {
@@ -141,5 +166,13 @@ describe('createMcpServer - username resolution', () => {
     expect(result.isError).toBeFalsy();
     const data = JSON.parse((result.content[0] as { text: string }).text);
     expect(data).toHaveProperty('question', 'Test question');
+  });
+});
+
+describe('handleMcpRequest CORS', () => {
+  test('OPTIONS response does not send a wildcard Access-Control-Allow-Origin', async () => {
+    const response = await handleMcpRequest(new Request('http://localhost/mcp', { method: 'OPTIONS' }));
+
+    expect(response.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
