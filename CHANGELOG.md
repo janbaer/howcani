@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.95 - 2026-07-27
+---
+
+- Fixed the markdown editor doing nothing when creating or editing an item, caused by duplicate `@codemirror` module instances in the dependency tree. The `overrides` block pinning `@codemirror/state`, `@codemirror/view` and `@codemirror/language` was removed in 3.0.92 because the direct dependencies happened to be consistent at the time; the next version bump re-split the tree, since the transitive packages accept `^6.0.0` and bun never re-resolved their already-locked older versions. Two module instances reached `EditorState.create` and the `instanceof` check threw `Unrecognized extension value in extension set`. The pins are back and now have to be updated alongside the direct dependencies
+
 ## 3.0.94 - 2026-07-19
 ---
 
