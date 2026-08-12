@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.96 - 2026-08-12
+---
+
+- Fixed hybrid search filling the result page with unrelated notes for any query that has few real matches, which made everything below the first hit worth ignoring and the hit count meaningless. The KNN arm asked sqlite-vec for a fixed `k = 50` and never selected the `distance` column, so every search pulled in 50 neighbours however far away they were, and the RRF merge then ranked the tail by "least far away" instead of by relevance; searching `webcam` returned the one webcam article followed by 49 VIM and Docker notes. The KNN query now orders by distance and cuts the tail before the merge, with a cutoff relative to each query's own best match rather than a fixed distance, because a fixed one tuned for `webcam` returns nothing at all for a German query against English notes and vice versa. The new `embedding.minSimilarity` and `embedding.relevanceBand` settings in `config.yaml` control the absolute ceiling and how far past the best match results are still kept, and `total` now reflects the filtered count, so pagination no longer walks through discarded rows
+
 ## 3.0.95 - 2026-07-27
 ---
 

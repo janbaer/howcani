@@ -127,6 +127,8 @@ export interface SearchOptions extends PaginationOptions {
   tags?: string[];
   useHybrid?: boolean;
   queryVector?: Float32Array | null;
+  minSimilarity?: number;
+  relevanceBand?: number;
 }
 
 export interface PaginatedResult<T> {
@@ -205,13 +207,31 @@ export class ItemRepository extends BaseRepository<Item> {
   }
 
   searchItems(userId: string, options: SearchOptions = {}): PaginatedResult<Item> {
-    const { limit = 50, offset = 0, search, tags, useHybrid, queryVector } = options;
+    const {
+      limit = 50,
+      offset = 0,
+      search,
+      tags,
+      useHybrid,
+      queryVector,
+      minSimilarity = 0,
+      relevanceBand = 100,
+    } = options;
     const normalizedTags = this.normalizeTagFilters(tags);
     const hasSearch = search !== undefined && search.trim() !== '';
     const hasTags = normalizedTags !== undefined && normalizedTags.length > 0;
 
     if (useHybrid && hasSearch && queryVector) {
-      return this.searchHybrid(userId, search.trim(), normalizedTags, limit, offset, queryVector);
+      return this.searchHybrid(
+        userId,
+        search.trim(),
+        normalizedTags,
+        limit,
+        offset,
+        queryVector,
+        minSimilarity,
+        relevanceBand,
+      );
     }
 
     if (!hasSearch && !hasTags) {
@@ -236,6 +256,8 @@ export class ItemRepository extends BaseRepository<Item> {
     limit: number,
     offset: number,
     queryVector: Float32Array,
+    minSimilarity: number,
+    relevanceBand: number,
   ): PaginatedResult<Item> {
     const RRF_K = 60;
 
@@ -251,16 +273,28 @@ export class ItemRepository extends BaseRepository<Item> {
       )
       .all(userId, sanitized);
 
-    // KNN: fetch top 50 by vector similarity
-    const vecRows = db
-      .query<{ item_id: string }, [string, Uint8Array, number]>(
-        `SELECT vec_items.item_id FROM vec_items
+    // KNN: fetch top 50 by vector similarity, then cut off the tail. Without a
+    // cutoff every query returns a full 50 neighbours no matter how far away
+    // they are, which buries a single real hit in noise.
+    //
+    // The cutoff sits a fraction of the way from the closest match to the
+    // absolute ceiling, because how far the relevant band extends depends on
+    // the query. A strong match has relevant siblings spread well behind it; a
+    // weak one (a German word against English notes) has its whole band pushed
+    // out near the ceiling. A fixed distance handles one case or the other,
+    // never both.
+    const knnRows = db
+      .query<{ item_id: string; distance: number }, [string, Uint8Array, number]>(
+        `SELECT vec_items.item_id, vec_items.distance FROM vec_items
          JOIN items ON vec_items.item_id = items.id
          WHERE items.user_id = ?
            AND vec_items.embedding MATCH ?
-           AND k = ?`,
+           AND k = ?
+         ORDER BY vec_items.distance`,
       )
       .all(userId, queryVector as unknown as Uint8Array, 50);
+
+    const vecRows = this.withinRelevanceBand(knnRows, minSimilarity, relevanceBand);
 
     // RRF merge
     const scores = new Map<string, number>();
@@ -306,6 +340,23 @@ export class ItemRepository extends BaseRepository<Item> {
     const items = pageIds.map((id) => rowMap.get(id)).filter(Boolean) as Item[];
 
     return { items, total };
+  }
+
+  // Rows must be ordered by ascending distance. minSimilarity of 0 keeps
+  // everything, which is what callers that never configured a cutoff get.
+  private withinRelevanceBand<T extends { distance: number }>(
+    rows: T[],
+    minSimilarity: number,
+    relevanceBand: number,
+  ): T[] {
+    if (minSimilarity <= 0 || rows.length === 0) return rows;
+
+    const ceiling = Math.sqrt(2 * (1 - minSimilarity / 100));
+    const best = rows[0].distance;
+    if (best > ceiling) return [];
+
+    const cutoff = best + (relevanceBand / 100) * (ceiling - best);
+    return rows.filter((r) => r.distance <= cutoff);
   }
 
   private normalizeTagFilters(tags?: string[]): string[] | undefined {

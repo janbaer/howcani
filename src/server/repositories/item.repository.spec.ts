@@ -682,6 +682,87 @@ describe('ItemRepository Integration Tests', () => {
     });
   });
 
+  describe('searchItems hybrid relevance band', () => {
+    let lexicalId: string;
+    let nearId: string;
+    let farId: string;
+
+    // Vectors at a chosen angle from `query`, so distances are exact:
+    // distance = sqrt(2 - 2*cos).
+    const atCosine = (cosine: number): Float32Array => {
+      const v = new Float32Array(1536);
+      v[0] = cosine;
+      v[1] = Math.sqrt(1 - cosine * cosine);
+      return v;
+    };
+    const query = atCosine(1);
+
+    beforeEach(() => {
+      const lexical = itemRepo.create({ userId: testUserId, question: 'Webcam is rotated', answer: '' });
+      lexicalId = lexical.id;
+      const near = itemRepo.create({ userId: testUserId, question: 'Camera picture sideways', answer: '' });
+      nearId = near.id;
+      const far = itemRepo.create({ userId: testUserId, question: 'Unrelated VIM macro note', answer: '' });
+      farId = far.id;
+
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [lexicalId, atCosine(0.9)]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [nearId, atCosine(0.85)]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [farId, atCosine(0.25)]);
+    });
+
+    const search = (opts: { minSimilarity: number; relevanceBand: number }) =>
+      itemRepo.searchItems(testUserId, { search: 'webcam', useHybrid: true, queryVector: query, ...opts });
+
+    test('drops vector matches beyond the band', () => {
+      const result = search({ minSimilarity: 20, relevanceBand: 60 });
+
+      expect(result.items.map((i) => i.id)).not.toContain(farId);
+    });
+
+    test('keeps related matches that share no words with the query', () => {
+      const result = search({ minSimilarity: 20, relevanceBand: 60 });
+
+      const ids = result.items.map((i) => i.id);
+      expect(ids).toContain(lexicalId);
+      expect(ids).toContain(nearId);
+    });
+
+    test('band widens with the gap to the ceiling, so a weak best match still returns neighbours', () => {
+      // Only the far item is in range of a query pointing away from the others;
+      // a fixed floor at the same ceiling would return nothing for it.
+      const weakQuery = atCosine(0.3);
+      const result = itemRepo.searchItems(testUserId, {
+        search: 'nomatch',
+        useHybrid: true,
+        queryVector: weakQuery,
+        minSimilarity: 20,
+        relevanceBand: 60,
+      });
+
+      expect(result.items.map((i) => i.id)).toContain(farId);
+    });
+
+    test('returns nothing when even the closest match is below the ceiling', () => {
+      const result = search({ minSimilarity: 95, relevanceBand: 60 });
+
+      expect(result.items.map((i) => i.id)).not.toContain(nearId);
+      expect(result.items.map((i) => i.id)).not.toContain(farId);
+    });
+
+    test('total reflects the filtered count, not the raw KNN pool', () => {
+      const result = search({ minSimilarity: 20, relevanceBand: 60 });
+
+      expect(result.total).toBe(result.items.length);
+      expect(result.total).toBe(2);
+    });
+
+    test('minSimilarity of 0 disables filtering entirely', () => {
+      const result = search({ minSimilarity: 0, relevanceBand: 60 });
+
+      expect(result.items.map((i) => i.id)).toContain(farId);
+    });
+  });
+
   describe('findRelated', () => {
     let sourceItemId: string;
     let similarItemId: string;

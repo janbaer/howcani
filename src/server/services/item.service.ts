@@ -184,6 +184,8 @@ export class ItemService {
         tags: filters.tags,
         useHybrid: useHybrid && queryVector !== null,
         queryVector,
+        minSimilarity: getConfig().embedding.minSimilarity,
+        relevanceBand: getConfig().embedding.relevanceBand,
       });
     } else {
       result = itemRepository.findByUserId(user.id, { limit, offset });

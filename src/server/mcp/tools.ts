@@ -58,6 +58,8 @@ export async function searchItems(args: {
     limit: Math.min(args.limit ?? 20, 100),
     useHybrid: resolved.semanticSearchEnabled,
     queryVector,
+    minSimilarity: getConfig().embedding.minSimilarity,
+    relevanceBand: getConfig().embedding.relevanceBand,
   });
 
   return success({

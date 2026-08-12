@@ -36,6 +36,25 @@ embedding:
   # is fatal. Set back to false after the next successful deploy.
   allowDimensionReset: false
 
+  # Hard ceiling: a vector match below this similarity percentage (0-100) never
+  # appears, however good the rest of the query looks. Keeps nonsense queries
+  # from returning anything. 0 disables all vector filtering.
+  minSimilarity: 20
+
+  # How far past the closest match to keep results, as a percentage of the gap
+  # between that match and `minSimilarity`. 0 keeps only the closest match, 100
+  # keeps everything down to the ceiling.
+  #
+  # This is relative because the relevant band moves with the query. An easy
+  # query matches closely and its relevant siblings trail well behind it; a
+  # cross-language one (a German word against English notes) sits near the
+  # ceiling with everything relevant packed just behind. A single fixed
+  # distance serves one of those and starves the other.
+  #
+  # Both settings assume the model returns normalised vectors, true for the
+  # jina and text-embedding-3 families. Retune after switching models.
+  relevanceBand: 60
+
 duplicate:
   # Minimum similarity percentage (50-100) to treat two items as duplicates.
   threshold: 80

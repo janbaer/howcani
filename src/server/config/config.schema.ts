@@ -12,6 +12,8 @@ const embeddingSchema = z
     dimension: z.number().int().positive().default(1536),
     endpoint: z.string().url().nullable().default(null),
     allowDimensionReset: z.boolean().default(false),
+    minSimilarity: z.number().int().min(0).max(100).default(20),
+    relevanceBand: z.number().int().min(0).max(100).default(60),
   })
   .superRefine((e, ctx) => {
     if (!e.enabled) return;
