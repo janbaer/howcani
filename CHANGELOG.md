@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.97 - 2026-08-17
+---
+
+- Fixed `@codemirror` upgrades silently doing nothing. The `overrides` block restored in 3.0.95 still pinned `state` 6.7.0 and `view` 6.43.5, and `bun update` only ever rewrites `dependencies`, so every bump was reverted at install time and the versions in `package.json` no longer described what was installed. The pins now track the direct versions again, as 3.0.95 already required, and `state` moves to 6.7.1, `view` to 6.43.8 and `lang-markdown` to 6.5.2. The tree stays deduped, so the create and edit dialogs keep working; `state` 6.7.1 adds `@marijn/find-cluster-break` as a new runtime dependency
+- Updated `@modelcontextprotocol/sdk` to 1.30.0 for the SSE keep-alive comment frames and the keep-alive timer lifecycle fix in the Streamable HTTP transport, which is what `/mcp` runs on. Its Content-Type validation is now stricter, matching on the parsed media type instead of a substring
+- Cleared the 11 high advisories `bun audit` reported, all of them reaching us through `@modelcontextprotocol/sdk`, which hard-depends on express and hono for transports this server never loads. None of the affected packages survive tree-shaking into `dist`, and the runtime image copies only `dist`, so they were never present in production; the overrides exist to keep the audit signal readable rather than to close an exposure. `bun update` could not do it alone because the locked versions still satisfied their parents' ranges and were never re-resolved
+- Bumped tailwindcss and `@tailwindcss/cli` to 4.3.3, svelte to 5.56.9, dompurify to 3.4.13, jose to 6.2.8 and marked to 18.0.9
+
 ## 3.0.96 - 2026-08-12
 ---
 
