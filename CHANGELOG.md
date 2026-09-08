@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.98 - 2026-09-08
+---
+
+- Synced the `@codemirror/state` and `@codemirror/view` overrides to the 6.7.4/6.43.11 direct dependency versions after a routine `bun update` bumped `dependencies` but left the pins behind again, the same drift fixed once before in 3.0.95/3.0.97; the pins now track the current versions
+- Bumped the `fast-uri` override from 3.1.5 to 3.1.7. `bun audit` started flagging 3.1.5 itself with 4 high-severity host-confusion/SSRF advisories, so the pin set in 3.0.97 no longer covered the actual fix; 3.1.7 stays inside the `^3.0.1` range `ajv` allows
+- Bumped zod to 4.5.4, simple-git-hooks to 2.14.0, and svelte to 5.57.0
+
 ## 3.0.97 - 2026-08-17
 ---
 
