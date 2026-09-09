@@ -18,6 +18,10 @@ bun run lint:fix     # Auto-fix Biome issues
 
 Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build and tests. No manual invocation needed before committing or pushing.
 
+## Release & Deployment
+
+`bun run build:docker` (`scripts/build-docker.sh [patch|minor|major]`) bumps the version, builds the image, and pushes `forgejo.home.janbaer.de/jan/howcani:<version>` + `:latest`. Pushing `:latest` is the deploy trigger — a webhook picks it up and rolls it out automatically. No `docker-compose pull && up -d` needed.
+
 ## Environment Variables
 
 Secrets only — all other operator configuration lives in `config.yaml` (see below).
