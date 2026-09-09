@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Bun version (can be overridden with --build-arg BUN_VERSION=x.y.z)
-ARG BUN_VERSION=1.3.13
+ARG BUN_VERSION=1.4.2
 
 # Build stage
 FROM oven/bun:${BUN_VERSION} AS builder
@@ -48,7 +48,7 @@ EXPOSE 3000
 
 # Create data directory and set permissions
 RUN mkdir -p /data && \
-    chown -R bun:bun /app /data
+  chown -R bun:bun /app /data
 
 # Switch to non-root user (bun user is built into the image)
 USER bun

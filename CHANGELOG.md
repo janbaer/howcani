@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.99 - 2026-09-09
+---
+
+- Bumped the Docker build's Bun to 1.4.2 and `@types/bun` to 1.4.1 to match, so the types no longer describe a runtime ahead of what's actually installed
+
 ## 3.0.98 - 2026-09-08
 ---
 
