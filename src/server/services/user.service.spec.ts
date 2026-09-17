@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { userRepository } from '../repositories';
 import type { User } from '../repositories/user.repository';
+import { stubMethods } from '../test-stubs';
 
 const testUsers = new Map<string, User>();
 
@@ -18,12 +20,9 @@ const mockUserRepository = {
     }
     return false;
   }),
-  updateSemanticSearch: mock(() => {}),
 };
 
-mock.module('../repositories', () => ({
-  userRepository: mockUserRepository,
-}));
+stubMethods(userRepository, mockUserRepository);
 
 import { UserService } from './user.service';
 

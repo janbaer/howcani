@@ -1,33 +1,13 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { createToken } from '../auth/jwt.ts';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { ItemRepository } from '../repositories/item.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { handleMcpRequest } from './index';
 import { createMcpServer } from './server';
-
-// Override any test-suite-level jwt mock (from auth.routes.spec.ts bleed) so
-// createToken/verifyToken work with a simple deterministic test token scheme.
-const TEST_TOKEN_PREFIX = 'test-token:';
-mock.module('../auth/jwt.ts', () => ({
-  createToken: async (payload: Record<string, unknown>) => TEST_TOKEN_PREFIX + btoa(JSON.stringify(payload)),
-  verifyToken: async (token: string) => {
-    if (!token.startsWith(TEST_TOKEN_PREFIX)) return null;
-    try {
-      return JSON.parse(atob(token.substring(TEST_TOKEN_PREFIX.length)));
-    } catch {
-      return null;
-    }
-  },
-  extractBearerToken: (authHeader?: string) => {
-    if (!authHeader?.startsWith('Bearer ')) return null;
-    return authHeader.substring(7);
-  },
-}));
-
-import { createToken } from '../auth/jwt.ts';
 
 let currentClient: Client | undefined;
 let currentServer: McpServer | undefined;

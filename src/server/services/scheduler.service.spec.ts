@@ -24,20 +24,14 @@ const mockEmbeddingService = {
   selfCheck: mock(async () => 'ok'),
 };
 
-mock.module('./backup.service', () => ({
-  runBackupJob: mockRunBackupJob,
-}));
-
-mock.module('./embedding-backfill', () => ({
-  backfillEmbeddings: mockBackfillEmbeddings,
-}));
-
-mock.module('./embedding.service', () => ({
-  embeddingService: mockEmbeddingService,
-}));
-
 import { __setConfigForTests } from '../config/config.service';
 import { type CronFactory, type CronHandle, SchedulerService } from './scheduler.service';
+
+const jobs = {
+  runBackupJob: mockRunBackupJob,
+  backfillEmbeddings: mockBackfillEmbeddings,
+  embeddingService: mockEmbeddingService,
+};
 
 interface Registered {
   expression: string;
@@ -71,7 +65,7 @@ describe('SchedulerService.applyBackupSettings', () => {
   beforeEach(() => {
     const { factory, registered: r } = makeCronFactory();
     registered = r;
-    service = new SchedulerService(factory);
+    service = new SchedulerService(factory, jobs);
     mockRunBackupJob.mockClear();
   });
 
@@ -132,7 +126,7 @@ describe('SchedulerService.applyEmbeddingSettings', () => {
   beforeEach(() => {
     const { factory, registered: r } = makeCronFactory();
     registered = r;
-    service = new SchedulerService(factory);
+    service = new SchedulerService(factory, jobs);
     mockBackfillEmbeddings.mockClear();
     mockEmbeddingService.selfCheck.mockClear();
     mockEmbeddingService.provider = mockProvider;
@@ -186,7 +180,7 @@ describe('SchedulerService.init', () => {
       backup: { enabled: true, time: '03:30' },
     });
     const { factory, registered } = makeCronFactory();
-    const service = new SchedulerService(factory);
+    const service = new SchedulerService(factory, jobs);
     mockEmbeddingService.provider = mockProvider;
     service.init();
     expect(registered.map((r) => r.expression)).toContain(expectedExpression('03:30'));

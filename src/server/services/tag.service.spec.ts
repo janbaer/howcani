@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { Tag, TagWithCount } from '../domain/tag';
+import { tagRepository } from '../repositories';
+import { stubMethods } from '../test-stubs';
+import { userService } from './user.service';
 
 interface TestUser {
   id: string;
@@ -107,13 +110,9 @@ const mockTagRepository = {
   }),
 };
 
-mock.module('../repositories', () => ({
-  tagRepository: mockTagRepository,
-}));
+stubMethods(tagRepository, mockTagRepository);
 
-mock.module('./user.service', () => ({
-  userService: mockUserService,
-}));
+stubMethods(userService, mockUserService);
 
 import { TagService } from './tag.service';
 

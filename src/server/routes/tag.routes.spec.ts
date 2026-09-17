@@ -1,15 +1,19 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { createToken } from '../auth';
+import { setupTestDatabase } from '../db/test-helpers';
 import type { Tag, TagWithCount } from '../domain/tag';
-import type { TagError } from '../services/tag.service';
+import { authService } from '../services/auth.service';
+import { type TagError, TagService } from '../services/tag.service';
+import { stubMethods } from '../test-stubs';
 
 type TagResult<T> = { success: true; data: T } | { success: false; error: TagError };
 
 const testUsers = new Map<string, { id: string; username: string }>();
 const testTags = new Map<string, Tag>();
 const tagItemCounts = new Map<string, number>();
-let currentSessionUserId: string | null = null;
+type SessionUser = { userId: string };
 
 function createSuccessResult<T>(data: T): { success: true; data: T } {
   return { success: true, data };
@@ -45,11 +49,8 @@ const mockTagService = {
       .sort();
     return createSuccessResult(suggestions);
   }),
-  updateTag: mock((tagId: string, data: { name?: string; color?: string }): TagResult<Tag> => {
-    if (!currentSessionUserId) {
-      throw new Error('No session user ID set');
-    }
-    const userId = currentSessionUserId;
+  updateTag: mock(function (this: SessionUser, tagId: string, data: { name?: string; color?: string }): TagResult<Tag> {
+    const userId = this.userId;
     const tag = testTags.get(tagId);
     if (!tag || tag.user_id !== userId) {
       return createErrorResult('NOT_FOUND', 'Tag not found');
@@ -89,11 +90,8 @@ const mockTagService = {
     testTags.set(tagId, updated);
     return createSuccessResult(updated);
   }),
-  deleteTag: mock((tagId: string): TagResult<{ deleted: true }> => {
-    if (!currentSessionUserId) {
-      throw new Error('No session user ID set');
-    }
-    const userId = currentSessionUserId;
+  deleteTag: mock(function (this: SessionUser, tagId: string): TagResult<{ deleted: true }> {
+    const userId = this.userId;
     const tag = testTags.get(tagId);
     if (!tag || tag.user_id !== userId) {
       return createErrorResult('NOT_FOUND', 'Tag not found');
@@ -109,7 +107,6 @@ const mockAuthService = {
   register: mock(async (input: { username: string; email: string; password: string }) => {
     const userId = crypto.randomUUID();
     testUsers.set(input.username, { id: userId, username: input.username });
-    currentSessionUserId = userId;
     return {
       success: true,
       data: {
@@ -120,64 +117,24 @@ const mockAuthService = {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
-        token: `mock-token-${input.username}`,
+        token: await createToken({ userId, username: input.username, email: input.email }),
       },
     };
   }),
-  validateToken: mock(async (token: string) => {
-    const username = token.replace('mock-token-', '');
-    const user = testUsers.get(username);
-    if (user) {
-      currentSessionUserId = user.id;
-      return {
-        userId: user.id,
-        username: user.username,
-        email: `${user.username}@example.com`,
-      };
-    }
-    return null;
-  }),
 };
 
-mock.module('../services/tag.service', () => ({
-  tagService: mockTagService,
-}));
-
-mock.module('../services/session', () => ({
-  createSession: mock((userId: string, username: string) => {
-    currentSessionUserId = userId;
-    return { userId, username, tagService: mockTagService, itemService: {} };
-  }),
-}));
-
-mock.module('../services/auth.service', () => ({
-  authService: mockAuthService,
-}));
-
-mock.module('../auth', () => ({
-  extractBearerToken: (auth: string | undefined) => {
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
-  },
-  verifyToken: async (token: string) => {
-    const username = token.replace('mock-token-', '');
-    const user = testUsers.get(username);
-    if (user) {
-      return {
-        userId: user.id,
-        username: user.username,
-        email: `${user.username}@example.com`,
-      };
-    }
-    return null;
-  },
-}));
+stubMethods(TagService.prototype, mockTagService);
+stubMethods(authService, mockAuthService);
 
 import { authPlugin } from '../middleware';
 import { authRoutes } from './auth.routes';
 import { tagRoutes } from './tag.routes';
 
 const app = new Elysia().use(authPlugin).group('/api', (app) => app.use(authRoutes).use(tagRoutes));
+
+beforeAll(() => {
+  setupTestDatabase();
+});
 
 async function registerAndLogin(username: string, email: string): Promise<{ token: string; userId: string }> {
   const registerRes = await app.handle(
@@ -219,7 +176,6 @@ describe('Tag Routes', () => {
     testUsers.clear();
     testTags.clear();
     tagItemCounts.clear();
-    currentSessionUserId = null;
   });
 
   describe('GET /api/:username/tags - List Tags', () => {

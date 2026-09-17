@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { tagRepository, userRepository } from '../repositories';
 import type { User } from '../repositories/user.repository';
+import { stubMethods } from '../test-stubs';
 
 const testUsers = new Map<string, User>();
 
@@ -17,9 +19,7 @@ const mockTagRepositoryForAuth = {
   getTagsForItem: mock(() => []),
 };
 
-mock.module('../repositories/tag.repository', () => ({
-  tagRepository: mockTagRepositoryForAuth,
-}));
+stubMethods(tagRepository, mockTagRepositoryForAuth);
 
 const mockUserRepository = {
   create: mock((data: { username: string; email: string; passwordHash: string }) => {
@@ -56,9 +56,7 @@ const mockUserRepository = {
   }),
 };
 
-mock.module('../repositories', () => ({
-  userRepository: mockUserRepository,
-}));
+stubMethods(userRepository, mockUserRepository);
 
 import { AuthService } from './auth.service';
 

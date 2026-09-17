@@ -1,42 +1,17 @@
-import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { Elysia } from 'elysia';
+import { createToken } from '../auth';
 import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 
 const TEST_USER_ID = 'u-1';
-const TEST_TOKEN = 'test-admin-token';
-
-mock.module('../auth', () => ({
-  extractBearerToken: (auth: string | undefined) => {
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
-  },
-  verifyToken: async (token: string) => {
-    if (token === TEST_TOKEN) {
-      return { userId: TEST_USER_ID, username: 'testuser', email: 'testuser@example.com' };
-    }
-    return null;
-  },
-}));
-
-mock.module('../services/session', () => ({
-  createSession: () => ({ userId: TEST_USER_ID, username: 'testuser' }),
-}));
-
-mock.module('../services/embedding.service', () => ({
-  embeddingService: {
-    provider: null,
-    embedDocument: async () => null,
-    embedQuery: async () => null,
-    embedDocumentBatch: async (texts: string[]) => texts.map(() => null),
-  },
-}));
+const testToken = await createToken({ userId: TEST_USER_ID, username: 'testuser', email: 'testuser@example.com' });
 
 const { adminRoutes } = await import('./admin.routes');
 
 const app = new Elysia().group('/api', (a) => a.use(adminRoutes));
 
-const auth = { Authorization: `Bearer ${TEST_TOKEN}` };
+const auth = { Authorization: `Bearer ${testToken}` };
 
 describe('GET /api/admin/search-debug', () => {
   beforeAll(() => {

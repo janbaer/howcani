@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
-import type { DuplicateGroup, ItemError } from '../services/item.service';
+import { type DuplicateGroup, type ItemError, itemService } from '../services/item.service';
+import { stubMethods } from '../test-stubs';
 
 type DuplicatesResult = { success: true; data: DuplicateGroup[] } | { success: false; error: ItemError };
 
@@ -17,9 +18,7 @@ const mockItemService = {
   }),
 };
 
-mock.module('../services/item.service', () => ({
-  itemService: mockItemService,
-}));
+stubMethods(itemService, mockItemService);
 
 import { duplicateRoutes } from './duplicate.routes';
 

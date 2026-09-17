@@ -1,32 +1,16 @@
-import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { createToken } from '../auth';
 import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 
 const TEST_USER_ID = 'restore-user-id-fixed';
-const TEST_TOKEN = 'mock-token-restoreuser';
-
-mock.module('../services/settings.service', () => ({
-  settingsService: { getSettings: mock(() => ({})), updateSettings: mock(() => ({})) },
-}));
-
-mock.module('../services/session', () => ({
-  createSession: mock(() => ({ userId: TEST_USER_ID, username: 'restoreuser' })),
-}));
-
-mock.module('../auth', () => ({
-  extractBearerToken: (auth: string | undefined) => {
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
-  },
-  verifyToken: async (token: string) => {
-    if (token === TEST_TOKEN) {
-      return { userId: TEST_USER_ID, username: 'restoreuser', email: 'restoreuser@example.com' };
-    }
-    return null;
-  },
-}));
+const testToken = await createToken({
+  userId: TEST_USER_ID,
+  username: 'restoreuser',
+  email: 'restoreuser@example.com',
+});
 
 import { authPlugin } from '../middleware';
 import { settingsRoutes } from './settings.routes';
@@ -53,7 +37,7 @@ beforeEach(() => {
 function makeRestoreRequest(body: FormData) {
   return new Request('http://localhost/settings/backups/restore', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+    headers: { Authorization: `Bearer ${testToken}` },
     body,
   });
 }

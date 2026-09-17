@@ -1,8 +1,11 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { createToken } from '../auth';
+import { setupTestDatabase } from '../db/test-helpers';
 import type { User } from '../repositories/user.repository';
-import type { AuthError, AuthResult } from '../services/auth.service';
+import { type AuthError, type AuthResult, authService } from '../services/auth.service';
+import { stubMethods } from '../test-stubs';
 
 type Result<T> = { success: true; data: T } | { success: false; error: AuthError };
 
@@ -53,7 +56,7 @@ const mockAuthService = {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
-      token: `mock-token-${input.username}`,
+      token: await createToken({ userId, username: input.username, email: input.email }),
     });
   }),
   login: mock(async (input: { username: string; password: string }): Promise<Result<AuthResult>> => {
@@ -72,7 +75,7 @@ const mockAuthService = {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
-      token: `mock-token-${input.username}`,
+      token: await createToken({ userId: user.id, username: user.username, email: user.email }),
     });
   }),
   getUserById: mock((userId: string): Omit<User, 'password_hash'> | null => {
@@ -89,40 +92,18 @@ const mockAuthService = {
     }
     return null;
   }),
-  validateToken: mock(async (token: string) => {
-    const username = token.replace('mock-token-', '');
-    const user = testUsers.get(username);
-    if (user) {
-      return { userId: user.id, username: user.username, email: user.email };
-    }
-    return null;
-  }),
 };
 
-mock.module('../services/auth.service', () => ({
-  authService: mockAuthService,
-  AuthService: class MockAuthService {},
-}));
-
-mock.module('../auth', () => ({
-  extractBearerToken: (auth: string | undefined) => {
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
-  },
-  verifyToken: async (token: string) => {
-    const username = token.replace('mock-token-', '');
-    const user = testUsers.get(username);
-    if (user) {
-      return { userId: user.id, username: user.username, email: user.email };
-    }
-    return null;
-  },
-}));
+stubMethods(authService, mockAuthService);
 
 import { authPlugin } from '../middleware';
 import { authRoutes } from './auth.routes';
 
 const app = new Elysia().use(authPlugin).group('/api', (app) => app.use(authRoutes));
+
+beforeAll(() => {
+  setupTestDatabase();
+});
 
 const validUser = {
   username: 'john',

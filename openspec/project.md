@@ -55,8 +55,9 @@ This enables:
 - **Test-After for UI**: Frontend components tested after implementation or manually
 - **Co-located Tests**: Tests live alongside code using `.spec.ts` naming convention
 - **Layered Testing**:
-  - Route tests: Mock services using `mock.module()`, test HTTP handling
-  - Service tests: Mock repositories using `mock.module()`, test business logic
+  - Route tests: stub service singletons with `stubMethods()` (`src/server/test-stubs.ts`), test HTTP handling
+  - Service tests: stub repository singletons with `stubMethods()`, test business logic
+  - `mock.module()` is avoided in spec files — it replaces a module for every spec file that runs afterwards in the same process, so the suite's result depends on the filesystem's file order (see `openspec/specs/test-isolation/spec.md`)
   - Repository tests: Use real SQLite in-memory database, test data access
 - **Tools**: Bun test with pytest-style Arrange-Act-Assert structure
 - **Lint**: Always run `bun run lint` and `bun run build` before committing. Fix all reported errors. The build catches broken module resolution that lint cannot detect.

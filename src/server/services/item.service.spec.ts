@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { __setConfigForTests } from '../config/config.service';
-import * as realDatabase from '../db/database';
 import type { Item } from '../domain/item';
 import type { Tag } from '../domain/tag';
-import { EmbeddingService as RealEmbeddingService } from './embedding.service';
+import { itemRepository, tagRepository } from '../repositories';
+import { stubMethods } from '../test-stubs';
+import { embeddingService } from './embedding.service';
+import { userService } from './user.service';
 
 interface TestUser {
   id: string;
@@ -75,26 +77,24 @@ const mockItemRepository = {
   findDuplicates: mock((_itemId: string, _userId: string, _threshold: number) => []),
 };
 
-mock.module('../repositories', () => ({
-  itemRepository: mockItemRepository,
-  tagRepository: {
-    findAllByUserId: mock(() => []),
-    getItemTagsForUser: mock(() => []),
-    create: mock(() => ({})),
-    findByNameAndUserId: mock(() => null),
-    findByIdAndUserId: mock(() => null),
-    findByUserId: mock(() => []),
-    findSuggestions: mock(() => []),
-    update: mock(() => null),
-    delete: mock(() => {}),
-    setItemTags: mock(() => {}),
-    findTagsForItem: mock(() => []),
-  },
-}));
+stubMethods(itemRepository, mockItemRepository);
+// getTagsForItem is not stubbed: every ItemService instance in this file gets a fake tagService
+// (see createMockTagService below), so TagService.findTagsForItem — the only caller — never runs
+// here and the real tagRepository.getTagsForItem is unreachable.
+stubMethods(tagRepository, {
+  findAllByUserId: mock(() => []),
+  getItemTagsForUser: mock(() => []),
+  create: mock(() => ({})),
+  findByNameAndUserId: mock(() => null),
+  findByIdAndUserId: mock(() => null),
+  findByUserId: mock(() => []),
+  findSuggestions: mock(() => []),
+  update: mock(() => null),
+  delete: mock(() => {}),
+  setItemTags: mock(() => {}),
+});
 
-mock.module('./user.service', () => ({
-  userService: mockUserService,
-}));
+stubMethods(userService, mockUserService);
 
 const mockEmbeddingService = {
   embedDocument: mock(async (_text: string) => new Float32Array(1536)),
@@ -104,19 +104,7 @@ const mockEmbeddingService = {
   deleteEmbedding: mock((_itemId: string) => {}),
 };
 
-// Preserve real EmbeddingService class so other test files can construct instances,
-// while replacing the singleton with a mock for this file's tests.
-mock.module('./embedding.service', () => ({
-  EmbeddingService: RealEmbeddingService,
-  embeddingService: mockEmbeddingService,
-}));
-
-// Preserve real db exports so other test files (e.g. backup.service.spec.ts)
-// that use the real database are not affected.
-mock.module('../db/database', () => ({
-  ...realDatabase,
-  runTransaction: (fn: () => unknown) => fn(),
-}));
+stubMethods(embeddingService, mockEmbeddingService);
 
 import { ItemService } from './item.service';
 import type { TagService } from './tag.service';

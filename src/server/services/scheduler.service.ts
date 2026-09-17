@@ -38,11 +38,22 @@ function expressionFromBackupTime(time: string): string {
   return `${localFire.getUTCMinutes()} ${localFire.getUTCHours()} * * *`;
 }
 
+export interface SchedulerJobs {
+  runBackupJob: (retentionDays: number) => Promise<void>;
+  backfillEmbeddings: () => Promise<void>;
+  embeddingService: Pick<typeof embeddingService, 'provider' | 'selfCheck'>;
+}
+
+const defaultJobs: SchedulerJobs = { runBackupJob, backfillEmbeddings, embeddingService };
+
 export class SchedulerService {
   private backupHandle: CronHandle | null = null;
   private embeddingHandle: CronHandle | null = null;
 
-  constructor(private readonly cronFactory: CronFactory = defaultCronFactory) {}
+  constructor(
+    private readonly cronFactory: CronFactory = defaultCronFactory,
+    private readonly jobs: SchedulerJobs = defaultJobs,
+  ) {}
 
   init(): void {
     const config = getConfig();
@@ -66,7 +77,7 @@ export class SchedulerService {
     this.backupHandle = this.cronFactory(expression, async () => {
       try {
         const { retentionDays } = getConfig().backup;
-        await runBackupJob(retentionDays);
+        await this.jobs.runBackupJob(retentionDays);
       } catch (err) {
         console.error('[scheduler] Backup job failed:', err);
       }
@@ -81,7 +92,7 @@ export class SchedulerService {
       console.info('[scheduler] Embedding backfill cron disabled');
       return;
     }
-    if (!embeddingService.provider) {
+    if (!this.jobs.embeddingService.provider) {
       console.warn('[scheduler] No embedding provider configured — embedding backfill not registered');
       return;
     }
@@ -89,7 +100,7 @@ export class SchedulerService {
     // Self-check runs in background; do not block scheduler init on it.
     // A wrong-dimension result throws and crashes the process (intended).
     // A network failure logs a warning and lets backfill retry on the next tick.
-    embeddingService.selfCheck().catch((err) => {
+    this.jobs.embeddingService.selfCheck().catch((err) => {
       console.error('[scheduler] Embedding self-check failed fatally:', err);
       process.exit(1);
     });
@@ -99,7 +110,7 @@ export class SchedulerService {
     );
     this.embeddingHandle = this.cronFactory('*/5 * * * *', async () => {
       try {
-        await backfillEmbeddings();
+        await this.jobs.backfillEmbeddings();
       } catch (err) {
         console.error('[scheduler] Embedding backfill failed:', err);
       }

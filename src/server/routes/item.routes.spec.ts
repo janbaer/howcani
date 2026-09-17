@@ -1,8 +1,12 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { createToken } from '../auth';
+import { setupTestDatabase } from '../db/test-helpers';
 import type { Tag } from '../domain/tag';
-import type { ItemError, ItemWithTags } from '../services/item.service';
+import { authService } from '../services/auth.service';
+import { type ItemError, ItemService, type ItemWithTags } from '../services/item.service';
+import { stubMethods } from '../test-stubs';
 
 type ItemResult = { success: true; data: ItemWithTags } | { success: false; error: ItemError };
 type ListResult =
@@ -20,7 +24,7 @@ type DeleteResult = { success: true; data: { deleted: true } } | { success: fals
 const testItems = new Map<string, ItemWithTags>();
 const testUsers = new Map<string, { id: string; username: string }>();
 let nextItemId = 1;
-let currentSessionUserId: string | null = null;
+type SessionUser = { userId: string };
 
 function createSuccessResult<T>(data: T): { success: true; data: T } {
   return { success: true, data };
@@ -31,11 +35,11 @@ function createErrorResult(code: ItemError['code'], message: string): { success:
 }
 
 const mockSessionItemService = {
-  createItem: mock((input: { question: string; answer?: string; tags?: string[] }): ItemResult => {
-    if (!currentSessionUserId) {
-      throw new Error('No session user ID set');
-    }
-    const userId = currentSessionUserId;
+  createItem: mock(function (
+    this: SessionUser,
+    input: { question: string; answer?: string; tags?: string[] },
+  ): ItemResult {
+    const userId = this.userId;
     if (!input.question || input.question.trim() === '') {
       return createErrorResult('VALIDATION_ERROR', 'Question is required');
     }
@@ -57,11 +61,12 @@ const mockSessionItemService = {
     testItems.set(item.id, item);
     return createSuccessResult(item);
   }),
-  updateItem: mock((itemId: string, input: { question?: string; answer?: string; tags?: string[] }): ItemResult => {
-    if (!currentSessionUserId) {
-      throw new Error('No session user ID set');
-    }
-    const userId = currentSessionUserId;
+  updateItem: mock(function (
+    this: SessionUser,
+    itemId: string,
+    input: { question?: string; answer?: string; tags?: string[] },
+  ): ItemResult {
+    const userId = this.userId;
     const item = testItems.get(itemId);
     if (!item || item.user_id !== userId) {
       return createErrorResult('NOT_FOUND', 'Item not found');
@@ -88,11 +93,8 @@ const mockSessionItemService = {
     testItems.set(itemId, updated);
     return createSuccessResult(updated);
   }),
-  deleteItem: mock((itemId: string): DeleteResult => {
-    if (!currentSessionUserId) {
-      throw new Error('No session user ID set');
-    }
-    const userId = currentSessionUserId;
+  deleteItem: mock(function (this: SessionUser, itemId: string): DeleteResult {
+    const userId = this.userId;
     const item = testItems.get(itemId);
     if (!item || item.user_id !== userId) {
       return createErrorResult('NOT_FOUND', 'Item not found');
@@ -168,13 +170,10 @@ const mockSessionItemService = {
   ),
 };
 
-const mockItemService = mockSessionItemService;
-
 const mockAuthService = {
   register: mock(async (input: { username: string; email: string; password: string }) => {
     const userId = crypto.randomUUID();
     testUsers.set(input.username, { id: userId, username: input.username });
-    currentSessionUserId = userId;
     return {
       success: true,
       data: {
@@ -185,69 +184,24 @@ const mockAuthService = {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
-        token: `mock-token-${input.username}`,
+        token: await createToken({ userId, username: input.username, email: input.email }),
       },
     };
   }),
-  validateToken: mock(async (token: string) => {
-    const username = token.replace('mock-token-', '');
-    const user = testUsers.get(username);
-    if (user) {
-      currentSessionUserId = user.id;
-      return {
-        userId: user.id,
-        username: user.username,
-        email: `${user.username}@example.com`,
-      };
-    }
-    return null;
-  }),
 };
 
-mock.module('../services/item.service', () => ({
-  itemService: mockItemService,
-}));
-
-mock.module('../services/session', () => ({
-  createSession: mock((userId: string, username: string) => {
-    currentSessionUserId = userId;
-    return {
-      userId,
-      username,
-      itemService: mockSessionItemService,
-      tagService: {},
-    };
-  }),
-}));
-
-mock.module('../services/auth.service', () => ({
-  authService: mockAuthService,
-}));
-
-mock.module('../auth', () => ({
-  extractBearerToken: (auth: string | undefined) => {
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
-  },
-  verifyToken: async (token: string) => {
-    const username = token.replace('mock-token-', '');
-    const user = testUsers.get(username);
-    if (user) {
-      return {
-        userId: user.id,
-        username: user.username,
-        email: `${user.username}@example.com`,
-      };
-    }
-    return null;
-  },
-}));
+stubMethods(ItemService.prototype, mockSessionItemService);
+stubMethods(authService, mockAuthService);
 
 import { authPlugin } from '../middleware';
 import { authRoutes } from './auth.routes';
 import { itemRoutes } from './item.routes';
 
 const app = new Elysia().use(authPlugin).group('/api', (app) => app.use(authRoutes).use(itemRoutes));
+
+beforeAll(() => {
+  setupTestDatabase();
+});
 
 async function registerAndLogin(username: string, email: string): Promise<{ token: string; userId: string }> {
   const registerRes = await app.handle(
@@ -274,7 +228,6 @@ describe('Item Routes', () => {
     testItems.clear();
     testUsers.clear();
     nextItemId = 1;
-    currentSessionUserId = null;
   });
 
   describe('POST /api/:username/items - Create Item', () => {

@@ -1,12 +1,16 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { createToken } from '../auth';
+import { setupTestDatabase } from '../db/test-helpers';
+import { settingsService } from '../services/settings.service';
+import { stubMethods } from '../test-stubs';
 
 const TEST_USER_ID = 'user-123';
-const TEST_TOKEN = 'mock-token-testuser';
+const testToken = await createToken({ userId: TEST_USER_ID, username: 'testuser', email: 'testuser@example.com' });
 
 const mockSettingsService = {
   getSettings: mock(() => ({
@@ -18,31 +22,16 @@ const mockSettingsService = {
   })),
 };
 
-mock.module('../services/settings.service', () => ({
-  settingsService: mockSettingsService,
-}));
-
-mock.module('../services/session', () => ({
-  createSession: mock(() => ({ userId: TEST_USER_ID, username: 'testuser' })),
-}));
-
-mock.module('../auth', () => ({
-  extractBearerToken: (auth: string | undefined) => {
-    if (!auth?.startsWith('Bearer ')) return null;
-    return auth.slice(7);
-  },
-  verifyToken: async (token: string) => {
-    if (token === TEST_TOKEN) {
-      return { userId: TEST_USER_ID, username: 'testuser', email: 'testuser@example.com' };
-    }
-    return null;
-  },
-}));
+stubMethods(settingsService, mockSettingsService);
 
 import { authPlugin } from '../middleware';
 import { settingsRoutes } from './settings.routes';
 
 const app = new Elysia().use(authPlugin).use(settingsRoutes);
+
+beforeAll(() => {
+  setupTestDatabase();
+});
 
 describe('GET /settings', () => {
   beforeEach(() => {
@@ -52,7 +41,7 @@ describe('GET /settings', () => {
   test('returns current settings for authenticated user', async () => {
     const res = await app.handle(
       new Request('http://localhost/settings', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(res.status).toBe(StatusCodes.OK);
@@ -68,7 +57,7 @@ describe('GET /settings', () => {
   test('calls settingsService.getSettings', async () => {
     await app.handle(
       new Request('http://localhost/settings', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(mockSettingsService.getSettings).toHaveBeenCalled();
@@ -82,7 +71,7 @@ describe('PATCH /settings', () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${TEST_TOKEN}`,
+          Authorization: `Bearer ${testToken}`,
         },
         body: JSON.stringify({ semanticSearchEnabled: true }),
       }),
@@ -112,7 +101,7 @@ describe('GET /settings/backups', () => {
   test('returns empty array when no backups exist', async () => {
     const res = await app.handle(
       new Request('http://localhost/settings/backups', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(res.status).toBe(StatusCodes.OK);
@@ -125,7 +114,7 @@ describe('GET /settings/backups', () => {
 
     const res = await app.handle(
       new Request('http://localhost/settings/backups', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(res.status).toBe(StatusCodes.OK);
@@ -160,7 +149,7 @@ describe('GET /settings/backups/:filename', () => {
 
     const res = await app.handle(
       new Request('http://localhost/settings/backups/otheruser-backup-2026-03-10.json', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(res.status).toBe(StatusCodes.NOT_FOUND);
@@ -169,7 +158,7 @@ describe('GET /settings/backups/:filename', () => {
   test('returns 404 for a non-existent file', async () => {
     const res = await app.handle(
       new Request('http://localhost/settings/backups/testuser-backup-2099-01-01.json', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(res.status).toBe(StatusCodes.NOT_FOUND);
@@ -181,7 +170,7 @@ describe('GET /settings/backups/:filename', () => {
 
     const res = await app.handle(
       new Request('http://localhost/settings/backups/testuser-backup-2026-03-10.json', {
-        headers: { Authorization: `Bearer ${TEST_TOKEN}` },
+        headers: { Authorization: `Bearer ${testToken}` },
       }),
     );
     expect(res.status).toBe(StatusCodes.OK);
