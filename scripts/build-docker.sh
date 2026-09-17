@@ -30,14 +30,15 @@ FULL_IMAGE="${REGISTRY}/${IMAGE_NAME}"
 
 # Usage message
 usage() {
-  echo "Usage: $0 [patch|minor|major]"
+  echo "Usage: $0 [patch|minor|major|--no-bump]"
   echo ""
-  echo "Bump version, build Docker image, and push to registry"
+  echo "Bump version (or skip with --no-bump), build Docker image, and push to registry"
   echo ""
   echo "Arguments:"
   echo "  patch   Increment patch version (1.0.0 -> 1.0.1) [default]"
   echo "  minor   Increment minor version (1.0.0 -> 1.1.0)"
   echo "  major   Increment major version (1.0.0 -> 2.0.0)"
+  echo "  --no-bump  Build and push the version already in package.json"
   echo ""
   echo "Examples:"
   echo "  $0          # defaults to patch"
@@ -47,7 +48,7 @@ usage() {
 
 BUMP_TYPE="${1:-patch}"
 
-if [[ ! "$BUMP_TYPE" =~ ^(patch|minor|major)$ ]]; then
+if [[ ! "$BUMP_TYPE" =~ ^(patch|minor|major|--no-bump)$ ]]; then
   echo -e "${RED}Error: Invalid bump type '$BUMP_TYPE'${NC}"
   usage
 fi
@@ -98,12 +99,14 @@ fi
 echo ""
 
 # Step 1: Bump version
-echo "📦 Bumping version ($BUMP_TYPE)..."
-if ! bun run scripts/bump-version.ts "$BUMP_TYPE"; then
-  echo -e "${RED}Error: Version bump failed${NC}"
-  exit 1
+if [ "$BUMP_TYPE" != "--no-bump" ]; then
+  echo "📦 Bumping version ($BUMP_TYPE)..."
+  if ! bun run scripts/bump-version.ts "$BUMP_TYPE"; then
+    echo -e "${RED}Error: Version bump failed${NC}"
+    exit 1
+  fi
+  echo ""
 fi
-echo ""
 
 # Step 2: Extract version from package.json
 VERSION=$(bun -p "require('./package.json').version")

@@ -1,7 +1,7 @@
 {
   "name": "howcani",
   "private": true,
-  "version": "3.0.99",
+  "version": "3.0.101",
   "type": "module",
   "scripts": {
     "dev": "bun --hot run src/server/index.ts",
@@ -21,7 +21,7 @@
   },
   "simple-git-hooks": {
     "pre-commit": "bun run lint",
-    "pre-push": "bun run build && bun test"
+    "pre-push": "bun run build && bun test --isolate"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",

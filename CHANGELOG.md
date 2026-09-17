@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.101 - 2026-09-17
+---
+
+- Releases no longer depend on the workstation. Building and pushing the image ran locally through `scripts/build-docker.sh`, which needed a local Bun, a container runtime and a registry login; now a merge to `main` that changes the version is enough, and the Forgejo runner builds and pushes from there. The script stays as the manual fallback and takes `--no-bump` for a version that is already released. Only `main` publishes, so an unreviewed feature branch cannot reach the registry
+- Fixed a test suite whose result depended on the filesystem. Spec files replaced shared modules with `mock.module`, which Bun applies to every file that runs afterwards, so the same commit passed locally and failed inside the image build where the file order differs. Stubs are now scoped to the file that creates them
+
 ## 3.0.99 - 2026-09-09
 ---
 

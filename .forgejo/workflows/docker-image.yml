@@ -1,0 +1,74 @@
+---
+name: docker-image
+
+"on":
+  push:
+    branches: [main]
+    paths: [package.json]
+  workflow_dispatch:
+
+env:
+  IMAGE: forgejo.home.janbaer.de/jan/howcani
+  NTFY_URL: https://ntfy.home.janbaer.de/forgejo-cicd
+
+jobs:
+  build:
+    # Only main has been through review, so only main produces a published image.
+    # workflow_dispatch on any other ref skips instead of publishing feature code.
+    if: github.ref == 'refs/heads/main'
+    runs-on: docker
+    container:
+      image: node:24-trixie
+      # Needs container.valid_volumes for the socket in the runner config.
+      options: -v /var/run/docker.sock:/var/run/docker.sock
+    steps:
+      - uses: https://data.forgejo.org/actions/checkout@v7
+
+      - name: Install docker CLI
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends docker-cli docker-buildx
+
+      - name: Log in to registry
+        env:
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: echo "$REGISTRY_TOKEN" | docker login "${IMAGE%%/*}" --username jan --password-stdin
+
+      - name: Check for existing version
+        id: check
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$FORGEJO_OUTPUT"
+          if docker manifest inspect "$IMAGE:$version" > /dev/null 2>&1; then
+            echo "$IMAGE:$version already exists, nothing to do"
+            echo "exists=true" >> "$FORGEJO_OUTPUT"
+          else
+            echo "exists=false" >> "$FORGEJO_OUTPUT"
+          fi
+
+      - name: Build image
+        if: steps.check.outputs.exists == 'false'
+        run: docker build -t "$IMAGE:${{ steps.check.outputs.version }}" -t "$IMAGE:latest" .
+
+      - name: Push image
+        if: steps.check.outputs.exists == 'false'
+        # :latest triggers the deploy webhook, so it goes last.
+        run: |
+          docker push "$IMAGE:${{ steps.check.outputs.version }}"
+          docker push "$IMAGE:latest"
+
+      - name: Remove local image
+        if: always() && steps.check.outputs.exists == 'false'
+        run: docker rmi "$IMAGE:${{ steps.check.outputs.version }}" "$IMAGE:latest" || true
+
+      - name: Notify success
+        if: success() && steps.check.outputs.exists == 'false'
+        run: |
+          curl -fsS -H "Title: HowCanI ${{ steps.check.outputs.version }} released" -H "Tags: white_check_mark" \
+            -d "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_number }}" "$NTFY_URL"
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          curl -fsS -H "Title: HowCanI image build failed" -H "Tags: x" -H "Priority: high" \
+            -d "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_number }}" "$NTFY_URL"

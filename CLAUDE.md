@@ -9,7 +9,7 @@ For project purpose, tech stack, architecture patterns, layer access rules, code
 ```bash
 bun run dev          # Start dev server with hot reload (src/server/index.ts)
 bun run build        # Production build → dist/ (bundles server + client)
-bun test             # Run all tests
+bun test --isolate   # Run all tests (as pre-push and the Docker build do)
 bun test --watch     # Watch mode
 bun test path/to/file.spec.ts  # Run a single test file
 bun run lint         # Check with Biome (must pass before committing)
@@ -18,9 +18,15 @@ bun run lint:fix     # Auto-fix Biome issues
 
 Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build and tests. No manual invocation needed before committing or pushing.
 
+Tests must run with `--isolate`. Several route specs replace modules with `mock.module`, which in a shared run applies to every file that runs afterwards; plain `bun test` then passes or fails depending on the order the filesystem lists the spec files in.
+
 ## Release & Deployment
 
-`bun run build:docker` (`scripts/build-docker.sh [patch|minor|major]`) bumps the version, builds the image, and pushes `forgejo.home.janbaer.de/jan/howcani:<version>` + `:latest`. Pushing `:latest` is the deploy trigger — a webhook picks it up and rolls it out automatically. No `docker-compose pull && up -d` needed.
+Merging a PR is the release. `/forgejo-pr-merge` bumps the version in `package.json` and writes the changelog entry on the feature branch after the review, then squash-merges; neither is part of the reviewed diff.
+
+`.forgejo/workflows/docker-image.yml` then runs on the Forgejo runner for the push to `main`, but only for `main` (a `workflow_dispatch` on any other ref skips) and only when the push touches `package.json`. It skips versions already in the registry, and otherwise builds and pushes `forgejo.home.janbaer.de/jan/howcani:<version>` + `:latest`. It logs in with the `REGISTRY_TOKEN` repo secret (PAT, scope `write:package`) and reports to ntfy topic `forgejo-cicd`. Pushing `:latest` is the deploy trigger — a webhook picks it up and rolls it out automatically. No `docker-compose pull && up -d` needed.
+
+Fallback when CI is unavailable: `bun run build:docker --no-bump` builds and pushes the version already in `package.json` from the local machine. Without `--no-bump` it bumps first, taking `patch`, `minor` or `major`.
 
 ## Environment Variables
 

@@ -22,7 +22,7 @@ COPY bunfig.toml ./
 COPY build-client.ts ./
 
 # Run tests before building
-RUN bun test
+RUN bun test --isolate
 
 # Build client-side code
 RUN bun run build
