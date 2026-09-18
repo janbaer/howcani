@@ -92,33 +92,33 @@ The image MUST support running as a non-root user with configurable user and gro
 
 ### Requirement: Build Automation Script
 
-The system SHALL provide a bash script at `scripts/build-docker.sh` that automates the complete build-to-registry workflow.
+The system SHALL provide a bash script at `scripts/build-docker.sh` that automates the complete build-to-registry workflow. It is the manual fallback when the CI workflow is unavailable.
 
-The script MUST validate prerequisites before starting: Docker daemon running, Bun installed, and git working tree clean.
+The script MUST validate prerequisites before starting: container runtime running and Bun installed.
 
-The script SHALL accept a version bump type argument (patch, minor, major) and SHALL fail if not provided.
+The script SHALL accept a version bump type argument (patch, minor, major), defaulting to patch, or `--no-bump` to build the version currently in `package.json`.
 
-The script MUST execute the following steps in order: bump version, build Bun binary, build Docker image with version tag, tag image as latest, push both tags to registry.
+The script MUST execute the following steps in order: bump version (skipped with `--no-bump`), build Docker image with version tag, tag image as latest, push both tags to registry.
 
 #### Scenario: Successful build and push
 
 - **WHEN** script is run with `./scripts/build-docker.sh patch` and all prerequisites are met
-- **THEN** version SHALL be bumped to 3.0.1, binary SHALL be built in dist/, Docker image SHALL be built and tagged as "forgejo.home.janbaer.de/jan/howcani:3.0.1" and "forgejo.home.janbaer.de/jan/howcani:latest", and both tags SHALL be pushed to the registry
+- **THEN** version SHALL be bumped to 3.0.1, Docker image SHALL be built and tagged as "forgejo.home.janbaer.de/jan/howcani:3.0.1" and "forgejo.home.janbaer.de/jan/howcani:latest", and both tags SHALL be pushed to the registry
+
+#### Scenario: Build without bump
+
+- **WHEN** script is run with `./scripts/build-docker.sh --no-bump` and `package.json` contains version 3.0.1
+- **THEN** `package.json` SHALL remain unchanged and the image SHALL be built and pushed as "forgejo.home.janbaer.de/jan/howcani:3.0.1" and ":latest"
 
 #### Scenario: Missing prerequisites
 
 - **WHEN** Docker daemon is not running
 - **THEN** script SHALL exit with error message before making any changes
 
-#### Scenario: Dirty git working tree
+#### Scenario: Invalid argument
 
-- **WHEN** there are uncommitted changes in the git working tree
-- **THEN** script SHALL exit with error message requiring a clean working tree before proceeding
-
-#### Scenario: No version bump type provided
-
-- **WHEN** script is run without a bump type argument
-- **THEN** script SHALL exit with usage instructions showing valid options: patch, minor, major
+- **WHEN** script is run with an argument other than patch, minor, major or `--no-bump`
+- **THEN** script SHALL exit with usage instructions showing the valid options
 
 #### Scenario: Docker build failure
 
