@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.102 - 2026-09-18
+---
+
+- Fixed a release pipeline that redeployed when it could not reach the registry. The check for "is this version already published" treated every failure of `docker manifest inspect` as "not yet", so an outage or an expired token looked like a new version and the job rebuilt and pushed `:latest` again. It now asks Forgejo's package API and reads the HTTP status, which tells the three cases apart, and stops the release when the question cannot be answered
+
 ## 3.0.101 - 2026-09-17
 ---
 

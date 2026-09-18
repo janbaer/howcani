@@ -24,27 +24,46 @@ jobs:
     steps:
       - uses: https://data.forgejo.org/actions/checkout@v7
 
+      - name: Check for existing version
+        id: check
+        # The status distinguishes "already released" from "could not ask"; a non-zero
+        # exit of docker manifest inspect does not, and building on a registry outage
+        # pushes :latest again and redeploys. No credential: the package is public, so
+        # this answers anonymously. Should the repository ever become private, the
+        # request turns into a 401 and the job stops here instead of releasing.
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$FORGEJO_OUTPUT"
+          repo=${IMAGE#*/}
+          # A connection failure exits curl non-zero, which would abort the step under
+          # set -e before the case below; || keeps it here so one branch reports both.
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "https://${IMAGE%%/*}/api/v1/packages/${repo%%/*}/container/${repo##*/}/$version") || status=000
+          case "$status" in
+            200)
+              echo "$IMAGE:$version already exists, nothing to do"
+              echo "exists=true" >> "$FORGEJO_OUTPUT"
+              ;;
+            404)
+              echo "exists=false" >> "$FORGEJO_OUTPUT"
+              ;;
+            *)
+              echo "Package API check for $IMAGE:$version answered HTTP $status" >&2
+              exit 1
+              ;;
+          esac
+
       - name: Install docker CLI
+        if: steps.check.outputs.exists == 'false'
         run: |
           apt-get update -qq
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends docker-cli docker-buildx
 
       - name: Log in to registry
+        if: steps.check.outputs.exists == 'false'
         env:
           REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: echo "$REGISTRY_TOKEN" | docker login "${IMAGE%%/*}" --username jan --password-stdin
-
-      - name: Check for existing version
-        id: check
-        run: |
-          version=$(node -p "require('./package.json').version")
-          echo "version=$version" >> "$FORGEJO_OUTPUT"
-          if docker manifest inspect "$IMAGE:$version" > /dev/null 2>&1; then
-            echo "$IMAGE:$version already exists, nothing to do"
-            echo "exists=true" >> "$FORGEJO_OUTPUT"
-          else
-            echo "exists=false" >> "$FORGEJO_OUTPUT"
-          fi
 
       - name: Build image
         if: steps.check.outputs.exists == 'false'
