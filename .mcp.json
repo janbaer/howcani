@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "gitnexus-mcp": {
-      "command": "gitnexus",
-      "args": ["mcp"]
-    },
     "chrome-devtools-mcp": {
       "command": "bunx",
       "args": [
