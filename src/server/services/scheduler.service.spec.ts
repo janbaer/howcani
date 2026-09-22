@@ -163,6 +163,38 @@ describe('SchedulerService.applyEmbeddingSettings', () => {
     expect(mockBackfillEmbeddings).toHaveBeenCalled();
   });
 
+  test('skips a second tick while a run is still in flight', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    mockBackfillEmbeddings.mockImplementation(() => gate);
+
+    service.applyEmbeddingSettings({ enabled: true });
+    const first = registered[0].handler();
+    await registered[0].handler();
+    expect(mockBackfillEmbeddings).toHaveBeenCalledTimes(1);
+
+    release();
+    await first;
+    await registered[0].handler();
+    expect(mockBackfillEmbeddings).toHaveBeenCalledTimes(2);
+  });
+
+  test('flag clears after a failed run so the next tick runs again', async () => {
+    mockBackfillEmbeddings.mockImplementation(async () => {
+      throw new Error('boom');
+    });
+
+    service.applyEmbeddingSettings({ enabled: true });
+    await registered[0].handler();
+    expect(mockBackfillEmbeddings).toHaveBeenCalledTimes(1);
+
+    mockBackfillEmbeddings.mockImplementation(async () => {});
+    await registered[0].handler();
+    expect(mockBackfillEmbeddings).toHaveBeenCalledTimes(2);
+  });
+
   test('triggers self-check when registering', () => {
     service.applyEmbeddingSettings({ enabled: true });
     expect(mockEmbeddingService.selfCheck).toHaveBeenCalled();

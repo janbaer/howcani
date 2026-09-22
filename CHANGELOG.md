@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.104 - 2026-09-22
+---
+
+- Fixed cron jobs that could run on top of themselves. The embedding backfill fires every 5 minutes, and a batch that took longer against a slow embedding provider let the next tick start alongside it, sending duplicate embed calls and racing writes. Backfill and backup now skip a tick and log it while the previous run is still active
+
 ## 3.0.103 - 2026-09-22
 ---
 

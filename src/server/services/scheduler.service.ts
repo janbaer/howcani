@@ -49,6 +49,7 @@ const defaultJobs: SchedulerJobs = { runBackupJob, backfillEmbeddings, embedding
 export class SchedulerService {
   private backupHandle: CronHandle | null = null;
   private embeddingHandle: CronHandle | null = null;
+  private running = new Map<string, boolean>();
 
   constructor(
     private readonly cronFactory: CronFactory = defaultCronFactory,
@@ -75,11 +76,18 @@ export class SchedulerService {
       `[scheduler] Registering backup cron "${expression}" — UTC equivalent of ${time} ${runtimeTimezone()}; cron itself fires in UTC`,
     );
     this.backupHandle = this.cronFactory(expression, async () => {
+      if (this.running.get('backup')) {
+        console.warn('[scheduler] Backup job still running — skipping this tick');
+        return;
+      }
+      this.running.set('backup', true);
       try {
         const { retentionDays } = getConfig().backup;
         await this.jobs.runBackupJob(retentionDays);
       } catch (err) {
         console.error('[scheduler] Backup job failed:', err);
+      } finally {
+        this.running.set('backup', false);
       }
     });
   }
@@ -109,10 +117,17 @@ export class SchedulerService {
       `[scheduler] Registering embedding backfill cron "*/5 * * * *" — fires every 5 minutes in UTC (server tz: ${runtimeTimezone()})`,
     );
     this.embeddingHandle = this.cronFactory('*/5 * * * *', async () => {
+      if (this.running.get('embedding')) {
+        console.warn('[scheduler] Embedding backfill still running — skipping this tick');
+        return;
+      }
+      this.running.set('embedding', true);
       try {
         await this.jobs.backfillEmbeddings();
       } catch (err) {
         console.error('[scheduler] Embedding backfill failed:', err);
+      } finally {
+        this.running.set('embedding', false);
       }
     });
   }
