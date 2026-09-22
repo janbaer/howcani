@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.103 - 2026-09-22
+---
+
+- Fixed a backup restore that moved items to the wrong account. Restoring another user's backup kept the original item IDs, so `INSERT OR REPLACE` overwrote that user's items and silently handed them to the importing account. Items from a foreign backup now get fresh IDs, while restoring your own backup still keeps them, so a re-import stays idempotent
+
 ## 3.0.102 - 2026-09-18
 ---
 

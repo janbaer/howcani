@@ -92,6 +92,18 @@ export function restoreBackup(userId: string, data: unknown, clearBeforeRestore:
     throw new BackupRestoreError('Invalid backup file: missing required fields (version, items)');
   }
 
+  const backup = data as BackupFile;
+  const authenticatedUser = userRepository.findById(userId);
+  if (!authenticatedUser) {
+    throw new BackupRestoreError(`Restore aborted: user ${userId} does not exist`);
+  }
+  // INSERT OR REPLACE on the original IDs would overwrite the backup owner's
+  // items when importing into a different account, silently reassigning
+  // ownership. Fresh UUIDs make the cross-user restore a pure import; a
+  // same-user restore keeps the original IDs so re-import stays idempotent.
+  const crossUser = backup.username !== authenticatedUser.username;
+  const idFor = (originalId: string): string => (crossUser ? crypto.randomUUID() : originalId);
+
   return runTransaction(() => {
     if (clearBeforeRestore) {
       if (isSqliteVecAvailable()) {
@@ -103,11 +115,12 @@ export function restoreBackup(userId: string, data: unknown, clearBeforeRestore:
 
     const tagMap = new Map(tagRepository.findAllByUserId(userId).map((t) => [t.name.toLowerCase(), t]));
 
-    for (const item of data.items) {
+    for (const item of backup.items) {
+      const itemId = idFor(item.id);
       db.run(
         `INSERT OR REPLACE INTO items (id, user_id, question, answer, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [item.id, userId, item.question, item.answer, item.createdAt, item.updatedAt],
+        [itemId, userId, item.question, item.answer, item.createdAt, item.updatedAt],
       );
 
       const tagIds: string[] = [];
@@ -120,10 +133,10 @@ export function restoreBackup(userId: string, data: unknown, clearBeforeRestore:
         tagIds.push(tag.id);
       }
 
-      tagRepository.setItemTags(item.id, tagIds);
+      tagRepository.setItemTags(itemId, tagIds);
     }
 
-    return data.items.length;
+    return backup.items.length;
   });
 }
 

@@ -350,16 +350,75 @@ describe('restoreBackup', () => {
     expect(result.items[0].question).toBe('New Q?');
   });
 
-  test('works cross-user: imports into the authenticated user regardless of username in backup', () => {
+  test('works cross-user: imports into the authenticated user regardless of username in backup', async () => {
     const otherUser = userRepo.create({ username: 'bob', email: 'bob@example.com', passwordHash: 'hash' });
-    const backup = makeBackup([makeBackupItem({ id: 'bob-item-id', question: 'Bob Q?', answer: 'Bob A' })], 'bob');
+    const bobItem = itemRepo.create({ userId: otherUser.id, question: 'Bob item', answer: 'B' });
+    const tag = tagRepo.create({ userId: otherUser.id, name: 'bob-tag' });
+    tagRepo.setItemTags(itemRepo.findByUserId(otherUser.id).items[0].id, [tag.id]);
+
+    const tmpDir = mkdtempSync(join(tmpdir(), 'howcani-restore-'));
+    await runBackupForUser({ id: otherUser.id, username: 'bob' }, 7, tmpDir);
+    const backup = JSON.parse(readFileSync(join(tmpDir, `bob-backup-${todayStr()}.json`), 'utf-8'));
+    rmSync(tmpDir, { recursive: true });
 
     restoreBackup(userId, backup, false);
 
     const aliceItems = itemRepo.findByUserId(userId);
     expect(aliceItems.items).toHaveLength(1);
-    expect(aliceItems.items[0].question).toBe('Bob Q?');
-    expect(itemRepo.findByUserId(otherUser.id).items).toHaveLength(0);
+    expect(aliceItems.items[0].question).toBe('Bob item');
+    expect(aliceItems.items[0].id).not.toBe(bobItem.id);
+    expect(itemRepo.findById(bobItem.id)?.user_id).toBe(otherUser.id);
+  });
+
+  test('cross-user restore generates fresh UUIDs, none matching the backup', () => {
+    const backup = makeBackup(
+      [makeBackupItem({ id: 'alice-original-1', tags: ['shared'] }), makeBackupItem({ id: 'alice-original-2' })],
+      'carol',
+    );
+
+    restoreBackup(userId, backup, false);
+
+    const restored = itemRepo.findByUserId(userId).items;
+    expect(restored).toHaveLength(2);
+    const restoredIds = restored.map((i) => i.id);
+    for (const originalId of ['alice-original-1', 'alice-original-2']) {
+      expect(restoredIds).not.toContain(originalId);
+      expect(restoredIds.find((id) => id === originalId)).toBeUndefined();
+    }
+  });
+
+  test('cross-user restore leaves the original owner untouched', () => {
+    const owner = userRepo.create({ username: 'carol', email: 'carol@example.com', passwordHash: 'hash' });
+    const original = itemRepo.create({ userId: owner.id, question: 'Carol Q?', answer: 'Carol A' });
+    const tag = tagRepo.create({ userId: owner.id, name: 'carol-tag' });
+    tagRepo.setItemTags(original.id, [tag.id]);
+    const backup = makeBackup(
+      [makeBackupItem({ id: original.id, question: 'Carol Q?', answer: 'Carol A', tags: ['carol-tag'] })],
+      'carol',
+    );
+
+    restoreBackup(userId, backup, false);
+
+    const carolsItem = itemRepo.findById(original.id);
+    expect(carolsItem).not.toBeNull();
+    expect(carolsItem?.user_id).toBe(owner.id);
+    expect(carolsItem?.question).toBe('Carol Q?');
+    expect(carolsItem?.answer).toBe('Carol A');
+    const carolTags = fetchItemsForUser(owner.id);
+    expect(carolTags).toHaveLength(1);
+    expect(carolTags[0].id).toBe(original.id);
+    expect(carolTags[0].tags).toEqual(['carol-tag']);
+  });
+
+  test('cross-user restore carries the backup tags onto the new items', () => {
+    const backup = makeBackup([makeBackupItem({ id: 'tagged-item', tags: ['imported', 'shared'] })], 'carol');
+
+    restoreBackup(userId, backup, false);
+
+    const items = fetchItemsForUser(userId);
+    expect(items).toHaveLength(1);
+    expect(items[0].id).not.toBe('tagged-item');
+    expect(items[0].tags).toEqual(['imported', 'shared']);
   });
 
   test('throws BackupRestoreError for invalid JSON structure', () => {

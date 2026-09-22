@@ -119,7 +119,10 @@ describe('POST /settings/backups/restore', () => {
       now,
     ]);
 
-    const backup = makeBackup([makeBackupItem({ id: 'item-xyz', question: 'Restored Q?', answer: 'Restored A' })]);
+    const backup = makeBackup(
+      [makeBackupItem({ id: 'item-xyz', question: 'Restored Q?', answer: 'Restored A' })],
+      'restoreuser',
+    );
     const res = await app.handle(makeRestoreRequest(makeBackupFormData(backup, true)));
     expect(res.status).toBe(StatusCodes.OK);
     const body = await res.json();
