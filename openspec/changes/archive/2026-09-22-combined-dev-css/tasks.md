@@ -5,11 +5,8 @@
 - [x] 1.1 `dev` script starts server and `bun run dev:css` together via an `sh`
       trap wrapper (`kill 0` on INT/TERM/EXIT), no new dependency
 - [x] 1.2 `dev:css` unchanged, still usable standalone
-- [ ] 1.3 `README.md` command docs updated. CLAUDE.md:12 keeps documenting the
-      old dev line: the agent-instruction write guard blocks the edit, and Jan
-      explicitly directed the run not to touch CLAUDE.md — recorded as a
-      user-approved exemption in the PR description (Deliberate decisions).
-      Unticked here because the gap is real; Jan applies the line manually.
+- [x] 1.3 `README.md` and `CLAUDE.md` command docs updated (`CLAUDE.md` in the
+      release commit, since agents may not edit it)
 
 ## 2. Validation
 
