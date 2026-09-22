@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.105 - 2026-09-22
+---
+
+- `bun run dev` now starts the Tailwind watcher alongside the server. On its own it served the committed `main.css`, which silently went stale whenever a template gained a new class until someone remembered to run `dev:css` in a second terminal. Ctrl-C stops both, and `dev:css` stays for standalone use
+
 ## 3.0.104 - 2026-09-22
 ---
 

@@ -7,7 +7,8 @@ For project purpose, tech stack, architecture patterns, layer access rules, code
 ## Commands
 
 ```bash
-bun run dev          # Start dev server with hot reload (src/server/index.ts)
+bun run dev          # Dev server with hot reload + Tailwind CSS watcher (Ctrl-C stops both)
+bun run dev:css      # Tailwind CSS watcher only
 bun run build        # Production build → dist/ (bundles server + client)
 bun test --isolate   # Run all tests (as pre-push and the Docker build do)
 bun test --watch     # Watch mode

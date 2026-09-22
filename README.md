@@ -11,6 +11,11 @@ bun install
 bun run dev
 ```
 
+`bun run dev` starts the dev server with hot reload and the Tailwind CSS
+watcher together in one command. Both outputs are visible; Ctrl-C stops both.
+To watch the CSS only (e.g. while the server runs elsewhere), use
+`bun run dev:css`.
+
 Tests and linting:
 
 ```bash

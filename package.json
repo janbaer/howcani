@@ -1,10 +1,10 @@
 {
   "name": "howcani",
   "private": true,
-  "version": "3.0.104",
+  "version": "3.0.105",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot run src/server/index.ts",
+    "dev": "sh -c 'trap \"trap - INT TERM EXIT; kill 0\" INT TERM EXIT; bun --hot run src/server/index.ts & tail -f /dev/null | bun run dev:css & wait'",
     "dev:css": "bunx @tailwindcss/cli -i src/styles/app.css -o src/styles/main.css --watch",
     "build": "NODE_ENV=production bun run build-client.ts",
     "build:docker": "./scripts/build-docker.sh",
