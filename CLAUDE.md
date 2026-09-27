@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-For project purpose, tech stack, architecture patterns, layer access rules, code style, and domain context see [`openspec/project.md`](openspec/project.md).
+For project purpose, tech stack, architecture patterns, layer access rules, code style, and domain context see [`docs/project.md`](docs/project.md).
 
 ## Commands
 
@@ -19,7 +19,7 @@ bun run lint:fix     # Auto-fix Biome issues
 
 Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build and tests. No manual invocation needed before committing or pushing.
 
-Tests must run with `--isolate`. Several route specs replace modules with `mock.module`, which in a shared run applies to every file that runs afterwards; plain `bun test` then passes or fails depending on the order the filesystem lists the spec files in.
+Tests must run with `--isolate`.
 
 ## Release & Deployment
 
@@ -57,7 +57,7 @@ The server is a **Bun HTTP server** that delegates to three subsystems:
 
 **Session model**: `authPlugin` (`middleware/auth.middleware.ts`) verifies the JWT on every request and calls `createSession()`, which instantiates `ItemService` and `TagService` bound to the authenticated `userId`. Mutation routes use `session.itemService` / `session.tagService`; read routes use the singleton `itemService` (with empty userId, resolves user from URL `:username`).
 
-**Services** return `Result<T>` discriminated unions (`{ success: true, data }` | `{ success: false, error }`). Routes translate error codes to HTTP status codes — never use hardcoded numbers, use `http-status-codes`.
+**Services** return `Result<T>` discriminated unions (`{ success: true, data }` | `{ success: false, error }`). Routes translate error codes to HTTP status codes.
 
 ### Database (`src/server/db/`)
 
@@ -79,7 +79,7 @@ Stateless HTTP MCP server at `/mcp`. Auth is a Bearer token checked per-call in 
 
 ### Client (`src/client/`)
 
-Svelte 5 SPA with rune-based state. Layer rules mirror the backend (see `openspec/project.md`).
+Svelte 5 SPA with rune-based state. Layer rules mirror the backend (see `docs/project.md`).
 
 The client-side router is hash-based. SPA routes must also be declared in the `routes` map in `src/server/index.ts` or Bun won't serve the HTML shell for direct navigation.
 
@@ -95,6 +95,5 @@ Design documentation lives in `openspec/`. Features are developed as *changes*:
 - `openspec/changes/<name>/` — active or in-progress change (design.md, tasks, specs)
 - `openspec/changes/archive/` — completed changes
 - `openspec/specs/` — canonical specs reflecting the current state of the system
-- `openspec/project.md` — authoritative project context (tech stack, conventions, domain model)
 
 Use `/openspec-*` skills to navigate the workflow.

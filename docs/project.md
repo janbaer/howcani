@@ -94,8 +94,7 @@ This enables:
 - Hosted in home lab, accessible via Wireguard VPN
 - SQLite only (no separate database server)
 - YAGNI ruthlessly (build only what's needed now)
-- Design API for future MCP server integration
 
 ## External Dependencies
 - GitHub Issues API (for one-time data migration from previous version)
-- Future: MCP server protocol for AI assistant integration
+- MCP server protocol for AI assistant integration (stateless HTTP endpoint at `/mcp`)
