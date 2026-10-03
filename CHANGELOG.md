@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.108 - 2026-10-03
+---
+
+- Took over the first grouped Renovate patch PR. `marked` 18.0.14 fixes several markdown rendering bugs (list items with tabs, nested blockquotes, link reference labels), and `svelte` 5.57.1 fixes event listener cleanup and a few reactivity edge cases. CodeMirror and lezer moved along with them
+
 ## 3.0.107 - 2026-10-03
 ---
 
