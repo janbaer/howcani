@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.106 - 2026-10-03
+---
+
+- Renovate now proposes dependency updates on its own, so security fixes no longer wait for someone to check by hand. Its PRs update `bun.lock` along with `package.json`, without which they would have broken the `--frozen-lockfile` Docker build. Security fixes arrive as one PR, patches as another, and major updates are only proposed when they fix a vulnerability
+
 ## 3.0.105 - 2026-09-22
 ---
 
