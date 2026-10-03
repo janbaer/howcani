@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.107 - 2026-10-03
+---
+
+- Updated dompurify, hono, fast-uri and ip-address to versions that fix published vulnerabilities
+
 ## 3.0.106 - 2026-10-03
 ---
 
