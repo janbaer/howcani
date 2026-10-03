@@ -5,12 +5,19 @@ This document contains a list of changes in the order of when they were introduc
 ## 3.0.108 - 2026-10-03
 ---
 
-- Took over the first grouped Renovate patch PR. `marked` 18.0.14 fixes several markdown rendering bugs (list items with tabs, nested blockquotes, link reference labels), and `svelte` 5.57.1 fixes event listener cleanup and a few reactivity edge cases. CodeMirror and lezer moved along with them
+- Took over the first grouped Renovate patch PR:
+  - `marked` 18.0.14: fixes markdown rendering bugs (list items with tabs, nested blockquotes, link reference labels)
+  - `svelte` 5.57.1: fixes event listener cleanup and a few reactivity edge cases
+  - CodeMirror and lezer moved along with them
 
 ## 3.0.107 - 2026-10-03
 ---
 
-- Updated dompurify, hono, fast-uri and ip-address to versions that fix published vulnerabilities
+- Updated four packages to versions that fix published vulnerabilities:
+  - `dompurify` 3.4.16: DOM XSS in `IN_PLACE` mode when a hook removes nodes
+  - `hono` 4.13.7: XSS from unescaped strings in `hono/jsx`, `toSSG()` writing outside its output directory, memory exhaustion in `parseBody()`
+  - `fast-uri` 3.1.8: inconsistent host case normalization via percent-encoded octets
+  - `ip-address` 10.7.1: SSRF checks that missed IPv6 ranges (NAT64 local-use, link-local), crash on oversized input
 
 ## 3.0.106 - 2026-10-03
 ---
