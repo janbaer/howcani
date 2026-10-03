@@ -8,6 +8,7 @@
   "dependencyDashboard": true,
   "automerge": false,
   "minimumReleaseAge": "3 days",
+  "prHourlyLimit": 0,
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "minimumReleaseAge": "3 days",
