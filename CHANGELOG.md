@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.109 - 2026-10-09
+---
+
+- Updated `@modelcontextprotocol/sdk` to 1.31.0 to fix reported security issues in it and its dependencies. Its Express-side packages moved along: `body-parser` 2.3.0, `qs` 6.16.0, `proxy-addr` 2.0.8 and `file-type` 21.3.2
+
 ## 3.0.108 - 2026-10-03
 ---
 
