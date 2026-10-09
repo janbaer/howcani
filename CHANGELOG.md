@@ -2,6 +2,17 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.110 - 2026-10-09
+---
+
+- Took over the open Renovate updates, mostly bug fixes in runtime dependencies:
+  - `hono` 4.13.13: `serveStatic` decoded paths twice, which could bypass middleware on static paths
+  - `marked` 18.1.0: fixes cubic backtracking on unicode whitespace in link destinations
+  - `@modelcontextprotocol/sdk` 1.32.1: accepts `tools/call` requests that omit arguments
+  - `zod` 4.6.5: fixes memory retention in recursive schemas
+  - `ip-address` 10.7.3: rejects overlong in-addr.arpa input early
+  - `express-rate-limit` 8.7.1 moved along without a stated reason
+
 ## 3.0.109 - 2026-10-09
 ---
 
