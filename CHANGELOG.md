@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.112 - 2026-10-11
+---
+
+- Fixed the tag sidebar in the item list: it now waits for the reload after tags change instead of returning before the list is updated.
+- Svelte components are now type-checked with `svelte-check` before every push, because `bun check` skips `.svelte` files.
+
 ## 3.0.111 - 2026-10-11
 ---
 
