@@ -3,7 +3,7 @@ import type { Item } from '../../lib/items.svelte';
 import Button from './Button.svelte';
 
 interface Props {
-  item: Item | null;
+  item: Item | null | undefined;
   onDelete: (id: string) => Promise<void>;
   onClose: () => void;
 }

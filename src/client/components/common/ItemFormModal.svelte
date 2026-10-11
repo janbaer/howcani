@@ -4,7 +4,7 @@ import Button from './Button.svelte';
 import MarkdownEditor from './MarkdownEditor.svelte';
 
 interface Props {
-  item: Item | null;
+  item: Item | null | undefined;
   onSave: (data: { question: string; answer: string; tags: string[] }) => Promise<void>;
   onClose: () => void;
   existingTags: TagWithCount[];

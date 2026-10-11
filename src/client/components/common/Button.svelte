@@ -27,13 +27,14 @@ let {
   class: className = '',
   children,
   ...rest
-}: (HTMLButtonAttributes | HTMLAnchorAttributes) & {
-  variant?: Variant;
-  size?: Size;
-  href?: string;
-  disabled?: boolean;
-  children?: Snippet;
-} = $props();
+}: HTMLButtonAttributes &
+  HTMLAnchorAttributes & {
+    variant?: Variant;
+    size?: Size;
+    href?: string;
+    disabled?: boolean;
+    children?: Snippet;
+  } = $props();
 
 const base = 'inline-flex items-center justify-center rounded-lg';
 const disabledStyles = 'disabled:opacity-50 disabled:cursor-not-allowed';

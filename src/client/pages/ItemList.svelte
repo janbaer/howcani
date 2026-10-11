@@ -79,7 +79,7 @@ function toggleTag(tagName: string) {
 }
 
 function handleTagsChanged() {
-  store.handleTagsChanged(username, searchQuery);
+  return store.handleTagsChanged(username, searchQuery);
 }
 
 function handleCardKeyDown(item: Item, e: KeyboardEvent) {
