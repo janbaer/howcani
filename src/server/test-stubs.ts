@@ -1,4 +1,4 @@
-import { afterAll, spyOn } from 'bun:test';
+import { afterAll, mock, spyOn } from 'bun:test';
 
 type AnyFn = (...args: unknown[]) => unknown;
 
@@ -16,4 +16,8 @@ export function stubMethods(target: object, impls: object): void {
   afterAll(() => {
     for (const spy of spies) spy.mockRestore();
   });
+}
+
+export function mockFetch(impl: (url: RequestInfo | URL, init?: RequestInit) => Promise<Response>): void {
+  globalThis.fetch = Object.assign(mock(impl), { preconnect: fetch.preconnect });
 }

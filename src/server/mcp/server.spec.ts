@@ -3,8 +3,10 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createToken } from '../auth/jwt.ts';
+import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { ItemRepository } from '../repositories/item.repository';
+import { TagRepository } from '../repositories/tag.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { handleMcpRequest } from './index';
 import { createMcpServer } from './server';
@@ -23,17 +25,23 @@ async function createTestClient(options: { defaultUsername?: string; authHeader?
   return { client, server };
 }
 
+function resultText(result: object): string {
+  return (result as { content: { text: string }[] }).content[0].text;
+}
+
 describe('createMcpServer - username resolution', () => {
   let userRepo: UserRepository;
   let itemRepo: ItemRepository;
+  let tagRepo: TagRepository;
   let testUsername: string;
-  let testUserId: number;
+  let testUserId: string;
   let testBearerToken: string;
 
   beforeAll(() => {
     setupTestDatabase();
     userRepo = new UserRepository();
     itemRepo = new ItemRepository();
+    tagRepo = new TagRepository();
   });
 
   beforeEach(async () => {
@@ -61,7 +69,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_items', arguments: {} });
 
     expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
+    const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('items');
   });
 
@@ -71,7 +79,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_items', arguments: {} });
 
     expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
+    const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('items');
   });
 
@@ -81,7 +89,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_items', arguments: {} });
 
     expect(result.isError).toBe(true);
-    expect((result.content[0] as { text: string }).text).toContain('invalid or expired');
+    expect(resultText(result)).toContain('invalid or expired');
   });
 
   test('bearer token takes precedence over X-Username header', async () => {
@@ -95,7 +103,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'get_item', arguments: { item_id: item.id } });
 
     expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
+    const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('question', 'Alice question');
   });
 
@@ -105,7 +113,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_items', arguments: {} });
 
     expect(result.isError).toBe(true);
-    expect((result.content[0] as { text: string }).text).toContain('invalid or expired');
+    expect(resultText(result)).toContain('invalid or expired');
   });
 
   test('returns error when neither X-Username header nor Bearer token is set', async () => {
@@ -114,7 +122,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_items', arguments: {} });
 
     expect(result.isError).toBe(true);
-    expect((result.content[0] as { text: string }).text).toContain('username is required');
+    expect(resultText(result)).toContain('username is required');
   });
 
   test('search_items resolves username from X-Username header', async () => {
@@ -123,7 +131,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'search_items', arguments: { query: 'test' } });
 
     expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
+    const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('items');
   });
 
@@ -133,7 +141,7 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'list_tags', arguments: {} });
 
     expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
+    const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('tags');
   });
 
@@ -144,8 +152,40 @@ describe('createMcpServer - username resolution', () => {
     const result = await client.callTool({ name: 'get_item', arguments: { item_id: item.id } });
 
     expect(result.isError).toBeFalsy();
-    const data = JSON.parse((result.content[0] as { text: string }).text);
+    const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('question', 'Test question');
+  });
+
+  test('get_related_items returns flat items with their tags', async () => {
+    const source = itemRepo.create({ userId: testUserId, question: 'Source', answer: '' });
+    const similar = itemRepo.create({ userId: testUserId, question: 'Similar', answer: '' });
+    const tag = tagRepo.create({ userId: testUserId, name: 'related-tag' });
+    tagRepo.setItemTags(similar.id, [tag.id]);
+    for (const [id, value] of [
+      [source.id, 0.5],
+      [similar.id, 0.51],
+    ] as [string, number][]) {
+      const vector = new Float32Array(1536).fill(value);
+      db.run('INSERT INTO item_embeddings (item_id, embedding, model, created_at) VALUES (?, ?, ?, ?)', [
+        id,
+        vector,
+        'test-model',
+        new Date().toISOString(),
+      ]);
+      db.run('INSERT INTO vec_items (item_id, embedding) VALUES (?, ?)', [id, vector]);
+    }
+    const { client } = await createTestClient({ defaultUsername: testUsername });
+
+    const result = await client.callTool({ name: 'get_related_items', arguments: { item_id: source.id } });
+
+    expect(result.isError).toBeFalsy();
+    const data = JSON.parse(resultText(result));
+    expect(data.items).toHaveLength(1);
+    expect(data.items[0]).toMatchObject({
+      id: similar.id,
+      question: 'Similar',
+      tags: [{ id: tag.id, name: tag.name, color: tag.color }],
+    });
   });
 });
 

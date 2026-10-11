@@ -73,7 +73,9 @@ const mockItemRepository = {
     },
   ),
   findRelated: mock((_itemId: string, _userId: string) => []),
-  findAllDuplicates: mock((_userId: string, _threshold: number) => []),
+  findAllDuplicates: mock(
+    (_userId: string, _threshold: number): ReturnType<typeof itemRepository.findAllDuplicates> => [],
+  ),
   findDuplicates: mock((_itemId: string, _userId: string, _threshold: number) => []),
 };
 

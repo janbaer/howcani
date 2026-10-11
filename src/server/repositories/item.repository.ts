@@ -312,7 +312,7 @@ export class ItemRepository extends BaseRepository<Item> {
       const normalizedTagSet = new Set(tags.map((t) => t.toLowerCase()));
       const taggedItemIds = new Set(
         db
-          .query<{ item_id: string }, string[]>(
+          .query<{ item_id: string }, (string | number)[]>(
             `SELECT it.item_id FROM item_tags it
              JOIN tags t ON it.tag_id = t.id
              WHERE t.name COLLATE NOCASE IN (${tags.map(() => '?').join(', ')})

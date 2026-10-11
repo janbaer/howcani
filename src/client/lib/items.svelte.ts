@@ -5,6 +5,7 @@ import {
   type ItemListResponse,
   type ItemUpdateData,
   items,
+  type Tag,
   type TagWithCount,
   tags,
 } from './api';
@@ -17,6 +18,10 @@ export async function fetchItems(username: string, params: ItemListParams = {}):
     throw new Error(result.error?.message ?? 'Failed to load questions');
   }
   return result.data;
+}
+
+export function toOptimisticTags(names: string[]): Tag[] {
+  return names.map((name) => ({ id: `temp-${name}`, name, color: '888888' }));
 }
 
 export async function fetchItem(username: string, id: string): Promise<Item> {

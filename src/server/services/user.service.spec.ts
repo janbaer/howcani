@@ -32,7 +32,6 @@ function createTestUser(overrides: Partial<User> = {}): User {
     username: 'testuser',
     email: 'test@example.com',
     password_hash: 'hashed_password',
-    semantic_search_enabled: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

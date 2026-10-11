@@ -21,7 +21,7 @@
   },
   "simple-git-hooks": {
     "pre-commit": "bun run lint",
-    "pre-push": "bun run build && bun test --isolate"
+    "pre-push": "bun run build && bun check && bun test --isolate"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",
@@ -29,8 +29,7 @@
     "bun-plugin-svelte": "0.0.6",
     "simple-git-hooks": "2.14.0",
     "svelte": "5.57.1",
-    "tailwindcss": "4.3.3",
-    "typescript": "6.0.3"
+    "tailwindcss": "4.3.3"
   },
   "overrides": {
     "@codemirror/state": "6.7.6",

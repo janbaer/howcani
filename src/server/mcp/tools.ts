@@ -18,10 +18,12 @@ function error(message: string): CallToolResult {
   return { content: [{ type: 'text', text: message }], isError: true };
 }
 
-function resolveUser(username: string): { userId: string; semanticSearchEnabled: boolean } | CallToolResult {
+function resolveUser(
+  username: string,
+): { ok: true; userId: string; semanticSearchEnabled: boolean } | { ok: false; result: CallToolResult } {
   const user = userRepo.findByUsername(username);
-  if (!user) return error(`User "${username}" not found`);
-  return { userId: user.id, semanticSearchEnabled: getConfig().embedding.enabled };
+  if (!user) return { ok: false, result: error(`User "${username}" not found`) };
+  return { ok: true, userId: user.id, semanticSearchEnabled: getConfig().embedding.enabled };
 }
 
 function attachTags(items: { id: string }[]) {
@@ -38,7 +40,7 @@ export async function searchItems(args: {
   limit?: number;
 }): Promise<CallToolResult> {
   const resolved = resolveUser(args.username);
-  if ('isError' in resolved) return resolved;
+  if (!resolved.ok) return resolved.result;
 
   const tagList = args.tags
     ? args.tags
@@ -70,7 +72,7 @@ export async function searchItems(args: {
 
 export function listItems(args: { username: string; limit?: number; offset?: number }): CallToolResult {
   const resolved = resolveUser(args.username);
-  if ('isError' in resolved) return resolved;
+  if (!resolved.ok) return resolved.result;
 
   const result = itemRepo.findByUserId(resolved.userId, {
     limit: Math.min(args.limit ?? 20, 100),
@@ -85,7 +87,7 @@ export function listItems(args: { username: string; limit?: number; offset?: num
 
 export function getItem(args: { username: string; item_id: string }): CallToolResult {
   const resolved = resolveUser(args.username);
-  if ('isError' in resolved) return resolved;
+  if (!resolved.ok) return resolved.result;
 
   const item = itemRepo.findByIdAndUserId(args.item_id, resolved.userId);
   if (!item) return error(`Item "${args.item_id}" not found`);
@@ -98,7 +100,7 @@ export function getItem(args: { username: string; item_id: string }): CallToolRe
 
 export function listTags(args: { username: string }): CallToolResult {
   const resolved = resolveUser(args.username);
-  if ('isError' in resolved) return resolved;
+  if (!resolved.ok) return resolved.result;
 
   const tags = tagRepo.findByUserId(resolved.userId);
   return success({ tags });
@@ -149,13 +151,13 @@ export async function updateItem(args: {
 
 export function getRelatedItems(args: { username: string; item_id: string }): CallToolResult {
   const resolved = resolveUser(args.username);
-  if ('isError' in resolved) return resolved;
+  if (!resolved.ok) return resolved.result;
 
   const item = itemRepo.findByIdAndUserId(args.item_id, resolved.userId);
   if (!item) return error(`Item "${args.item_id}" not found`);
 
   const related = itemRepo.findRelated(args.item_id, resolved.userId);
-  return success({ items: attachTags(related) });
+  return success({ items: attachTags(related.map(({ item }) => item)) });
 }
 
 export async function createItem(args: {

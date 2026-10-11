@@ -1,5 +1,8 @@
-## ADDED Requirements
+# git-hooks Specification
 
+## Purpose
+TBD - created by archiving change git-hooks. Update Purpose after archive.
+## Requirements
 ### Requirement: Pre-commit hook runs lint
 The system SHALL run `bun run lint` as a git pre-commit hook. If lint fails, the commit SHALL be aborted and the lint output displayed to the developer.
 
@@ -12,18 +15,22 @@ The system SHALL run `bun run lint` as a git pre-commit hook. If lint fails, the
 - **THEN** the commit is aborted and lint errors are printed to the terminal
 
 ### Requirement: Pre-push hook runs build and tests
-The system SHALL run `bun run build && bun test` as a git pre-push hook. If either the build or any test fails, the push SHALL be aborted and the error output displayed to the developer.
+The system SHALL run `bun run build && bun check && bun test --isolate` as a git pre-push hook. If the build, the type check or any test fails, the push SHALL be aborted and the error output displayed to the developer.
 
-#### Scenario: Build and tests pass
-- **WHEN** developer runs `git push` and build succeeds and all tests pass
+#### Scenario: Build, type check and tests pass
+- **WHEN** developer runs `git push` and build succeeds, `bun check` exits 0 and all tests pass
 - **THEN** the push proceeds normally
 
 #### Scenario: Build fails
 - **WHEN** developer runs `git push` and `bun run build` exits with a non-zero code
 - **THEN** the push is aborted and the build error is printed to the terminal
 
+#### Scenario: Type check fails
+- **WHEN** developer runs `git push` and `bun check` exits with a non-zero code
+- **THEN** the push is aborted and the type errors are printed to the terminal
+
 #### Scenario: Tests fail
-- **WHEN** developer runs `git push` and `bun run build` succeeds but `bun test` exits with a non-zero code
+- **WHEN** developer runs `git push` and build and type check succeed but `bun test` exits with a non-zero code
 - **THEN** the push is aborted and the test failure output is printed to the terminal
 
 ### Requirement: Hooks are installed automatically after bun install
@@ -36,3 +43,4 @@ The system SHALL register git hooks automatically when `bun install` is run, via
 #### Scenario: Reinstall after dependency update
 - **WHEN** developer runs `bun install` in an existing checkout
 - **THEN** hooks are re-registered (idempotent — no duplicate or corrupted hooks)
+

@@ -6,6 +6,7 @@ import {
   type Item,
   type ItemUpdateData,
   type TagWithCount,
+  toOptimisticTags,
   updateItem as updateItemService,
 } from '../lib/items.svelte';
 import { navigate } from '../lib/router.svelte';
@@ -44,7 +45,11 @@ export class ItemDetailStore {
     if (!this.editingItem || !this.item) return;
 
     const original = { ...this.item };
-    this.item = { ...this.item, ...data };
+    this.item = {
+      ...this.item,
+      ...data,
+      tags: data.tags ? toOptimisticTags(data.tags) : this.item.tags,
+    };
 
     try {
       const updated = await updateItemService(user.username, this.editingItem.id, data);

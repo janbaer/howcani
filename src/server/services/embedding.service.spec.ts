@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import { __seedDefaultConfigForTests, __setConfigForTests } from '../config/config.service';
+import { mockFetch } from '../test-stubs';
 import { EmbeddingService } from './embedding.service';
 import type { EmbeddingProvider } from './embedding-providers/embedding-provider';
 
@@ -150,7 +151,7 @@ describe('OpenRouterProvider integration through service', () => {
 
   test('embeds via factory-built provider with mocked fetch', async () => {
     const fakeVector = new Array(1536).fill(0.1);
-    globalThis.fetch = mock(
+    mockFetch(
       async () =>
         new Response(JSON.stringify({ data: [{ embedding: fakeVector }] }), {
           status: 200,

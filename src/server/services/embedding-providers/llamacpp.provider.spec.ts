@@ -1,4 +1,5 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
+import { mockFetch } from '../../test-stubs';
 import { LlamaCppProvider } from './llamacpp.provider';
 
 describe('LlamaCppProvider.embed', () => {
@@ -6,7 +7,7 @@ describe('LlamaCppProvider.embed', () => {
     let capturedHeaders: HeadersInit | undefined;
     let capturedUrl: string | undefined;
 
-    globalThis.fetch = mock(async (url: RequestInfo | URL, init?: RequestInit) => {
+    mockFetch(async (url: RequestInfo | URL, init?: RequestInit) => {
       capturedUrl = String(url);
       capturedHeaders = init?.headers;
       return new Response(JSON.stringify({ data: [{ embedding: new Array(768).fill(0.5) }] }), { status: 200 });
@@ -24,7 +25,7 @@ describe('LlamaCppProvider.embed', () => {
   });
 
   test('returns null on non-OK response', async () => {
-    globalThis.fetch = mock(async () => new Response('error', { status: 500 }));
+    mockFetch(async () => new Response('error', { status: 500 }));
     const provider = new LlamaCppProvider('m', 768, 'https://llm.example/v1/embeddings');
 
     const result = await provider.embed('hello');
@@ -36,7 +37,7 @@ describe('LlamaCppProvider.embed', () => {
 describe('LlamaCppProvider.embedBatch', () => {
   test('sends array input and decodes ordered results', async () => {
     let capturedBody: string | undefined;
-    globalThis.fetch = mock(async (_url: RequestInfo | URL, init?: RequestInit) => {
+    mockFetch(async (_url: RequestInfo | URL, init?: RequestInit) => {
       capturedBody = init?.body as string;
       return new Response(
         JSON.stringify({
@@ -63,7 +64,7 @@ describe('LlamaCppProvider.embedBatch', () => {
   });
 
   test('respects out-of-order index field from response', async () => {
-    globalThis.fetch = mock(
+    mockFetch(
       async () =>
         new Response(
           JSON.stringify({
@@ -86,7 +87,7 @@ describe('LlamaCppProvider.embedBatch', () => {
   });
 
   test('returns array of nulls on non-OK response', async () => {
-    globalThis.fetch = mock(async () => new Response('boom', { status: 500 }));
+    mockFetch(async () => new Response('boom', { status: 500 }));
     const provider = new LlamaCppProvider('m', 768, 'https://llm.example/v1/embeddings');
 
     const result = await provider.embedBatch(['a', 'b']);
@@ -103,7 +104,7 @@ describe('LlamaCppProvider.embedBatch', () => {
   test('chunks oversized batches across multiple HTTP calls', async () => {
     let calls = 0;
     const chunkSizes: number[] = [];
-    globalThis.fetch = mock(async (_url: RequestInfo | URL, init?: RequestInit) => {
+    mockFetch(async (_url: RequestInfo | URL, init?: RequestInit) => {
       calls++;
       const body = JSON.parse(init?.body as string);
       chunkSizes.push(body.input.length);

@@ -8,6 +8,7 @@ import {
   type Item,
   type ItemCreateData,
   type TagWithCount,
+  toOptimisticTags,
   updateItem as updateItemService,
 } from '../lib/items.svelte';
 import { setSearchQuery } from '../lib/search-state.svelte';
@@ -130,7 +131,11 @@ export class ItemListStore {
 
     if (editing) {
       const original = { ...editing };
-      const optimisticUpdate = { ...editing, ...data };
+      const optimisticUpdate: Item = {
+        ...editing,
+        ...data,
+        tags: data.tags ? toOptimisticTags(data.tags) : editing.tags,
+      };
       this.items = this.items.map((i) => (i.id === editing.id ? optimisticUpdate : i));
 
       try {
@@ -148,7 +153,7 @@ export class ItemListStore {
         user_id: user.id,
         question: data.question,
         answer: data.answer || '',
-        tags: data.tags?.map((name) => ({ id: `temp-${name}`, name, color: '888888' })) || [],
+        tags: toOptimisticTags(data.tags ?? []),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

@@ -21,7 +21,7 @@ const mockProvider = {
 };
 const mockEmbeddingService = {
   provider: mockProvider as typeof mockProvider | null,
-  selfCheck: mock(async () => 'ok'),
+  selfCheck: mock(async (): Promise<'ok' | 'unreachable'> => 'ok'),
 };
 
 import { __setConfigForTests } from '../config/config.service';
@@ -234,13 +234,18 @@ describe.skipIf(process.env.RUN_SLOW_TESTS !== '1')('Bun.cron timezone option (r
     const expr = `${nextMinute} * * * *`;
 
     let fired = 0;
-    const handle = Bun.cron(
+    const cronWithOptions = Bun.cron as unknown as (
+      expr: string,
+      handler: () => void,
+      options: { timezone: string },
+    ) => CronHandle;
+    const handle = cronWithOptions(
       expr,
       () => {
         fired++;
       },
       { timezone: 'Asia/Kolkata' },
-    ) as unknown as CronHandle;
+    );
 
     const msUntilNextMinute = (60 - now.getUTCSeconds()) * 1000 + 1500;
     await new Promise((resolve) => setTimeout(resolve, msUntilNextMinute));
