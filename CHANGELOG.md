@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.111 - 2026-10-11
+---
+
+- Fixed the MCP tool `get_related_items`, which returned the raw `{item, distance}` pairs with empty tags instead of the related items with their tags.
+- Fixed the optimistic update when editing an item: the tags were briefly in the wrong shape until the server answered.
+- Both were found by `bun check`, the type check that now runs before every push.
+
 ## 3.0.110 - 2026-10-09
 ---
 
