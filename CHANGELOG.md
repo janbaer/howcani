@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.113 - 2026-10-14
+---
+
+- Took over the open Renovate updates for runtime dependencies:
+  - `zod` 4.6.6: checks array, set and map size bounds before parsing the elements
+  - `svelte` 5.57.2: a batch of hydration, async derived and each-block fixes
+
+  `@codemirror/view` 6.43.14 and `@codemirror/language` 6.13.1 moved along without a stated reason.
+
 ## 3.0.112 - 2026-10-11
 ---
 
