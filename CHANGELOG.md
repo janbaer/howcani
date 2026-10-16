@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.114 - 2026-10-16
+---
+
+- Took over the open Renovate patch updates for runtime dependencies:
+  - `dompurify` 3.4.17: fixes for `IN_PLACE` sanitizing and the SMIL `attributeName` guard
+  - `marked` 18.1.1: a batch of Markdown parsing fixes (blockquotes, code spans, HTML blocks, list indentation)
+  - `zod` 4.6.7
+
 ## 3.0.113 - 2026-10-14
 ---
 
