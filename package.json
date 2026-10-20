@@ -30,7 +30,7 @@
     "bun-plugin-svelte": "0.0.6",
     "simple-git-hooks": "2.14.0",
     "svelte": "5.57.2",
-    "svelte-check": "4.7.6",
+    "svelte-check": "4.7.7",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3"
   },
