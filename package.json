@@ -35,9 +35,9 @@
     "typescript": "6.0.3"
   },
   "overrides": {
-    "@codemirror/state": "6.7.6",
-    "@codemirror/view": "6.43.14",
-    "@codemirror/language": "6.13.1",
+    "@codemirror/state": "$@codemirror/state",
+    "@codemirror/view": "$@codemirror/view",
+    "@codemirror/language": "$@codemirror/language",
     "@hono/node-server": "1.19.17",
     "hono": "4.13.13",
     "express-rate-limit": "8.7.1",

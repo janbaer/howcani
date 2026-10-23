@@ -94,6 +94,7 @@ This enables:
 - Hosted in home lab, accessible via Wireguard VPN
 - SQLite only (no separate database server)
 - YAGNI ruthlessly (build only what's needed now)
+- The `@codemirror/state`, `view` and `language` overrides in `package.json` must stay, and must reference the direct dependency (`"$@codemirror/state"`), never a fixed version. The transitive `@codemirror` packages declare `^6.0.0`, so bun keeps already-locked older copies and nests them next to the hoisted one. Two module instances reach `EditorState.create`, the `instanceof` check throws "Unrecognized extension value in extension set", and the create and edit dialogs stop working. A fixed override version breaks Renovate, which only bumps `dependencies`: bun then installs the stale override version.
 
 ## External Dependencies
 - GitHub Issues API (for one-time data migration from previous version)
