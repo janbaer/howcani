@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.115 - 2026-10-23
+---
+
+- Took over the open Renovate updates:
+  - `@&#8203;codemirror/view` 6.43.15
+  - `fast-uri` 3.1.9
+  - `jose` 6.2.13
+  - `svelte-check` 4.7.7
+
 ## 3.0.114 - 2026-10-16
 ---
 
