@@ -17,7 +17,7 @@ bun run lint         # Check with Biome (must pass before committing)
 bun run lint:fix     # Auto-fix Biome issues
 ```
 
-Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build and tests. No manual invocation needed before committing or pushing.
+Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build, type checks and tests. No manual invocation needed before committing or pushing.
 
 Tests must run with `--isolate`.
 
@@ -35,7 +35,7 @@ Secrets only — all other operator configuration lives in `config.yaml` (see be
 
 | Variable | Required | Notes |
 |---|---|---|
-| `HOWCANI_JWT_SECRET` | Yes | Auth won't work without it |
+| `HOWCANI_JWT_SECRET` | Yes | The server refuses to start without it |
 | `OPENROUTER_API_KEY` | When `embedding.provider: openrouter` | Read from env, never from `config.yaml` |
 | `HOWCANI_CONFIG_PATH` | No | Path to `config.yaml`. Default: `./config.yaml` |
 | `DATABASE_URL` | No | Default: `./data/howcani.db` |
@@ -68,10 +68,10 @@ The server is a **Bun HTTP server** that delegates to three subsystems:
 
 ### Search
 
-Two modes, selected by whether `config.yaml` configures an `embedding.provider` (null ⇒ FTS5 only):
+Two modes, selected by `embedding.enabled` in `config.yaml` (false ⇒ FTS5 only):
 
 - **FTS5 only**: `searchOnly()` — BM25 ranked full-text search on `items_fts`
-- **Hybrid** (FTS5 + KNN + RRF): `searchHybrid()` — top-50 FTS5 results merged with top-50 KNN vector results using Reciprocal Rank Fusion (k=60). Embeddings are float32 vectors (dimension from `config.yaml`) stored in `vec_items` (sqlite-vec virtual table). Embeddings are generated fire-and-forget on create/update, and backfilled by a cron job every 5 minutes in batches of 20.
+- **Hybrid** (FTS5 + KNN + RRF): `searchHybrid()` — top-50 FTS5 results merged with top-50 KNN vector results using Reciprocal Rank Fusion (k=60). Embeddings are float32 vectors (dimension from `config.yaml`) stored in `vec_items` (sqlite-vec virtual table). Embeddings are generated fire-and-forget on create/update, and backfilled by a cron job every 5 minutes in batches of 100.
 
 ### MCP Server (`src/server/mcp/`)
 
@@ -81,19 +81,17 @@ Stateless HTTP MCP server at `/mcp`. Auth is a Bearer token checked per-call in 
 
 Svelte 5 SPA with rune-based state. Layer rules mirror the backend (see `docs/project.md`).
 
-The client-side router is hash-based. SPA routes must also be declared in the `routes` map in `src/server/index.ts` or Bun won't serve the HTML shell for direct navigation.
+The client-side router uses the History API (`pushState`). SPA routes must also be declared in the `routes` map in `src/server/index.ts` or Bun won't serve the HTML shell for direct navigation.
 
 **Svelte/Biome quirks:**
 - `$state()` requires `let` — Biome's `useConst` rule is disabled for `src/client/**/*.svelte`
 - Biome can't see variables used in templates, so `noUnusedVariables` and `noUnusedImports` are also disabled for Svelte files
 - Biome line width is **120 chars** (non-default)
 
-## Spec System (OpenSpec)
+## Requirements & Design
 
-Design documentation lives in `openspec/`. Features are developed as *changes*:
+- `docs/requirements.md` — what the project must do, with stable IDs (R1, R2, ...)
+- `docs/design.md` — project-wide decisions the code does not show, each naming the requirements it satisfies
+- `docs/services/<name>.md` — decisions that concern a single area (search, embeddings, backup, MCP, release, ...), listed in `docs/design.md`
 
-- `openspec/changes/<name>/` — active or in-progress change (design.md, tasks, specs)
-- `openspec/changes/archive/` — completed changes
-- `openspec/specs/` — canonical specs reflecting the current state of the system
-
-Use `/openspec-*` skills to navigate the workflow.
+A change that adds, changes or drops a requirement or decision updates the matching document in the same PR.

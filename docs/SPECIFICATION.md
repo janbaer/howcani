@@ -509,11 +509,4 @@ bun run dist/index.js  # Run production
 
 ## Additional Resources
 
-For detailed requirements and acceptance criteria, see the OpenSpec formal specifications:
-- Authentication: `openspec/specs/authentication/spec.md`
-- User Management: `openspec/specs/user-management/spec.md`
-- Item Management: `openspec/specs/item-management/spec.md`
-- Tag Management: `openspec/specs/tag-management/spec.md`
-- Search & Filtering: `openspec/specs/search-filtering/spec.md`
-- Frontend UI: `openspec/specs/frontend-ui/spec.md`
-- Data Migration: `openspec/specs/data-migration/spec.md`
+For the current requirements and design decisions, see `docs/requirements.md` and `docs/design.md`.

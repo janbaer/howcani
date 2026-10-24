@@ -36,9 +36,6 @@ docs/
 .github/
 .gitlab-ci.yml
 
-# OpenSpec
-openspec/
-
 # Other
 .DS_Store
 Thumbs.db

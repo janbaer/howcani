@@ -57,10 +57,19 @@ This enables:
 - **Layered Testing**:
   - Route tests: stub service singletons with `stubMethods()` (`src/server/test-stubs.ts`), test HTTP handling
   - Service tests: stub repository singletons with `stubMethods()`, test business logic
-  - `mock.module()` is avoided in spec files — it replaces a module for every spec file that runs afterwards in the same process, so the suite's result depends on the filesystem's file order (see `openspec/specs/test-isolation/spec.md`)
+  - `mock.module()` is avoided in spec files — it replaces a module for every spec file that runs afterwards in the same process, so the suite's result depends on the filesystem's file order
   - Repository tests: Use real SQLite in-memory database, test data access
 - **Tools**: Bun test with pytest-style Arrange-Act-Assert structure
 - **Lint**: Always run `bun run lint` and `bun run build` before committing. Fix all reported errors. The build catches broken module resolution that lint cannot detect.
+
+### Dead Code
+- `bunx fallow dead-code` (`bun run lint:dead`) runs on demand, not in the hooks. The baseline is zero unused exports, type exports and dev dependencies.
+- Packages imported directly must be listed in `package.json`; relying on transitive dependencies is not allowed, they can vanish silently.
+- `.fallowrc.json` declares spec files and the orchestration files fallow cannot discover (`build-client.ts`, `scripts/bump-version.ts`, `public/sw.js`) as `entry`, not as `ignorePatterns`. Ignoring specs would make code used only by tests look unused, and `fallow fix` would delete it.
+- An intentional exception gets `// fallow-ignore-next-line <category>` plus a one-line reason.
+
+### Requirements and Design
+- `docs/requirements.md` lists what the project must do (R1, R2, ...). `docs/design.md` records project-wide decisions and lists the area documents under `docs/services/`.
 
 ### Git Workflow
 - Feature branches for development
