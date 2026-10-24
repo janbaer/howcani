@@ -155,6 +155,17 @@ describe('GET /settings/backups/:filename', () => {
     expect(res.status).toBe(StatusCodes.NOT_FOUND);
   });
 
+  test('returns 404 for a file of a user whose name starts with this username and "-backup-"', async () => {
+    writeFileSync(join(tmpDir, 'testuser-backup-x-backup-2026-03-10.json'), '{}');
+
+    const res = await app.handle(
+      new Request('http://localhost/settings/backups/testuser-backup-x-backup-2026-03-10.json', {
+        headers: { Authorization: `Bearer ${testToken}` },
+      }),
+    );
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
+  });
+
   test('returns 404 for a non-existent file', async () => {
     const res = await app.handle(
       new Request('http://localhost/settings/backups/testuser-backup-2099-01-01.json', {

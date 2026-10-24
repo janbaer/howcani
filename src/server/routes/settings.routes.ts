@@ -28,7 +28,9 @@ export const settingsRoutes = new Elysia({ prefix: '/settings' })
     ({ user, params, set }) => {
       assertAuthenticated(user);
       const safe = basename(params.filename);
-      if (!safe.startsWith(`${user.username}-backup-`) || !safe.endsWith('.json')) {
+      const prefix = `${user.username}-backup-`;
+      const isOwnBackup = safe.startsWith(prefix) && /^\d{4}-\d{2}-\d{2}\.json$/.test(safe.slice(prefix.length));
+      if (!isOwnBackup) {
         set.status = StatusCodes.NOT_FOUND;
         return { error: { code: 'NOT_FOUND', message: 'Backup not found' } };
       }

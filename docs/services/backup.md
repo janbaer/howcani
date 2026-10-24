@@ -5,7 +5,7 @@
 
 ## The filename is the contract
 
-Backups are `<username>-backup-YYYY-MM-DD.json`, dated in server-local time (`TZ` from compose). Pruning parses the date from the name, and listing and download rely on the username prefix; there is no manifest and no database query. Download normalises the name with `basename` against path traversal. Change the format and list, download and pruning have to change together.
+Backups are `<username>-backup-YYYY-MM-DD.json`, dated in server-local time (`TZ` from compose). Pruning parses the date from the name, and listing and download rely on the username prefix; there is no manifest and no database query. Download normalises the name with `basename` against path traversal and accepts only the prefix followed by a date and `.json`: usernames may contain `-`, so a prefix alone would let `bob` fetch the file of a user `bob-backup-x`. Change the format and list, download and pruning have to change together.
 
 Satisfies: R13, R18 · Origin: #54, #72 · Date: 2026-03-02
 
