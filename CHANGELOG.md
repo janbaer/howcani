@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.117 - 2026-10-24
+---
+
+- Removed unused code reported by fallow: the `closeDatabase` export, the `Settings` type export and the unused `params` prop on the login, register and not-found pages. No functional change. The dead-code check now runs on `pre-push` (#162).
+
 ## 3.0.116 - 2026-10-24
 ---
 
