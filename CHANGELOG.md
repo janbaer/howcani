@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.116 - 2026-10-24
+---
+
+- Fixed the backup download: a user could fetch the backup of another user whose name starts with their own name plus `-backup-` (for example `bob` and `bob-backup-x`). The file name must now be the user's own prefix followed by a date and `.json` (#161).
+
 ## 3.0.115 - 2026-10-23
 ---
 
