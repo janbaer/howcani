@@ -63,7 +63,8 @@ This enables:
 - **Lint**: Always run `bun run lint` and `bun run build` before committing. Fix all reported errors. The build catches broken module resolution that lint cannot detect.
 
 ### Dead Code
-- `bunx fallow dead-code` (`bun run lint:dead`) runs on demand, not in the hooks. The baseline is zero unused exports, type exports and dev dependencies.
+- `bunx fallow dead-code` (`bun run lint:dead`) runs in the `pre-push` hook and exits 1 on any finding. The baseline is zero unused exports, type exports, component props and misplaced dev dependencies.
+- `svelte` and `bun-plugin-svelte` stay in `devDependencies`: the Docker builder stage installs them and the runtime image only copies `dist/`. They are listed in `ignoreDependencies`, otherwise fallow reports them as dev dependencies used in production.
 - Packages imported directly must be listed in `package.json`; relying on transitive dependencies is not allowed, they can vanish silently.
 - `.fallowrc.json` declares spec files and the orchestration files fallow cannot discover (`build-client.ts`, `scripts/bump-version.ts`, `public/sw.js`) as `entry`, not as `ignorePatterns`. Ignoring specs would make code used only by tests look unused, and `fallow fix` would delete it.
 - An intentional exception gets `// fallow-ignore-next-line <category>` plus a one-line reason.

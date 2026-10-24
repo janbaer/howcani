@@ -8,6 +8,8 @@ interface Props {
   params?: Record<string, string>;
 }
 
+// App.svelte types every routed page as typeof Home, so its props must accept params
+// fallow-ignore-next-line unused-component-prop
 const { params }: Props = $props();
 const authState = getAuthState();
 

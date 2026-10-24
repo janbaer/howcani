@@ -17,7 +17,7 @@ bun run lint         # Check with Biome (must pass before committing)
 bun run lint:fix     # Auto-fix Biome issues
 ```
 
-Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build, type checks and tests. No manual invocation needed before committing or pushing.
+Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks`) enforce quality automatically: `pre-commit` runs lint, `pre-push` runs build, type checks, the dead-code check and tests. No manual invocation needed before committing or pushing.
 
 Tests must run with `--isolate`.
 

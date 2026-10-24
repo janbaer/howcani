@@ -22,7 +22,7 @@
   },
   "simple-git-hooks": {
     "pre-commit": "bun run lint",
-    "pre-push": "bun run build && bun check && bun run check:svelte && bun test --isolate"
+    "pre-push": "bun run build && bun check && bun run check:svelte && bun run lint:dead && bun test --isolate"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.3.3",

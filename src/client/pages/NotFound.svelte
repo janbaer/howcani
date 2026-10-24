@@ -1,11 +1,5 @@
 <script lang="ts">
 import { link } from '../lib/router.svelte';
-
-interface Props {
-  params?: Record<string, string>;
-}
-
-const { params }: Props = $props();
 </script>
 
 <div class="mx-auto max-w-md py-16">

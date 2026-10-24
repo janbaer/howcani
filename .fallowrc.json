@@ -7,5 +7,5 @@
     "public/sw.js"
   ],
   "ignorePatterns": ["public/index.html"],
-  "ignoreDependencies": ["codemirror"]
+  "ignoreDependencies": ["bun-plugin-svelte", "codemirror", "svelte"]
 }

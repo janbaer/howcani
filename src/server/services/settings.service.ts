@@ -1,6 +1,6 @@
 import { getConfig } from '../config/config.service';
 
-export interface Settings {
+interface Settings {
   semanticSearchEnabled: boolean;
   duplicateThreshold: number;
   backupEnabled: boolean;

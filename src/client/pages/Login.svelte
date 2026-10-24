@@ -4,12 +4,6 @@ import LogoMark from '../components/common/LogoMark.svelte';
 import { clearError, getAuthState, login } from '../lib/auth.svelte';
 import { link } from '../lib/router.svelte';
 
-interface Props {
-  params?: Record<string, string>;
-}
-
-const { params }: Props = $props();
-
 let username = $state('');
 let password = $state('');
 let isSubmitting = $state(false);

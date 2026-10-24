@@ -5,7 +5,7 @@
 
 ## Git hooks via simple-git-hooks
 
-Lint runs on pre-commit (under a second); build, both type checks and tests run on pre-push, so small commits stay fast. `simple-git-hooks` was chosen over husky (needs a `.husky` directory); it registers itself through `postinstall`. The trigger was broken import paths that only showed up in the browser. `--no-verify` is accepted: hooks are a local safety net, not CI.
+Lint runs on pre-commit (under a second); build, both type checks, the fallow dead-code check and tests run on pre-push, so small commits stay fast. `simple-git-hooks` was chosen over husky (needs a `.husky` directory); it registers itself through `postinstall`. The trigger was broken import paths that only showed up in the browser. `--no-verify` is accepted: hooks are a local safety net, not CI.
 
 Origin: add-git-hooks · Date: 2026-03-09
 

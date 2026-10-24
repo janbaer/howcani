@@ -52,10 +52,6 @@ export function setDatabase(newDb: Database): void {
   db = newDb;
 }
 
-export function closeDatabase(): void {
-  db.close();
-}
-
 export function runTransaction<T>(fn: () => T): T {
   return db.transaction(fn)();
 }
