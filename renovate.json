@@ -9,6 +9,10 @@
   "automerge": false,
   "minimumReleaseAge": "3 days",
   "prHourlyLimit": 0,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "minimumReleaseAge": "3 days",
