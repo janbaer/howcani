@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.118 - 2026-10-26
+---
+
+- Moved the runtime and the Docker base image to Bun 1.4.4 to pick up its runtime fixes. The image, the lockfile and `@types/bun` stay on one version.
+
 ## 3.0.117 - 2026-10-24
 ---
 
