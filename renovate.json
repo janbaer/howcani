@@ -11,7 +11,7 @@
   "prHourlyLimit": 0,
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on monday"]
+    "schedule": ["at any time"]
   },
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
