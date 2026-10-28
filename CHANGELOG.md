@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.119 - 2026-10-28
+---
+
+- Updated `@modelcontextprotocol/sdk` to 1.32.2 and pulled in the fixed `body-parser` 2.4.0 (with `qs` 6.16.1) to close a security advisory in the MCP endpoint's request parsing.
+
 ## 3.0.118 - 2026-10-26
 ---
 
