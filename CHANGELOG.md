@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.120 - 2026-10-29
+---
+
+- Took over the open Renovate updates:
+  - `hono` 4.13.14
+  - `ip-address` 10.7.5
+
 ## 3.0.119 - 2026-10-28
 ---
 
