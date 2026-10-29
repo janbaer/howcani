@@ -39,9 +39,9 @@
     "@codemirror/view": "$@codemirror/view",
     "@codemirror/language": "$@codemirror/language",
     "@hono/node-server": "1.19.17",
-    "hono": "4.13.13",
+    "hono": "4.13.14",
     "express-rate-limit": "8.7.1",
-    "ip-address": "10.7.4",
+    "ip-address": "10.7.5",
     "fast-uri": "3.1.9",
     "path-to-regexp": "8.4.2"
   },
