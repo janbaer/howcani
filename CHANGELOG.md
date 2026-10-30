@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.121 - 2026-10-30
+---
+
+- Took over the open Renovate updates:
+  - `marked` 18.1.2
+  - `svelte` 5.57.3
+
 ## 3.0.120 - 2026-10-29
 ---
 
