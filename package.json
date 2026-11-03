@@ -15,7 +15,7 @@
     "check:svelte": "svelte-check --tsconfig ./tsconfig.json",
     "lint": "bunx @biomejs/biome check ./src/",
     "lint:fix": "bunx @biomejs/biome check --fix ./src/",
-    "lint:dead": "bunx fallow dead-code",
+    "lint:dead": "fallow dead-code",
     "db:migrate": "bun run src/server/db/migrate.ts",
     "mcp-inspect": "bunx @modelcontextprotocol/inspector",
     "postinstall": "bunx simple-git-hooks"
@@ -28,6 +28,7 @@
     "@tailwindcss/cli": "4.3.3",
     "@types/bun": "1.4.4",
     "bun-plugin-svelte": "0.0.6",
+    "fallow": "3.38.0",
     "simple-git-hooks": "2.14.0",
     "svelte": "5.57.3",
     "svelte-check": "4.7.7",

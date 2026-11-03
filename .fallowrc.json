@@ -4,8 +4,9 @@
     "**/*.spec.ts",
     "build-client.ts",
     "scripts/bump-version.ts",
-    "public/sw.js"
+    "public/sw.js",
+    "src/styles/app.css"
   ],
   "ignorePatterns": ["public/index.html"],
-  "ignoreDependencies": ["bun-plugin-svelte", "codemirror", "svelte"]
+  "ignoreDependencies": ["bun-plugin-svelte", "svelte"]
 }
