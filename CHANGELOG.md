@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.122 - 2026-11-04
+---
+
+- Updated `hono` to 4.13.16, which closes several security advisories: `mount()` path handling, wildcard middleware in the RegExpRouter, `validator('form')` on multipart requests, the `css` helper and `csrf()`. Also took `jose` 6.2.14 and `express-rate-limit` 8.7.2.
+
 ## 3.0.121 - 2026-10-30
 ---
 
