@@ -28,7 +28,7 @@
     "@tailwindcss/cli": "4.3.3",
     "@types/bun": "1.4.4",
     "bun-plugin-svelte": "0.0.6",
-    "fallow": "3.38.0",
+    "fallow": "3.38.1",
     "simple-git-hooks": "2.14.0",
     "svelte": "5.57.3",
     "svelte-check": "4.7.7",
@@ -40,8 +40,8 @@
     "@codemirror/view": "$@codemirror/view",
     "@codemirror/language": "$@codemirror/language",
     "@hono/node-server": "1.19.17",
-    "hono": "4.13.14",
-    "express-rate-limit": "8.7.1",
+    "hono": "4.13.16",
+    "express-rate-limit": "8.7.2",
     "ip-address": "10.7.5",
     "fast-uri": "3.1.9",
     "path-to-regexp": "8.4.2"
@@ -57,7 +57,7 @@
     "dompurify": "3.4.17",
     "elysia": "1.4.30",
     "http-status-codes": "2.3.0",
-    "jose": "6.2.13",
+    "jose": "6.2.14",
     "marked": "18.1.2",
     "sqlite-vec": "0.1.9",
     "zod": "4.6.7"
