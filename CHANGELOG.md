@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.123 - 2026-11-05
+---
+
+- Took over the open Renovate updates:
+  - `jose` 6.2.15
+  - `svelte-check` 4.7.8
+
 ## 3.0.122 - 2026-11-04
 ---
 
