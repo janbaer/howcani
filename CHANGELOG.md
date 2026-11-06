@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.124 - 2026-11-06
+---
+
+- Took over the open Renovate updates:
+  - `@tailwindcss/cli` 4.3.4
+  - `express-rate-limit` 8.7.3
+  - `marked` 18.1.3
+  - `tailwindcss` 4.3.4
+
 ## 3.0.123 - 2026-11-05
 ---
 
