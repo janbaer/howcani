@@ -43,7 +43,7 @@
     "@hono/node-server": "1.19.17",
     "hono": "4.13.16",
     "express-rate-limit": "8.7.3",
-    "ip-address": "10.7.5",
+    "ip-address": "10.7.6",
     "fast-uri": "3.1.9",
     "path-to-regexp": "8.4.2"
   },
