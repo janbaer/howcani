@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.125 - 2026-11-07
+---
+
+- Took over the open Renovate updates:
+  - `fallow` 3.39.0
+  - `ip-address` 10.7.6
+
 ## 3.0.124 - 2026-11-06
 ---
 
