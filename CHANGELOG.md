@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.126 - 2026-11-08
+---
+
+- Took over the open Renovate updates:
+  - `@biomejs/biome` 2.6.5
+  - `elysia` 1.4.31
+
 ## 3.0.125 - 2026-11-07
 ---
 
