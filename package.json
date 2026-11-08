@@ -25,7 +25,7 @@
     "pre-push": "bun run build && bun check && bun run check:svelte && bun run lint:dead && bun test --isolate"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.4",
+    "@biomejs/biome": "2.6.5",
     "@tailwindcss/cli": "4.3.4",
     "@types/bun": "1.4.4",
     "bun-plugin-svelte": "0.0.6",
@@ -56,7 +56,7 @@
     "@lezer/highlight": "1.2.5",
     "@modelcontextprotocol/sdk": "1.32.2",
     "dompurify": "3.4.17",
-    "elysia": "1.4.30",
+    "elysia": "1.4.31",
     "http-status-codes": "2.3.0",
     "jose": "6.2.15",
     "marked": "18.1.3",
