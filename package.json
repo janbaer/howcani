@@ -29,7 +29,7 @@
     "@tailwindcss/cli": "4.3.4",
     "@types/bun": "1.4.4",
     "bun-plugin-svelte": "0.0.6",
-    "fallow": "3.39.0",
+    "fallow": "3.40.0",
     "simple-git-hooks": "2.14.0",
     "svelte": "5.57.3",
     "svelte-check": "4.7.8",
