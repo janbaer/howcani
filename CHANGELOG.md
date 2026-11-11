@@ -2,6 +2,16 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.127 - 2026-11-11
+---
+
+- Took over the open Renovate updates:
+  - `fallow` 3.41.0
+  - `hono` 4.13.17
+  - `@biomejs/biome` 2.6.6
+  - `@tailwindcss/cli` 4.3.5
+  - `tailwindcss` 4.3.5
+
 ## 3.0.126 - 2026-11-08
 ---
 
