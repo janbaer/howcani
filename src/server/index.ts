@@ -8,6 +8,7 @@ import { handleMcpRequest } from './mcp';
 import { adminRoutes, authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
 import { embeddingService } from './services/embedding.service';
 import { verifyEmbeddingShape } from './services/embedding-startup';
+import { assertOidcConfigured } from './services/oidc.service';
 import { schedulerService } from './services/scheduler.service';
 
 declare const APP_VERSION: string | undefined;
@@ -15,6 +16,7 @@ const appVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : Bun.env.np
 console.log(`[howcani] v${appVersion}`);
 
 loadConfig();
+assertOidcConfigured();
 runMigrations();
 verifyEmbeddingShape(embeddingService);
 schedulerService.init();

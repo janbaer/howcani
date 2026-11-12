@@ -143,6 +143,14 @@ export class AuthService {
     };
   }
 
+  async loginExternalUser(username: string | undefined): Promise<Result<AuthResult>> {
+    const user = username ? userRepository.findByUsername(username) : null;
+    if (!user) {
+      return createError('UNKNOWN_USER', 'No HowCanI user matches this login');
+    }
+    return { success: true, data: await generateAuthResult(user) };
+  }
+
   async createApiToken(userId: string, days: number | string): Promise<Result<{ token: string }>> {
     const user = userRepository.findById(userId);
     if (!user) {

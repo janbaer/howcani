@@ -229,6 +229,32 @@ describe('AuthService', () => {
     });
   });
 
+  describe('loginExternalUser', () => {
+    test('issues a login token for an existing username', async () => {
+      await authService.register(validUser);
+
+      const result = await authService.loginExternalUser(validUser.username);
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.user.username).toBe(validUser.username);
+      expect((await verifyToken(result.data.token))?.kind).toBe('login');
+    });
+
+    test.each([
+      ['an unknown username', 'mallory'],
+      ['a missing username', undefined],
+    ])('rejects %s', async (_, username) => {
+      await authService.register(validUser);
+
+      const result = await authService.loginExternalUser(username);
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('UNKNOWN_USER');
+    });
+  });
+
   describe('createApiToken', () => {
     test('issues an API token for an existing user', async () => {
       const registered = await authService.register(validUser);

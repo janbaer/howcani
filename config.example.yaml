@@ -73,4 +73,13 @@ auth:
   # Lifetime of a login JWT, as a duration string (e.g. 7d, 24h, 30m).
   # Applies to browser login tokens only; API tokens set their own expiry.
   tokenExpiration: "7d"
+  # "local" (username and password) or "oidc" (login via an OpenID Connect
+  # provider such as Pocket ID). With "oidc", password login and registration
+  # are disabled and the provider's preferred_username must match an existing
+  # HowCanI user. The client secret is read from HOWCANI_OIDC_CLIENT_SECRET.
+  provider: local
+  # oidc:
+  #   issuer: https://id.example.com
+  #   clientId: howcani
+  #   redirectUri: https://howcani.example.com/api/auth/oidc/callback
 

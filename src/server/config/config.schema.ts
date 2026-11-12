@@ -50,12 +50,30 @@ const duplicateSchema = z.object({
   threshold: z.number().int().min(50).max(100).default(80),
 });
 
-const authSchema = z.object({
-  tokenExpiration: z
-    .string()
-    .regex(TOKEN_EXPIRATION_RE, 'auth.tokenExpiration must be a duration like "7d", "24h" or "30m"')
-    .default('7d'),
+const oidcSchema = z.object({
+  issuer: z.string().url(),
+  clientId: z.string().min(1),
+  redirectUri: z.string().url(),
 });
+
+const authSchema = z
+  .object({
+    tokenExpiration: z
+      .string()
+      .regex(TOKEN_EXPIRATION_RE, 'auth.tokenExpiration must be a duration like "7d", "24h" or "30m"')
+      .default('7d'),
+    provider: z.enum(['local', 'oidc']).default('local'),
+    oidc: oidcSchema.optional(),
+  })
+  .superRefine((a, ctx) => {
+    if (a.provider === 'oidc' && !a.oidc) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'auth.oidc (issuer, clientId, redirectUri) is required when auth.provider is "oidc"',
+        path: ['oidc'],
+      });
+    }
+  });
 
 export const configSchema = z.object({
   embedding: embeddingSchema.prefault({}),

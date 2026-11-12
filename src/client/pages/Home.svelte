@@ -1,7 +1,7 @@
 <script lang="ts">
 import Button from '../components/common/Button.svelte';
 import LogoMark from '../components/common/LogoMark.svelte';
-import { getAuthState } from '../lib/auth.svelte';
+import { getAuthState, startSsoLogin } from '../lib/auth.svelte';
 import { navigate } from '../lib/router.svelte';
 
 interface Props {
@@ -59,12 +59,18 @@ $effect(() => {
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <Button href="/login" size="lg">
-          Login
-        </Button>
-        <Button href="/register" variant="secondary" size="lg">
-          Create Account
-        </Button>
+        {#if authState.provider === 'oidc'}
+          <Button size="lg" onclick={startSsoLogin}>
+            Sign in with SSO
+          </Button>
+        {:else}
+          <Button href="/login" size="lg">
+            Login
+          </Button>
+          <Button href="/register" variant="secondary" size="lg">
+            Create Account
+          </Button>
+        {/if}
       </div>
     </div>
   </div>

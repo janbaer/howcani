@@ -39,6 +39,7 @@ Secrets only — all other operator configuration lives in `config.yaml` (see be
 |---|---|---|
 | `HOWCANI_JWT_SECRET` | Yes | The server refuses to start without it |
 | `OPENROUTER_API_KEY` | When `embedding.provider: openrouter` | Read from env, never from `config.yaml` |
+| `HOWCANI_OIDC_CLIENT_SECRET` | When `auth.provider: oidc` | The server refuses to start without it in that mode |
 | `HOWCANI_CONFIG_PATH` | No | Path to `config.yaml`. Default: `./config.yaml` |
 | `DATABASE_URL` | No | Only read with `NODE_ENV=production` (default `./data/howcani.db`). Otherwise `test` uses `./data/howcani.test.db` and everything else `./data/howcani.db` |
 | `PORT` | No | Default: `3000` |

@@ -97,6 +97,30 @@ describe('configService', () => {
     expect(() => loadConfig()).toThrow(/tokenExpiration/);
   });
 
+  test('auth.provider defaults to local', () => {
+    writeConfig('backup:\n  enabled: true\n');
+    expect(loadConfig().auth.provider).toBe('local');
+  });
+
+  test('rejects provider oidc without an oidc section', () => {
+    writeConfig('auth:\n  provider: oidc\n');
+    expect(() => loadConfig()).toThrow(/auth\.oidc/);
+  });
+
+  test('rejects an oidc section with an invalid issuer url', () => {
+    writeConfig(
+      'auth:\n  provider: oidc\n  oidc:\n    issuer: not-a-url\n    clientId: howcani\n    redirectUri: https://howcani.test/api/auth/oidc/callback\n',
+    );
+    expect(() => loadConfig()).toThrow(/issuer/);
+  });
+
+  test('accepts a complete oidc configuration', () => {
+    writeConfig(
+      'auth:\n  provider: oidc\n  oidc:\n    issuer: https://id.example.test\n    clientId: howcani\n    redirectUri: https://howcani.test/api/auth/oidc/callback\n',
+    );
+    expect(loadConfig().auth.oidc?.clientId).toBe('howcani');
+  });
+
   test('enabled defaults to false when embedding section is omitted', () => {
     writeConfig('backup:\n  enabled: true\n');
     const cfg = loadConfig();

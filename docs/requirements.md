@@ -2,7 +2,7 @@
 
 This document lists what the project must do, one requirement per line with a stable ID (R1, R2, ...) that `docs/design.md` refers to.
 
-- **R1** The system SHALL let users register with username, email and password, log in with username and password, and issue signed, expiring tokens.
+- **R1** When `auth.provider` is `local`, the system SHALL let users register with username, email and password, log in with username and password, and issue signed, expiring tokens.
 - **R2** The system SHALL make items readable without authentication and allow only the authenticated owner to change them.
 - **R3** The system SHALL let the owner create, edit and delete question-and-answer items with a markdown answer and tags.
 - **R4** The system SHALL render answers as sanitized markdown.
@@ -13,7 +13,7 @@ This document lists what the project must do, one requirement per line with a st
 - **R9** The system SHALL show semantically related items for an item.
 - **R10** The system SHALL list, per item and as an overview of groups, the items whose similarity meets the configured duplicate threshold.
 - **R11** The system SHALL expose the knowledge base to AI clients via MCP under the same access rules as the API.
-- **R12** The system SHALL refuse to start when `config.yaml` is missing or invalid, when `HOWCANI_JWT_SECRET` is unset, or when stored embeddings do not match the configured model.
+- **R12** The system SHALL refuse to start when `config.yaml` is missing or invalid, when `HOWCANI_JWT_SECRET` is unset, when `auth.provider` is `oidc` and `HOWCANI_OIDC_CLIENT_SECRET` is unset, or when stored embeddings do not match the configured model.
 - **R13** When backups are enabled, the system SHALL back up every user's data daily to JSON and prune backups after the configured retention.
 - **R14** The system SHALL let a user restore their data from a backup file.
 - **R15** The system SHALL be usable on desktop, tablet and mobile. *Check:* manual, item list, detail and edit dialog on each of the three.
@@ -21,3 +21,4 @@ This document lists what the project must do, one requirement per line with a st
 - **R17** The system SHALL create tags implicitly when an item uses them and let the owner rename, recolor and delete them; deleting a tag removes it from its items.
 - **R18** The system SHALL let a user list and download only their own backup files.
 - **R19** The system SHALL tell an open client when a newer version has been deployed.
+- **R20** When `auth.provider` is `oidc`, the system SHALL authenticate users via an OIDC provider, map them to existing users by username, and disable password login and registration.

@@ -1,10 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
 import { createApiToken, createToken } from '../auth';
+import { __setConfigForTests } from '../config/config.service';
 import { setupTestDatabase } from '../db/test-helpers';
 import type { User } from '../repositories/user.repository';
 import { type AuthError, type AuthResult, authService } from '../services/auth.service';
+import { oidcService } from '../services/oidc.service';
 import { stubMethods } from '../test-stubs';
 
 type Result<T> = { success: true; data: T } | { success: false; error: AuthError };
@@ -106,6 +108,19 @@ const mockAuthService = {
 };
 
 stubMethods(authService, mockAuthService);
+
+const OIDC_CHECKS = { codeVerifier: 'verifier', state: 'state123', nonce: 'nonce123' };
+const mockOidcService = {
+  startLogin: mock(
+    async (): Promise<Result<{ url: string; checks: typeof OIDC_CHECKS }>> =>
+      createSuccessResult({ url: 'https://id.example.test/authorize?x=1', checks: OIDC_CHECKS }),
+  ),
+  finishLogin: mock(
+    async (_url: URL, _checks: typeof OIDC_CHECKS): Promise<Result<AuthResult>> =>
+      createSuccessResult({ user: {} as AuthResult['user'], token: 'howcani-jwt' }),
+  ),
+};
+stubMethods(oidcService, mockOidcService);
 
 import { authPlugin } from '../middleware';
 import { authRoutes } from './auth.routes';
@@ -368,6 +383,152 @@ describe('Auth Routes', () => {
       const res = await requestApiToken({ days: 0 }, `Bearer ${await createToken(alice)}`);
 
       expect(res.status).toBe(StatusCodes.BAD_REQUEST);
+    });
+  });
+
+  describe('auth provider', () => {
+    const REDIRECT_URI = 'https://howcani.test/api/auth/oidc/callback';
+    const alice = { userId: 'alice-id', username: 'alice', email: 'alice@example.com' };
+
+    function useOidc() {
+      __setConfigForTests({
+        auth: {
+          provider: 'oidc',
+          oidc: { issuer: 'https://id.example.test', clientId: 'howcani', redirectUri: REDIRECT_URI },
+        },
+      });
+    }
+
+    function post(path: string, body: object, headers: Record<string, string> = {}) {
+      return app.handle(
+        new Request(`http://localhost/api/auth/${path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...headers },
+          body: JSON.stringify(body),
+        }),
+      );
+    }
+
+    function callback(query: string, cookie?: string) {
+      return app.handle(
+        new Request(`http://internal:3000/api/auth/oidc/callback?${query}`, {
+          headers: cookie ? { Cookie: `oidc=${cookie}` } : {},
+        }),
+      );
+    }
+
+    function fragment(res: Response): URLSearchParams {
+      const location = res.headers.get('location') ?? '';
+      expect(location.startsWith('/login#')).toBe(true);
+      return new URLSearchParams(location.slice('/login#'.length));
+    }
+
+    beforeEach(() => {
+      mockOidcService.startLogin.mockClear();
+      mockOidcService.finishLogin.mockClear();
+    });
+
+    afterEach(() => {
+      __setConfigForTests({});
+    });
+
+    test('GET /api/auth/config exposes the provider without authentication', async () => {
+      expect(await (await app.handle(new Request('http://localhost/api/auth/config'))).json()).toEqual({
+        provider: 'local',
+      });
+      useOidc();
+      expect(await (await app.handle(new Request('http://localhost/api/auth/config'))).json()).toEqual({
+        provider: 'oidc',
+      });
+    });
+
+    test('OIDC routes return 404 in local mode', async () => {
+      const res = await app.handle(new Request('http://localhost/api/auth/oidc/login'));
+
+      expect(res.status).toBe(StatusCodes.NOT_FOUND);
+      expect(mockOidcService.startLogin).not.toHaveBeenCalled();
+    });
+
+    test('in oidc mode password login, registration and the password api-token variant are rejected', async () => {
+      useOidc();
+
+      for (const res of [
+        await post('login', { username: 'john', password: 'secure123' }),
+        await post('register', validUser),
+        await post('api-token', { days: 30, username: 'john', password: 'secure123' }),
+      ]) {
+        expect(res.status).toBe(StatusCodes.FORBIDDEN);
+        expect((await res.json()).error.code).toBe('PASSWORD_LOGIN_DISABLED');
+      }
+    });
+
+    test('in oidc mode a login token still creates an API token', async () => {
+      useOidc();
+
+      const res = await post('api-token', { days: 30 }, authHeader(await createToken(alice)));
+
+      expect(res.status).toBe(StatusCodes.OK);
+    });
+
+    test('GET /api/auth/oidc/login redirects to the provider and sets a lax HttpOnly cookie', async () => {
+      useOidc();
+
+      const res = await app.handle(new Request('http://localhost/api/auth/oidc/login'));
+
+      expect(res.status).toBe(302);
+      expect(res.headers.get('location')).toBe('https://id.example.test/authorize?x=1');
+      const cookie = res.headers.get('set-cookie') ?? '';
+      expect(cookie).toContain('oidc=verifier.state123.nonce123');
+      expect(cookie).toContain('HttpOnly');
+      expect(cookie).toContain('SameSite=Lax');
+      expect(cookie).toContain('Path=/api/auth/oidc');
+      expect(cookie).toContain('Secure');
+    });
+
+    test('GET /api/auth/oidc/login sends the user back to the login page when the provider is down', async () => {
+      useOidc();
+      mockOidcService.startLogin.mockImplementationOnce(async () =>
+        createErrorResult('OIDC_UNAVAILABLE', 'The login provider is not reachable'),
+      );
+
+      const res = await app.handle(new Request('http://localhost/api/auth/oidc/login'));
+
+      expect(fragment(res).get('error')).toBe('OIDC_UNAVAILABLE');
+    });
+
+    test('the callback hands the token to the SPA and clears the cookie', async () => {
+      useOidc();
+
+      const res = await callback('code=abc&state=state123', 'verifier.state123.nonce123');
+
+      expect(fragment(res).get('token')).toBe('howcani-jwt');
+      const cleared = res.headers.get('set-cookie') ?? '';
+      expect(cleared).toContain('oidc=;');
+      expect(cleared).toContain('Max-Age=0');
+      expect(cleared).toContain('Path=/api/auth/oidc');
+      const [url, checks] = mockOidcService.finishLogin.mock.calls[0];
+      expect(url.href).toBe(`${REDIRECT_URI}?code=abc&state=state123`);
+      expect(checks).toEqual(OIDC_CHECKS);
+    });
+
+    test('the callback rejects a request without the login cookie', async () => {
+      useOidc();
+
+      const res = await callback('code=abc&state=state123');
+
+      expect(fragment(res).get('error')).toBe('OIDC_FAILED');
+      expect(mockOidcService.finishLogin).not.toHaveBeenCalled();
+    });
+
+    test('the callback passes a failed login on to the login page', async () => {
+      useOidc();
+      mockOidcService.finishLogin.mockImplementationOnce(async () =>
+        createErrorResult('UNKNOWN_USER', 'No HowCanI user matches this login'),
+      );
+
+      const res = await callback('code=abc&state=state123', 'verifier.state123.nonce123');
+
+      expect(fragment(res).get('error')).toBe('UNKNOWN_USER');
     });
   });
 });

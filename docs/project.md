@@ -8,7 +8,7 @@ HowCanI is a personal knowledge base application for storing, organizing, and re
 - **Backend Framework**: Elysia
 - **Frontend**: Svelte 5 with runes
 - **Database**: SQLite with FTS5 for full-text search
-- **Authentication**: JWT using jose library
+- **Authentication**: JWT using jose library; login either by username and password (`auth.provider: local`) or via an OIDC provider such as Pocket ID using openid-client (`auth.provider: oidc`)
 - **Testing**: Bun test (built-in)
 - **Language**: TypeScript
 

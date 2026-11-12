@@ -1,7 +1,7 @@
 <script lang="ts">
 import Button from '../components/common/Button.svelte';
 import LogoMark from '../components/common/LogoMark.svelte';
-import { clearError, getAuthState, login } from '../lib/auth.svelte';
+import { clearError, getAuthState, login, startSsoLogin } from '../lib/auth.svelte';
 import { link } from '../lib/router.svelte';
 
 let username = $state('');
@@ -33,6 +33,11 @@ async function handleSubmit(e: Event) {
       </div>
     {/if}
 
+    {#if authState.provider === 'oidc'}
+      <Button size="lg" class="w-full" onclick={startSsoLogin}>
+        Sign in with SSO
+      </Button>
+    {:else}
     <form onsubmit={handleSubmit} class="space-y-4">
     <div>
       <label for="username" class="auth-label">
@@ -78,5 +83,6 @@ async function handleSubmit(e: Event) {
         Create one
       </a>
     </div>
+    {/if}
   </div>
 </div>

@@ -66,6 +66,8 @@ export interface User {
   updated_at: string;
 }
 
+export type AuthProvider = 'local' | 'oidc';
+
 interface AuthResponse {
   user: User;
   token: string;
@@ -88,6 +90,10 @@ export const auth = {
 
   async me(): Promise<ApiResponse<User>> {
     return request<User>('/auth/me');
+  },
+
+  async config(): Promise<ApiResponse<{ provider: AuthProvider }>> {
+    return request<{ provider: AuthProvider }>('/auth/config');
   },
 
   async createApiToken(days: number): Promise<ApiResponse<{ token: string }>> {

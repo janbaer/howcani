@@ -2,7 +2,7 @@
 import Button from '../components/common/Button.svelte';
 import LogoMark from '../components/common/LogoMark.svelte';
 import { clearError, getAuthState, register } from '../lib/auth.svelte';
-import { link } from '../lib/router.svelte';
+import { link, navigate } from '../lib/router.svelte';
 
 let username = $state('');
 let email = $state('');
@@ -12,6 +12,10 @@ let isSubmitting = $state(false);
 let validationError = $state('');
 
 const authState = getAuthState();
+
+$effect(() => {
+  if (authState.provider === 'oidc') navigate('/login');
+});
 
 async function handleSubmit(e: Event) {
   e.preventDefault();
