@@ -21,9 +21,11 @@ Tests use in-memory SQLite — no setup needed. Git hooks (via `simple-git-hooks
 
 Tests must run with `--isolate`.
 
+Jan usually has `bun run dev` running in this checkout. Check out other branches (rebase tests, reviews) in a separate `git worktree`, never here; see `docs/services/tooling.md`.
+
 ## Release & Deployment
 
-Merging a PR is the release. `/forgejo-pr-merge` bumps the version in `package.json` and writes the changelog entry on the feature branch after the review, then squash-merges; neither is part of the reviewed diff.
+`/forgejo-pr-merge` squash-merges the PR, then runs `/forgejo-release` on `main`: it bumps the version in `package.json`, writes the changelog entry and pushes. Neither is part of the reviewed diff. With `no-release` the merge waits for the next release; changes that only touch tooling, review rules or docs never release on their own.
 
 `.forgejo/workflows/docker-image.yml` then runs on the Forgejo runner for the push to `main`, but only for `main` (a `workflow_dispatch` on any other ref skips) and only when the push touches `package.json`. It skips versions already in the registry, and otherwise builds and pushes `forgejo.home.janbaer.de/jan/howcani:<version>` + `:latest`. It logs in with the `REGISTRY_TOKEN` repo secret (PAT, scope `write:package`) and reports to ntfy topic `forgejo-cicd`. Pushing `:latest` is the deploy trigger — a webhook picks it up and rolls it out automatically. No `docker-compose pull && up -d` needed.
 
@@ -38,7 +40,7 @@ Secrets only — all other operator configuration lives in `config.yaml` (see be
 | `HOWCANI_JWT_SECRET` | Yes | The server refuses to start without it |
 | `OPENROUTER_API_KEY` | When `embedding.provider: openrouter` | Read from env, never from `config.yaml` |
 | `HOWCANI_CONFIG_PATH` | No | Path to `config.yaml`. Default: `./config.yaml` |
-| `DATABASE_URL` | No | Default: `./data/howcani.db` |
+| `DATABASE_URL` | No | Only read with `NODE_ENV=production` (default `./data/howcani.db`). Otherwise `test` uses `./data/howcani.test.db` and everything else `./data/howcani.db` |
 | `PORT` | No | Default: `3000` |
 
 ## Operator Config (`config.yaml`)

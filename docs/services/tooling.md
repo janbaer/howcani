@@ -21,6 +21,12 @@ Origin: #153, #155 · Date: 2026-10-11
 
 Origin: combined-dev-css · Date: 2026-09-22
 
+## Branch switches happen in a worktree while `dev` runs
+
+`bun --hot` rebuilds on every file change in the checkout. A `git switch` or rebase there makes it build intermediate states in which imported files are missing, and the browser keeps a "BUILD FAILED" overlay until the page is reloaded. Agents therefore check out other branches in a separate `git worktree`, never in the checkout the dev server runs in. A test server started outside `NODE_ENV=production` ignores `DATABASE_URL` and writes to `./data/howcani.db`, the dev database.
+
+Origin: initial · Date: 2026-11-12
+
 ## Tailwind runs at build time and avoids `@apply` layers
 
 The CDN script was replaced by the v4 CLI because `@apply` cannot work with a runtime CDN. Build-time CSS only contains classes it can scan, so `@source` has to cover all `.svelte` and `.ts` files or dynamically built class strings get purged. `@layer components` with `@apply` is avoided: those classes silently ignore variants (`hover:card`). Variant logic for buttons lives in `Button.svelte`; the remaining shared classes (`card`, `input`, `dialog`, ...) are `@utility` blocks. `prettier-plugin-tailwindcss` is out, the project uses Biome.
