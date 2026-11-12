@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.129 - 2026-11-12
+---
+
+- Made MCP API tokens creatable from the Settings page, so a token no longer needs a curl call with the password, and so an API token can no longer renew itself through the token endpoint. Creating one there needs a fresh login once; the username/password call stays for scripts.
+
 ## 3.0.128 - 2026-11-12
 ---
 
