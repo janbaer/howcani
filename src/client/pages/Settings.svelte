@@ -1,12 +1,15 @@
 <script lang="ts">
 import Button from '../components/common/Button.svelte';
+import ApiTokenSection from '../components/settings/ApiTokenSection.svelte';
 import BackupSection from '../components/settings/BackupSection.svelte';
 import DuplicatesSection from '../components/settings/DuplicatesSection.svelte';
 import { settings } from '../lib/api';
 import { getAuthState } from '../lib/auth.svelte';
 import { navigate } from '../lib/router.svelte';
+import { ApiTokenStore } from '../stores/api-token.store.svelte';
 
 const authState = getAuthState();
+const apiTokenStore = new ApiTokenStore();
 
 let savedThreshold = $state(80);
 let loading = $state(true);
@@ -52,5 +55,14 @@ $effect(() => {
     <BackupSection />
 
     <DuplicatesSection username={authState.user?.username} {savedThreshold} />
+
+    <ApiTokenSection
+      token={apiTokenStore.token}
+      creating={apiTokenStore.creating}
+      error={apiTokenStore.error}
+      copied={apiTokenStore.copied}
+      oncreate={(days) => apiTokenStore.create(days)}
+      oncopy={() => apiTokenStore.copy()}
+    />
   {/if}
 </div>

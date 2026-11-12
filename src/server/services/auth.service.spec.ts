@@ -58,6 +58,7 @@ const mockUserRepository = {
 
 stubMethods(userRepository, mockUserRepository);
 
+import { verifyToken } from '../auth';
 import { AuthService } from './auth.service';
 
 const validUser = {
@@ -225,6 +226,68 @@ describe('AuthService', () => {
 
       expect(result.error.code).toBe('UNAUTHORIZED');
       expect(result.error.message).toBe('Invalid credentials');
+    });
+  });
+
+  describe('createApiToken', () => {
+    test('issues an API token for an existing user', async () => {
+      const registered = await authService.register(validUser);
+      if (!registered.success) throw new Error('register failed');
+
+      const result = await authService.createApiToken(registered.data.user.id, 30);
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      const payload = await verifyToken(result.data.token);
+      expect(payload?.kind).toBe('api');
+      expect(payload?.userId).toBe(registered.data.user.id);
+    });
+
+    test('rejects a user that no longer exists', async () => {
+      const result = await authService.createApiToken('deleted-user', 30);
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('INVALID_TOKEN');
+    });
+
+    test.each([0, 366, 1.5, 'abc'])('rejects days = %p', async (days) => {
+      const registered = await authService.register(validUser);
+      if (!registered.success) throw new Error('register failed');
+
+      const result = await authService.createApiToken(registered.data.user.id, days);
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('INVALID_DAYS');
+    });
+  });
+
+  describe('createApiTokenWithCredentials', () => {
+    test('issues an API token for valid credentials', async () => {
+      await authService.register(validUser);
+
+      const result = await authService.createApiTokenWithCredentials(
+        { username: validUser.username, password: validUser.password },
+        '30',
+      );
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect((await verifyToken(result.data.token))?.kind).toBe('api');
+    });
+
+    test.each([
+      ['a wrong password', validUser.username, 'wrong-password'],
+      ['an unknown user', 'alice', validUser.password],
+    ])('rejects %s', async (_, username, password) => {
+      await authService.register(validUser);
+
+      const result = await authService.createApiTokenWithCredentials({ username, password }, 30);
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error.code).toBe('INVALID_CREDENTIALS');
     });
   });
 });

@@ -1,4 +1,4 @@
-import { createToken, hashPassword, verifyPassword } from '../auth';
+import { createApiToken, createToken, hashPassword, verifyPassword } from '../auth';
 import { type User, userRepository } from '../repositories';
 
 export interface RegisterInput {
@@ -69,6 +69,15 @@ function validateEmail(email: string): AuthError | null {
   return null;
 }
 
+async function issueApiToken(user: User, days: number | string): Promise<Result<{ token: string }>> {
+  const validDays = Number(days);
+  if (!Number.isInteger(validDays) || validDays < 1 || validDays > 365) {
+    return createError('INVALID_DAYS', 'days must be an integer between 1 and 365');
+  }
+  const token = await createApiToken({ userId: user.id, username: user.username, email: user.email }, validDays);
+  return { success: true, data: { token } };
+}
+
 async function generateAuthResult(user: User): Promise<AuthResult> {
   const tokenPayload = {
     userId: user.id,
@@ -123,17 +132,8 @@ export class AuthService {
   }
 
   async login(input: LoginInput): Promise<Result<AuthResult>> {
-    if (!input.username || !input.password) {
-      return createError('UNAUTHORIZED', 'Invalid credentials');
-    }
-
-    const user = userRepository.findByUsername(input.username);
+    const user = await this.verifyCredentials(input);
     if (!user) {
-      return createError('UNAUTHORIZED', 'Invalid credentials');
-    }
-
-    const isValid = await verifyPassword(input.password, user.password_hash);
-    if (!isValid) {
       return createError('UNAUTHORIZED', 'Invalid credentials');
     }
 
@@ -141,6 +141,29 @@ export class AuthService {
       success: true,
       data: await generateAuthResult(user),
     };
+  }
+
+  async createApiToken(userId: string, days: number | string): Promise<Result<{ token: string }>> {
+    const user = userRepository.findById(userId);
+    if (!user) {
+      return createError('INVALID_TOKEN', 'A login token is required to create an API token');
+    }
+    return issueApiToken(user, days);
+  }
+
+  async createApiTokenWithCredentials(input: LoginInput, days: number | string): Promise<Result<{ token: string }>> {
+    const user = await this.verifyCredentials(input);
+    if (!user) {
+      return createError('INVALID_CREDENTIALS', 'Invalid username or password');
+    }
+    return issueApiToken(user, days);
+  }
+
+  private async verifyCredentials(input: LoginInput): Promise<User | null> {
+    if (!input.username || !input.password) return null;
+    const user = userRepository.findByUsername(input.username);
+    if (!user) return null;
+    return (await verifyPassword(input.password, user.password_hash)) ? user : null;
   }
 
   getUserById(userId: string): Omit<User, 'password_hash'> | null {

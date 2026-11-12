@@ -89,6 +89,13 @@ export const auth = {
   async me(): Promise<ApiResponse<User>> {
     return request<User>('/auth/me');
   },
+
+  async createApiToken(days: number): Promise<ApiResponse<{ token: string }>> {
+    return request<{ token: string }>('/auth/api-token', {
+      method: 'POST',
+      body: JSON.stringify({ days }),
+    });
+  },
 };
 
 // --- Item types ---

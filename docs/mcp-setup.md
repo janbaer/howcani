@@ -67,6 +67,8 @@ Same config as above, without the `Authorization` header. The `X-Username` heade
 
 ## Generating an API token
 
+Log in and open **Settings → API token**, choose the lifetime in days and copy the token; it is shown only once. From a script:
+
 ```bash
 http POST <base-url>/api/auth/api-token \
   username=jan \
@@ -74,7 +76,7 @@ http POST <base-url>/api/auth/api-token \
   days:=90
 ```
 
-The returned token is valid for 90 days and can be used in the `Authorization: Bearer` header for write tools.
+The returned token is valid for the requested number of days (1–365) and can be used in the `Authorization: Bearer` header for write tools.
 
 ## Testing with HTTPie
 

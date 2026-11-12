@@ -2,6 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:te
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { SignJWT } from 'jose';
 import { createToken } from '../auth/jwt.ts';
 import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
@@ -81,6 +82,19 @@ describe('createMcpServer - username resolution', () => {
     expect(result.isError).toBeFalsy();
     const data = JSON.parse(resultText(result));
     expect(data).toHaveProperty('items');
+  });
+
+  test('create_item accepts a token issued before tokens carried a kind', async () => {
+    const legacyToken = await new SignJWT({ userId: testUserId, username: testUsername, email: 'test@example.com' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('1d')
+      .setIssuedAt()
+      .sign(new TextEncoder().encode(process.env.HOWCANI_JWT_SECRET));
+    const { client } = await createTestClient({ authHeader: `Bearer ${legacyToken}` });
+
+    const result = await client.callTool({ name: 'create_item', arguments: { question: 'Legacy token?' } });
+
+    expect(result.isError).toBeFalsy();
   });
 
   test('returns error when Bearer token is invalid', async () => {

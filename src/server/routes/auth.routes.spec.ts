@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
-import { createToken } from '../auth';
+import { createApiToken, createToken } from '../auth';
 import { setupTestDatabase } from '../db/test-helpers';
 import type { User } from '../repositories/user.repository';
 import { type AuthError, type AuthResult, authService } from '../services/auth.service';
@@ -92,6 +92,17 @@ const mockAuthService = {
     }
     return null;
   }),
+  createApiToken: mock(async (userId: string, days: number | string): Promise<Result<{ token: string }>> => {
+    if (Number(days) === 0) return createErrorResult('INVALID_DAYS', 'days must be an integer between 1 and 365');
+    return createSuccessResult({ token: `api-token-for-${userId}` });
+  }),
+  createApiTokenWithCredentials: mock(
+    async (input: { username: string; password: string }): Promise<Result<{ token: string }>> => {
+      if (input.password !== 'secure123')
+        return createErrorResult('INVALID_CREDENTIALS', 'Invalid username or password');
+      return createSuccessResult({ token: `api-token-for-${input.username}` });
+    },
+  ),
 };
 
 stubMethods(authService, mockAuthService);
@@ -288,6 +299,75 @@ describe('Auth Routes', () => {
       );
 
       expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+    });
+  });
+
+  describe('POST /api/auth/api-token', () => {
+    const alice = { userId: 'alice-id', username: 'alice', email: 'alice@example.com' };
+    const credentials = { username: 'alice', password: 'secure123' };
+
+    beforeEach(() => {
+      mockAuthService.createApiToken.mockClear();
+      mockAuthService.createApiTokenWithCredentials.mockClear();
+    });
+
+    function requestApiToken(body: object, authorization?: string) {
+      return app.handle(
+        new Request('http://localhost/api/auth/api-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authorization !== undefined ? { Authorization: authorization } : {}),
+          },
+          body: JSON.stringify(body),
+        }),
+      );
+    }
+
+    test('issues an API token for the user of a login token, ignoring a body username', async () => {
+      const res = await requestApiToken({ days: 30, username: 'bob' }, `Bearer ${await createToken(alice)}`);
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect((await res.json()).token).toBe('api-token-for-alice-id');
+      expect(mockAuthService.createApiToken).toHaveBeenCalledWith('alice-id', 30);
+      expect(mockAuthService.createApiTokenWithCredentials).not.toHaveBeenCalled();
+    });
+
+    test('rejects an API token as Bearer', async () => {
+      const res = await requestApiToken({ days: 30 }, `Bearer ${await createApiToken(alice, 30)}`);
+
+      expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+      expect(mockAuthService.createApiToken).not.toHaveBeenCalled();
+    });
+
+    test.each([
+      ['an invalid Bearer token', 'Bearer invalid-token'],
+      ['an empty Authorization header', ''],
+    ])('rejects %s even with valid credentials', async (_, authorization) => {
+      const res = await requestApiToken({ days: 30, ...credentials }, authorization);
+
+      expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+      expect(mockAuthService.createApiTokenWithCredentials).not.toHaveBeenCalled();
+    });
+
+    test('issues an API token for username and password', async () => {
+      const res = await requestApiToken({ days: 30, ...credentials });
+
+      expect(res.status).toBe(StatusCodes.OK);
+      expect(mockAuthService.createApiTokenWithCredentials).toHaveBeenCalledWith(credentials, 30);
+    });
+
+    test('maps invalid credentials to 401', async () => {
+      const res = await requestApiToken({ days: 30, username: 'alice', password: 'wrong' });
+
+      expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+      expect((await res.json()).error.code).toBe('INVALID_CREDENTIALS');
+    });
+
+    test('maps invalid days to 400', async () => {
+      const res = await requestApiToken({ days: 0 }, `Bearer ${await createToken(alice)}`);
+
+      expect(res.status).toBe(StatusCodes.BAD_REQUEST);
     });
   });
 });

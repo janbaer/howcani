@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { __setConfigForTests } from '../config/config.service';
-import { createToken, extractBearerToken, verifyToken } from './jwt';
+import { createApiToken, createToken, extractBearerToken, verifyToken } from './jwt';
 
 describe('JWT', () => {
   afterEach(() => {
@@ -29,6 +29,13 @@ describe('JWT', () => {
       expect(result?.exp).toBeDefined();
       expect(result?.iat).toBeDefined();
       expect((result?.exp as number) - (result?.iat as number)).toBe(60);
+    });
+
+    test('marks login and API tokens with their kind', async () => {
+      const payload = { userId: 'u1', username: 'john', email: 'john@example.com' };
+
+      expect((await verifyToken(await createToken(payload)))?.kind).toBe('login');
+      expect((await verifyToken(await createApiToken(payload, 30)))?.kind).toBe('api');
     });
 
     test('returns null for invalid token', async () => {

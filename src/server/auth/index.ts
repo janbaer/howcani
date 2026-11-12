@@ -1,4 +1,5 @@
 export {
+  createApiToken,
   createToken,
   extractBearerToken,
   type TokenPayload,

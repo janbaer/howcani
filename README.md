@@ -155,6 +155,8 @@ Writes (`create_item`, `update_item`) always require a valid Bearer token. The `
 
 ### Getting an API token
 
+Log in and open **Settings → API token**, choose the lifetime in days and copy the token; it is shown only once. From a script:
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/api-token \
   -H "Content-Type: application/json" \

@@ -8,22 +8,27 @@ if (!HOWCANI_JWT_SECRET) {
 }
 const secret = new TextEncoder().encode(HOWCANI_JWT_SECRET);
 
+export type TokenKind = 'login' | 'api';
+
 export interface TokenPayload extends JWTPayload {
   userId: string;
   username: string;
   email: string;
+  kind?: TokenKind;
 }
 
-export async function createToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): Promise<string> {
-  return new SignJWT(payload)
+type TokenClaims = Omit<TokenPayload, 'iat' | 'exp' | 'kind'>;
+
+export async function createToken(payload: TokenClaims): Promise<string> {
+  return new SignJWT({ ...payload, kind: 'login' })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime(getConfig().auth.tokenExpiration)
     .setIssuedAt()
     .sign(secret);
 }
 
-export async function createApiToken(payload: Omit<TokenPayload, 'iat' | 'exp'>, days: number): Promise<string> {
-  return new SignJWT(payload)
+export async function createApiToken(payload: TokenClaims, days: number): Promise<string> {
+  return new SignJWT({ ...payload, kind: 'api' })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime(`${days}d`)
     .setIssuedAt()
