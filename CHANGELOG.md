@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.130 - 2026-11-12
+---
+
+- Made login via an OIDC provider such as Pocket ID possible, so HowCanI no longer needs a separate password when a central login already exists. It is off by default; with `auth.provider: oidc` in `config.yaml` password login and registration are disabled and the provider's username has to match an existing user.
+
 ## 3.0.129 - 2026-11-12
 ---
 
