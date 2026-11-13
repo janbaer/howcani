@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.131 - 2026-11-13
+---
+
+- Took over the open Renovate updates:
+  - `express-rate-limit` 8.7.4
+  - `jose` 6.2.17
+
 ## 3.0.130 - 2026-11-12
 ---
 
