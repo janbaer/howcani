@@ -440,6 +440,35 @@ describe('TagService', () => {
     });
   });
 
+  describe('tag order', () => {
+    const names = ['b', 'A', 'Äx', '_y'];
+    const expected = ['_y', 'A', 'Äx', 'b'];
+
+    test('cached service sorts by locale', () => {
+      const user = createTestUser('john');
+      const tags = names.map((name) => mockTagRepository.create({ userId: user.id, name }));
+      itemTagMap.set(
+        'item-1',
+        tags.map((t) => t.id),
+      );
+
+      const result = new TagService(user.id).findTagsForItem('item-1');
+
+      expect(result.map((t) => t.name)).toEqual(expected);
+    });
+
+    test('uncached service sorts the same way as the cached one', () => {
+      const user = createTestUser('john');
+      const tags = names.map((name) => mockTagRepository.create({ userId: user.id, name }));
+      const nocaseOrder = ['_y', 'A', 'b', 'Äx'].map((n) => tags.find((t) => t.name === n) as Tag);
+      mockTagRepository.getTagsForItem.mockReturnValueOnce(nocaseOrder);
+
+      const result = new TagService('').findTagsForItem('item-1');
+
+      expect(result.map((t) => t.name)).toEqual(expected);
+    });
+  });
+
   describe('cache maintenance', () => {
     test('resolveOrCreateTags adds new tags to cache', () => {
       const user = createTestUser('john');

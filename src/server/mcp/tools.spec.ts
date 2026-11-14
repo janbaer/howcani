@@ -8,6 +8,7 @@ import { TagRepository } from '../repositories/tag.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { itemRoutes } from '../routes/item.routes';
 import { embeddingService } from '../services/embedding.service';
+import { createSession } from '../services/session';
 import { stubMethods } from '../test-stubs';
 import { createItem, getItem, getRelatedItems, listItems, listTags, searchItems, updateItem } from './tools';
 
@@ -254,6 +255,27 @@ describe('read tools', () => {
     expect((nobody.content[0] as { text: string }).text).toBe('User "nobody" not found');
     expect((await listItems({ username: 'nobody' })).isError).toBe(true);
     expect(listTags({ username: 'nobody' }).isError).toBe(true);
+  });
+
+  test('public list and list_items show a tag rename and delete made through the session', async () => {
+    seedTaggedItems(2, ['old', 'gone']);
+    const session = createSession(userId, 'reader');
+    const tags = tagRepo.findAllByUserId(userId);
+    const old = tags.find((t) => t.name === 'old');
+    const gone = tags.find((t) => t.name === 'gone');
+    expect(old).toBeDefined();
+    expect(gone).toBeDefined();
+    const tagNames = (items: { tags: { name: string }[] }[]) => items.map((i) => i.tags.map((t) => t.name));
+
+    expect(session.tagService.updateTag(old?.id ?? '', { name: 'renamed' }).success).toBe(true);
+    expect(session.tagService.deleteTag(gone?.id ?? '').success).toBe(true);
+
+    const mcp = parse(await listItems({ username: 'reader' }));
+    const res = await app.handle(new Request('http://localhost/api/reader/items'));
+    const rest = await res.json();
+
+    expect(tagNames(mcp.items)).toEqual([['renamed'], ['renamed']]);
+    expect(tagNames(rest.items)).toEqual([['renamed'], ['renamed']]);
   });
 
   test('list_tags returns the tags of the user', () => {

@@ -10,6 +10,10 @@ export type TagError =
 
 type Result<T> = { success: true; data: T } | { success: false; error: TagError };
 
+function sortByName(tags: Tag[]): Tag[] {
+  return tags.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function createError(code: TagError['code'], message: string): { success: false; error: TagError } {
   return { success: false, error: { code, message } };
 }
@@ -84,12 +88,9 @@ export class TagService {
   findTagsForItem(itemId: string): Tag[] {
     if (this.cache) {
       const tagIds = this.cache.itemTags.get(itemId) ?? [];
-      return tagIds
-        .map((id) => this.cache?.tags.get(id))
-        .filter((t): t is Tag => t !== undefined)
-        .sort((a, b) => a.name.localeCompare(b.name));
+      return sortByName(tagIds.map((id) => this.cache?.tags.get(id)).filter((t): t is Tag => t !== undefined));
     }
-    return tagRepository.getTagsForItem(itemId);
+    return sortByName(tagRepository.getTagsForItem(itemId));
   }
 
   updateTag(tagId: string, data: { name?: string; color?: string }): Result<Tag> {
