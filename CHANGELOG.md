@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.134 - 2026-11-14
+---
+
+- The MCP read tools now go through the same service layer as the web app, so search, paging and tag filters behave the same in both. `get_related_items` also returns a relevance score, and a limit of 0 or less is raised to 1.
+
 ## 3.0.133 - 2026-11-14
 ---
 
