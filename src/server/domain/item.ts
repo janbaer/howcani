@@ -23,6 +23,7 @@ export interface UpdateItemData {
 
 export const MAX_QUESTION_LENGTH = 500;
 export const MAX_ANSWER_LENGTH = 50_000;
+
 export function validateQuestion(question: string | null | undefined): ValidationResult {
   const errors: string[] = [];
 
