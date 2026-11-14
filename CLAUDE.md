@@ -78,7 +78,7 @@ Two modes, selected by `embedding.enabled` in `config.yaml` (false ⇒ FTS5 only
 
 ### MCP Server (`src/server/mcp/`)
 
-Stateless HTTP MCP server at `/mcp`. Auth is a Bearer token checked per-call in `tools.ts` (not via the Elysia auth plugin). Tools bypass the service layer and call repositories directly — this is intentional.
+Stateless HTTP MCP server at `/mcp`. Auth is a Bearer token checked per-call in `tools.ts` (not via the Elysia auth plugin). Write tools call `ItemService` through a session built from the token; the read tools still call repositories directly until they move too (#191).
 
 ### Client (`src/client/`)
 

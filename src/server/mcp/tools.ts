@@ -5,6 +5,7 @@ import { ItemRepository } from '../repositories/item.repository.ts';
 import { TagRepository } from '../repositories/tag.repository.ts';
 import { UserRepository } from '../repositories/user.repository.ts';
 import { embeddingService } from '../services/embedding.service.ts';
+import { createSession } from '../services/session.ts';
 
 const userRepo = new UserRepository();
 const itemRepo = new ItemRepository();
@@ -119,34 +120,18 @@ export async function updateItem(args: {
   const payload = await verifyToken(token);
   if (!payload) return error('Authentication failed: invalid or expired token');
 
-  const existing = itemRepo.findByIdAndUserId(args.item_id, payload.userId);
-  if (!existing) return error(`Item "${args.item_id}" not found`);
-
-  const updated = itemRepo.update(args.item_id, {
+  const session = createSession(payload.userId, payload.username);
+  const result = session.itemService.updateItem(args.item_id, {
     question: args.question,
     answer: args.answer,
+    tags: args.tags,
   });
 
-  if (!updated) return error(`Failed to update item "${args.item_id}"`);
-
-  if (args.tags !== undefined) {
-    const tagIds: string[] = [];
-    for (const tagName of args.tags) {
-      const existingTag = tagRepo.findByNameAndUserId(tagName, payload.userId);
-      if (existingTag) {
-        tagIds.push(existingTag.id);
-      } else {
-        const created = tagRepo.create({ userId: payload.userId, name: tagName });
-        tagIds.push(created.id);
-      }
-    }
-    tagRepo.setItemTags(updated.id, tagIds);
+  if (!result.success) {
+    return error(result.error.code === 'NOT_FOUND' ? `Item "${args.item_id}" not found` : result.error.message);
   }
 
-  return success({
-    ...updated,
-    tags: tagRepo.getTagsForItem(updated.id),
-  });
+  return success(result.data);
 }
 
 export function getRelatedItems(args: { username: string; item_id: string }): CallToolResult {
@@ -172,28 +157,14 @@ export async function createItem(args: {
   const payload = await verifyToken(token);
   if (!payload) return error('Authentication failed: invalid or expired token');
 
-  const item = itemRepo.create({
-    userId: payload.userId,
+  const session = createSession(payload.userId, payload.username);
+  const result = session.itemService.createItem({
     question: args.question,
     answer: args.answer,
+    tags: args.tags,
   });
 
-  if (args.tags && args.tags.length > 0) {
-    const tagIds: string[] = [];
-    for (const tagName of args.tags) {
-      const existing = tagRepo.findByNameAndUserId(tagName, payload.userId);
-      if (existing) {
-        tagIds.push(existing.id);
-      } else {
-        const created = tagRepo.create({ userId: payload.userId, name: tagName });
-        tagIds.push(created.id);
-      }
-    }
-    tagRepo.setItemTags(item.id, tagIds);
-  }
+  if (!result.success) return error(result.error.message);
 
-  return success({
-    ...item,
-    tags: tagRepo.getTagsForItem(item.id),
-  });
+  return success(result.data);
 }

@@ -23,7 +23,7 @@ Satisfies: R1, R12 · Origin: fix-jwt-secret-fallback · Date: 2026-02-14
 
 ## Embeddings never block or fail a request
 
-Embedding on create or update only logs on failure; the item is saved either way. Related items, duplicates and the duplicates overview return an empty list with 200 when sqlite-vec is unavailable or an item has no embedding yet, and a new item has none for up to one backfill interval. Restore writes with direct SQL, bypassing `ItemService`, and does not embed: that keeps a bulk import fast and free of side effects, and the cron backfill picks the items up.
+Embedding on create or update, through REST and MCP alike, only logs on failure; the item is saved either way. Related items, duplicates and the duplicates overview return an empty list with 200 when sqlite-vec is unavailable or an item has no embedding yet, and an item whose embed failed or that was restored has none for up to one backfill interval. Restore writes with direct SQL, bypassing `ItemService`, and does not embed: that keeps a bulk import fast and free of side effects, and the cron backfill picks the items up.
 
 Satisfies: R8, R9, R10, R14 · Origin: #32, #43, semantic-search, backup-restore-upload · Date: 2026-02-23
 

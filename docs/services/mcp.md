@@ -20,3 +20,9 @@ Satisfies: R11, R2 · Origin: #10 · Date: 2026-02-17
 `update_item` takes question, answer and tags as optional; a call with none of them is accepted and only bumps the item. Tags, when given, replace the full set, as in REST. The item is resolved by id and user, so a missing and a foreign item produce the same error. `get_related_items` also returns an error for them rather than an empty array, so callers notice bad ids.
 
 Satisfies: R11, R3 · Origin: #17, #34 · Date: 2026-02-18
+
+## Write tools go through ItemService
+
+`create_item` and `update_item` build a session from the token and call `ItemService`, like the REST routes. That gives MCP writes the embedding, tag normalisation and validation of the service layer without a second copy in `tools.ts`. An empty or invalid question is now rejected as in REST; the earlier direct repository calls left MCP-created items without an embedding until the backfill cron. The read tools still read through repositories until they move as well.
+
+Satisfies: R11, R3, R8 · Origin: #99 · Date: 2026-11-14
