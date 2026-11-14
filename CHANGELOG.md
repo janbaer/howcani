@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.135 - 2026-11-14
+---
+
+- Tags now appear in the same order for logged-in and public readers and in MCP. Before, tags with umlauts such as `Äx` sorted after `b` on public pages and in MCP, but next to `A` when logged in.
+
 ## 3.0.134 - 2026-11-14
 ---
 
