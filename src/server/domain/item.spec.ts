@@ -1,11 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 import {
   type CreateItemData,
-  clampLimit,
   type Item,
   MAX_ANSWER_LENGTH,
   MAX_QUESTION_LENGTH,
-  parseTagFilter,
   type UpdateItemData,
   validateCreateItemData,
   validateQuestion,
@@ -236,30 +234,5 @@ describe('Item Domain', () => {
       expect(result.valid).toBe(false);
       expect(result.errors).toContain(`Answer must be at most ${MAX_ANSWER_LENGTH} characters`);
     });
-  });
-});
-
-describe('clampLimit', () => {
-  test('uses the fallback when no usable value is given', () => {
-    expect(clampLimit(undefined, 20)).toBe(20);
-    expect(clampLimit(Number.NaN, 50)).toBe(50);
-  });
-
-  test('keeps the value within 1 and the maximum page size', () => {
-    expect(clampLimit(500, 20)).toBe(100);
-    expect(clampLimit(0, 20)).toBe(1);
-    expect(clampLimit(-5, 20)).toBe(1);
-    expect(clampLimit(30, 20)).toBe(30);
-  });
-});
-
-describe('parseTagFilter', () => {
-  test('returns undefined for a missing or empty value', () => {
-    expect(parseTagFilter(undefined)).toBeUndefined();
-    expect(parseTagFilter('')).toBeUndefined();
-  });
-
-  test('splits on commas, trims and drops blank names', () => {
-    expect(parseTagFilter(' a, ,b ')).toEqual(['a', 'b']);
   });
 });

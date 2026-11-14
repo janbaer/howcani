@@ -1,7 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { extractBearerToken, verifyToken } from '../auth/jwt.ts';
-import { clampLimit, parseTagFilter } from '../domain/item.ts';
-import { itemService } from '../services/item.service.ts';
+import { clampLimit, itemService, parseTagFilter } from '../services/item.service.ts';
 import { createSession } from '../services/session.ts';
 import { tagService } from '../services/tag.service.ts';
 
@@ -19,8 +18,8 @@ function serviceError(
   failure: { code: string; message: string },
   context: { username?: string; itemId?: string },
 ): CallToolResult {
-  if (failure.code === 'USER_NOT_FOUND' && context.username) return error(`User "${context.username}" not found`);
-  if (failure.code === 'NOT_FOUND' && context.itemId) return error(`Item "${context.itemId}" not found`);
+  if (failure.code === 'USER_NOT_FOUND') return error(`User "${context.username}" not found`);
+  if (failure.code === 'NOT_FOUND') return error(`Item "${context.itemId}" not found`);
   return error(failure.message);
 }
 

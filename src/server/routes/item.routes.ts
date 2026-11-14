@@ -1,8 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
-import { clampLimit, parseTagFilter } from '../domain/item';
 import { authPlugin } from '../middleware';
-import { itemService } from '../services/item.service';
+import { clampLimit, itemService, parseTagFilter } from '../services/item.service';
 
 export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   .use(authPlugin)

@@ -226,7 +226,7 @@ describe('read tools', () => {
   test('search_items and the REST search agree on ids, total and applied limit', async () => {
     seedTaggedItems(105, ['a', 'b']);
 
-    const mcp = parse(await searchItems({ username: 'reader', tags: ' a, ,b ', limit: 100 }));
+    const mcp = parse(await searchItems({ username: 'reader', tags: ' a, ,b ', limit: 500 }));
     const res = await app.handle(new Request('http://localhost/api/reader/items?tags=%20a,%20,b&limit=500'));
     const rest = await res.json();
 
@@ -235,14 +235,6 @@ describe('read tools', () => {
     expect(mcp.total).toBe(105);
     expect(mcp.total).toBe(rest.total);
     expect(mcp.items.map((i: { id: string }) => i.id)).toEqual(rest.items.map((i: { id: string }) => i.id));
-  });
-
-  test('search_items clamps an oversized limit like REST', async () => {
-    seedTaggedItems(105, ['a']);
-
-    const mcp = parse(await searchItems({ username: 'reader', tags: 'a', limit: 500 }));
-
-    expect(mcp.items).toHaveLength(100);
   });
 
   test('list_items keeps its default limit of 20', async () => {

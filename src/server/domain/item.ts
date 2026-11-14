@@ -23,21 +23,6 @@ export interface UpdateItemData {
 
 export const MAX_QUESTION_LENGTH = 500;
 export const MAX_ANSWER_LENGTH = 50_000;
-const MAX_PAGE_SIZE = 100;
-
-export function clampLimit(value: number | undefined, fallback: number): number {
-  const limit = value !== undefined && Number.isFinite(value) ? value : fallback;
-  return Math.min(Math.max(limit, 1), MAX_PAGE_SIZE);
-}
-
-export function parseTagFilter(raw: string | undefined): string[] | undefined {
-  if (!raw) return undefined;
-  return raw
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean);
-}
-
 export function validateQuestion(question: string | null | undefined): ValidationResult {
   const errors: string[] = [];
 

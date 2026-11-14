@@ -108,7 +108,7 @@ const mockEmbeddingService = {
 
 stubMethods(embeddingService, mockEmbeddingService);
 
-import { ItemService } from './item.service';
+import { clampLimit, ItemService, parseTagFilter } from './item.service';
 import type { TagService } from './tag.service';
 
 type MockTagService = Pick<TagService, 'findTagsForItem' | 'setItemTags' | 'resolveOrCreateTags'>;
@@ -693,5 +693,30 @@ describe('ItemService', () => {
       if (result.success) return;
       expect(result.error.code).toBe('NOT_FOUND');
     });
+  });
+});
+
+describe('clampLimit', () => {
+  test('uses the fallback when no usable value is given', () => {
+    expect(clampLimit(undefined, 20)).toBe(20);
+    expect(clampLimit(Number.NaN, 50)).toBe(50);
+  });
+
+  test('keeps the value within 1 and the maximum page size', () => {
+    expect(clampLimit(500, 20)).toBe(100);
+    expect(clampLimit(0, 20)).toBe(1);
+    expect(clampLimit(-5, 20)).toBe(1);
+    expect(clampLimit(30, 20)).toBe(30);
+  });
+});
+
+describe('parseTagFilter', () => {
+  test('returns undefined for a missing or empty value', () => {
+    expect(parseTagFilter(undefined)).toBeUndefined();
+    expect(parseTagFilter('')).toBeUndefined();
+  });
+
+  test('splits on commas, trims and drops blank names', () => {
+    expect(parseTagFilter(' a, ,b ')).toEqual(['a', 'b']);
   });
 });
