@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { clampLimit, parseTagFilter } from '../domain/item';
 import { authPlugin } from '../middleware';
 import { itemService } from '../services/item.service';
 
@@ -8,18 +9,12 @@ export const itemRoutes = new Elysia({ prefix: '/:username/items' })
   .get(
     '/',
     async ({ params, query, set }) => {
-      const parsedLimit = query.limit ? parseInt(query.limit, 10) : 50;
       const parsedOffset = query.offset ? parseInt(query.offset, 10) : 0;
-      const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 50, 1), 100);
+      const limit = clampLimit(query.limit ? parseInt(query.limit, 10) : undefined, 50);
       const offset = Math.max(Number.isFinite(parsedOffset) ? parsedOffset : 0, 0);
 
       const search = query.search || undefined;
-      const tags = query.tags
-        ? query.tags
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean)
-        : undefined;
+      const tags = parseTagFilter(query.tags);
 
       const result = await itemService.listItems(params.username, { limit, offset }, { search, tags });
 

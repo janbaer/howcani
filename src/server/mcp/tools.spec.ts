@@ -1,12 +1,15 @@
 import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { Elysia } from 'elysia';
 import { createToken } from '../auth/jwt';
 import { db } from '../db/database';
 import { clearTestDatabase, setupTestDatabase } from '../db/test-helpers';
 import { ItemRepository } from '../repositories/item.repository';
+import { TagRepository } from '../repositories/tag.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { itemRoutes } from '../routes/item.routes';
 import { embeddingService } from '../services/embedding.service';
 import { stubMethods } from '../test-stubs';
-import { createItem, getRelatedItems, updateItem } from './tools';
+import { createItem, getItem, getRelatedItems, listItems, listTags, searchItems, updateItem } from './tools';
 
 const mockEmbeddingService = {
   embedDocument: mock(async (_text: string) => new Float32Array(1536)),
@@ -66,6 +69,7 @@ describe('getRelatedItems', () => {
     expect(data.items.length).toBeGreaterThanOrEqual(1);
     expect(data.items.map((i: { id: string }) => i.id)).not.toContain(source.id);
     expect(data.items[0]).toHaveProperty('tags');
+    expect(data.items[0]).toHaveProperty('relevance');
   });
 
   test('returns empty items array when item has no embedding', () => {
@@ -183,5 +187,88 @@ describe('write tools', () => {
     expect(missingResult.isError).toBe(true);
     expect((foreignResult.content[0] as { text: string }).text).toContain('not found');
     expect((missingResult.content[0] as { text: string }).text).toContain('not found');
+  });
+});
+
+describe('read tools', () => {
+  let userRepo: UserRepository;
+  let itemRepo: ItemRepository;
+  let tagRepo: TagRepository;
+  let userId: string;
+  const app = new Elysia({ prefix: '/api' }).use(itemRoutes);
+
+  beforeAll(() => {
+    setupTestDatabase();
+    userRepo = new UserRepository();
+    itemRepo = new ItemRepository();
+    tagRepo = new TagRepository();
+  });
+
+  beforeEach(() => {
+    clearTestDatabase();
+    userId = userRepo.create({
+      username: 'reader',
+      email: 'reader@example.com',
+      passwordHash: '[REDACTED:passwordHash]',
+    }).id;
+  });
+
+  const parse = (result: { content: unknown[] }) => JSON.parse((result.content[0] as { text: string }).text);
+
+  function seedTaggedItems(count: number, tagNames: string[]) {
+    const tagIds = tagNames.map((name) => tagRepo.create({ userId, name, color: '0e8a16' }).id);
+    for (let i = 0; i < count; i++) {
+      const item = itemRepo.create({ userId, question: `Question ${i}`, answer: '' });
+      tagRepo.setItemTags(item.id, tagIds);
+    }
+  }
+
+  test('search_items and the REST search agree on ids, total and applied limit', async () => {
+    seedTaggedItems(105, ['a', 'b']);
+
+    const mcp = parse(await searchItems({ username: 'reader', tags: ' a, ,b ', limit: 100 }));
+    const res = await app.handle(new Request('http://localhost/api/reader/items?tags=%20a,%20,b&limit=500'));
+    const rest = await res.json();
+
+    expect(mcp.items).toHaveLength(100);
+    expect(rest.items).toHaveLength(100);
+    expect(mcp.total).toBe(105);
+    expect(mcp.total).toBe(rest.total);
+    expect(mcp.items.map((i: { id: string }) => i.id)).toEqual(rest.items.map((i: { id: string }) => i.id));
+  });
+
+  test('search_items clamps an oversized limit like REST', async () => {
+    seedTaggedItems(105, ['a']);
+
+    const mcp = parse(await searchItems({ username: 'reader', tags: 'a', limit: 500 }));
+
+    expect(mcp.items).toHaveLength(100);
+  });
+
+  test('list_items keeps its default limit of 20', async () => {
+    seedTaggedItems(25, ['a']);
+
+    const data = parse(await listItems({ username: 'reader' }));
+
+    expect(data.items).toHaveLength(20);
+    expect(data.total).toBe(25);
+  });
+
+  test('read tools name the unknown user and the missing item', async () => {
+    const missing = getItem({ username: 'reader', item_id: 'nope' });
+    const nobody = getItem({ username: 'nobody', item_id: 'nope' });
+
+    expect((missing.content[0] as { text: string }).text).toBe('Item "nope" not found');
+    expect((nobody.content[0] as { text: string }).text).toBe('User "nobody" not found');
+    expect((await listItems({ username: 'nobody' })).isError).toBe(true);
+    expect(listTags({ username: 'nobody' }).isError).toBe(true);
+  });
+
+  test('list_tags returns the tags of the user', () => {
+    seedTaggedItems(2, ['a', 'b']);
+
+    const data = parse(listTags({ username: 'reader' }));
+
+    expect(data.tags.map((t: { name: string }) => t.name).sort()).toEqual(['a', 'b']);
   });
 });

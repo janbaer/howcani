@@ -21,8 +21,8 @@ Satisfies: R11, R2 · Origin: #10 · Date: 2026-02-17
 
 Satisfies: R11, R3 · Origin: #17, #34 · Date: 2026-02-18
 
-## Write tools go through ItemService
+## Tools go through the services
 
-`create_item` and `update_item` build a session from the token and call `ItemService`, like the REST routes. That gives MCP writes the embedding, tag normalisation and validation of the service layer without a second copy in `tools.ts`. An empty or invalid question is now rejected as in REST; the earlier direct repository calls left MCP-created items without an embedding until the backfill cron. The read tools still read through repositories until they move as well.
+The write tools build a session from the token and call `ItemService`, like the REST routes; the read tools call the `itemService` and `tagService` singletons, as the public REST reads do. That gives MCP writes the embedding, tag normalisation and validation of the service layer without a second copy in `tools.ts`. An empty or invalid question is now rejected as in REST; the earlier direct repository calls left MCP-created items without an embedding until the backfill cron. Limit clamp and tag splitting come from `domain/item.ts` for both transports, so a search setting or a page-size change is made once. MCP keeps its own default limit of 20 against REST's 50.
 
-Satisfies: R11, R3, R8 · Origin: #99 · Date: 2026-11-14
+Satisfies: R11, R3, R8, R5 · Origin: #99, #191 · Date: 2026-11-14

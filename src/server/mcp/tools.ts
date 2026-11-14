@@ -1,15 +1,11 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { extractBearerToken, verifyToken } from '../auth/jwt.ts';
-import { getConfig } from '../config/config.service.ts';
-import { ItemRepository } from '../repositories/item.repository.ts';
-import { TagRepository } from '../repositories/tag.repository.ts';
-import { UserRepository } from '../repositories/user.repository.ts';
-import { embeddingService } from '../services/embedding.service.ts';
+import { clampLimit, parseTagFilter } from '../domain/item.ts';
+import { itemService } from '../services/item.service.ts';
 import { createSession } from '../services/session.ts';
+import { tagService } from '../services/tag.service.ts';
 
-const userRepo = new UserRepository();
-const itemRepo = new ItemRepository();
-const tagRepo = new TagRepository();
+const DEFAULT_LIMIT = 20;
 
 function success(data: unknown): CallToolResult {
   return { content: [{ type: 'text', text: JSON.stringify(data) }] };
@@ -19,19 +15,13 @@ function error(message: string): CallToolResult {
   return { content: [{ type: 'text', text: message }], isError: true };
 }
 
-function resolveUser(
-  username: string,
-): { ok: true; userId: string; semanticSearchEnabled: boolean } | { ok: false; result: CallToolResult } {
-  const user = userRepo.findByUsername(username);
-  if (!user) return { ok: false, result: error(`User "${username}" not found`) };
-  return { ok: true, userId: user.id, semanticSearchEnabled: getConfig().embedding.enabled };
-}
-
-function attachTags(items: { id: string }[]) {
-  return items.map((item) => ({
-    ...item,
-    tags: tagRepo.getTagsForItem(item.id),
-  }));
+function serviceError(
+  failure: { code: string; message: string },
+  context: { username?: string; itemId?: string },
+): CallToolResult {
+  if (failure.code === 'USER_NOT_FOUND' && context.username) return error(`User "${context.username}" not found`);
+  if (failure.code === 'NOT_FOUND' && context.itemId) return error(`Item "${context.itemId}" not found`);
+  return error(failure.message);
 }
 
 export async function searchItems(args: {
@@ -40,71 +30,38 @@ export async function searchItems(args: {
   tags?: string;
   limit?: number;
 }): Promise<CallToolResult> {
-  const resolved = resolveUser(args.username);
-  if (!resolved.ok) return resolved.result;
+  const result = await itemService.listItems(
+    args.username,
+    { limit: clampLimit(args.limit, DEFAULT_LIMIT) },
+    { search: args.query, tags: parseTagFilter(args.tags) },
+  );
+  if (!result.success) return serviceError(result.error, { username: args.username });
 
-  const tagList = args.tags
-    ? args.tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean)
-    : undefined;
-
-  let queryVector: Float32Array | null = null;
-  if (resolved.semanticSearchEnabled && args.query) {
-    queryVector = await embeddingService.embedQuery(args.query);
-  }
-
-  const result = itemRepo.searchItems(resolved.userId, {
-    search: args.query,
-    tags: tagList,
-    limit: Math.min(args.limit ?? 20, 100),
-    useHybrid: resolved.semanticSearchEnabled,
-    queryVector,
-    minSimilarity: getConfig().embedding.minSimilarity,
-    relevanceBand: getConfig().embedding.relevanceBand,
-  });
-
-  return success({
-    items: attachTags(result.items),
-    total: result.total,
-  });
+  return success({ items: result.data.items, total: result.data.total });
 }
 
-export function listItems(args: { username: string; limit?: number; offset?: number }): CallToolResult {
-  const resolved = resolveUser(args.username);
-  if (!resolved.ok) return resolved.result;
-
-  const result = itemRepo.findByUserId(resolved.userId, {
-    limit: Math.min(args.limit ?? 20, 100),
+export async function listItems(args: { username: string; limit?: number; offset?: number }): Promise<CallToolResult> {
+  const result = await itemService.listItems(args.username, {
+    limit: clampLimit(args.limit, DEFAULT_LIMIT),
     offset: args.offset ?? 0,
   });
+  if (!result.success) return serviceError(result.error, { username: args.username });
 
-  return success({
-    items: attachTags(result.items),
-    total: result.total,
-  });
+  return success({ items: result.data.items, total: result.data.total });
 }
 
 export function getItem(args: { username: string; item_id: string }): CallToolResult {
-  const resolved = resolveUser(args.username);
-  if (!resolved.ok) return resolved.result;
+  const result = itemService.getItem(args.item_id, args.username);
+  if (!result.success) return serviceError(result.error, { username: args.username, itemId: args.item_id });
 
-  const item = itemRepo.findByIdAndUserId(args.item_id, resolved.userId);
-  if (!item) return error(`Item "${args.item_id}" not found`);
-
-  return success({
-    ...item,
-    tags: tagRepo.getTagsForItem(item.id),
-  });
+  return success(result.data);
 }
 
 export function listTags(args: { username: string }): CallToolResult {
-  const resolved = resolveUser(args.username);
-  if (!resolved.ok) return resolved.result;
+  const result = tagService.listTags(args.username);
+  if (!result.success) return serviceError(result.error, { username: args.username });
 
-  const tags = tagRepo.findByUserId(resolved.userId);
-  return success({ tags });
+  return success({ tags: result.data });
 }
 
 export async function updateItem(args: {
@@ -127,22 +84,16 @@ export async function updateItem(args: {
     tags: args.tags,
   });
 
-  if (!result.success) {
-    return error(result.error.code === 'NOT_FOUND' ? `Item "${args.item_id}" not found` : result.error.message);
-  }
+  if (!result.success) return serviceError(result.error, { itemId: args.item_id });
 
   return success(result.data);
 }
 
 export function getRelatedItems(args: { username: string; item_id: string }): CallToolResult {
-  const resolved = resolveUser(args.username);
-  if (!resolved.ok) return resolved.result;
+  const result = itemService.getRelatedItems(args.item_id, args.username);
+  if (!result.success) return serviceError(result.error, { username: args.username, itemId: args.item_id });
 
-  const item = itemRepo.findByIdAndUserId(args.item_id, resolved.userId);
-  if (!item) return error(`Item "${args.item_id}" not found`);
-
-  const related = itemRepo.findRelated(args.item_id, resolved.userId);
-  return success({ items: attachTags(related.map(({ item }) => item)) });
+  return success({ items: result.data });
 }
 
 export async function createItem(args: {
