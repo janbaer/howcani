@@ -38,12 +38,12 @@ Services follow strict layer separation for maintainability and testability:
 
 | Layer | Can Access | Cannot Access |
 |-------|------------|---------------|
-| Routes | Services | Repositories, Domain (except types) |
+| Routes, MCP tools, cron jobs and other callers | Services | Repositories, Domain (except types) |
 | Services | Own Repository, Other Services | Other Repositories |
 | Repositories | Domain, Database | Services, Other Repositories |
 | Domain | Nothing | Everything else |
 
-**Rule: Services access other entities through their respective services, never directly through repositories.**
+The binding wording of this rule, including its one exception, is in `.code-review.md`.
 
 This enables:
 - Cleaner mocking in tests (mock services, not multiple repositories)
