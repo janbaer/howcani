@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.133 - 2026-11-14
+---
+
+- Items created or edited through MCP are now embedded right away, as in the web app, instead of waiting for the backfill job. MCP writes also validate their input like the API does, so an empty question is rejected.
+
 ## 3.0.132 - 2026-11-14
 ---
 
