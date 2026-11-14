@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.132 - 2026-11-14
+---
+
+- Took over the open Renovate updates:
+  - `marked` 18.2.0
+  - `fallow` 3.42.0
+
 ## 3.0.131 - 2026-11-13
 ---
 
