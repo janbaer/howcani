@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.137 - 2026-11-17
+---
+
+- Took over the open Renovate updates:
+  - `openid-client` 6.9.0
+  - `fallow` 3.43.0
+
 ## 3.0.136 - 2026-11-15
 ---
 
