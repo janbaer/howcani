@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.138 - 2026-11-18
+---
+
+- Took over the open Renovate updates:
+  - `dompurify` 3.4.18
+  - `fallow` 3.43.1
+
 ## 3.0.137 - 2026-11-17
 ---
 
