@@ -25,7 +25,7 @@
     "pre-push": "bun run build && bun check && bun run check:svelte && bun run lint:dead && bun test --isolate"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.7",
+    "@biomejs/biome": "2.6.8",
     "@tailwindcss/cli": "4.3.5",
     "@types/bun": "1.4.4",
     "bun-plugin-svelte": "0.0.6",
