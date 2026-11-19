@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.139 - 2026-11-19
+---
+
+- Moved the image to Bun 1.4.5, a security release with fixes in HTTP/1.1, TLS and DNS handling and SQLite 3.54.
+- Added a pre-push check that keeps the Bun version in the `Dockerfile`, in `renovate.json` and in `@types/bun` (major.minor) in step, after Renovate once bumped only the types.
+
 ## 3.0.138 - 2026-11-18
 ---
 
