@@ -15,6 +15,12 @@ Origin: add-git-hooks · Date: 2026-03-09
 
 Origin: #153, #155 · Date: 2026-10-11
 
+## Bun version is pinned in three places, checked on pre-push
+
+The Dockerfile `BUN_VERSION`, `constraints.bun` in `renovate.json` and `@types/bun` in `package.json` are bumped together. `@types/bun` may lag by a patch, because it is published after the runtime and has to pass `minimumReleaseAge`; `check:bun-pins` fails only when the first two differ or `@types/bun` differs from them in major.minor. Renovate's `bun` manager sees only `@types/bun`, so #157 bumped it alone and left the image and the Renovate constraint behind; the check runs first on pre-push to catch that. `scripts/build-docker.sh` passes the host's `bun --version` as `BUN_VERSION`, so the fallback build uses the host's Bun, not the Dockerfile default.
+
+Origin: #202 · Date: 2026-11-19
+
 ## The `dev` script depends on `tail -f /dev/null |`
 
 `dev` runs server and Tailwind watcher through `sh -c` with a `kill 0` trap. The pipe from `tail` is load-bearing: background jobs in a non-interactive `sh` get stdin from `/dev/null`, and the Tailwind CLI exits on stdin EOF. A crash of one child does not stop the other, so a dead watcher leaves `main.css` stale. `concurrently` was rejected to avoid a dependency.

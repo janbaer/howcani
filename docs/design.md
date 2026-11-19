@@ -12,7 +12,7 @@ Project-wide decisions the code does not show. Each entry names the requirements
 - `docs/services/mcp.md`: MCP identity and tools
 - `docs/services/auth.md`: login token lifetime
 - `docs/services/release.md`: CI image build, version injection, update detection
-- `docs/services/tooling.md`: git hooks, type checks, dev script, Tailwind
+- `docs/services/tooling.md`: git hooks, type checks, Bun version pins, dev script, Tailwind
 - `docs/services/client.md`: frontend mechanics that break silently
 
 ## JWT secret has no fallback

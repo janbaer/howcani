@@ -16,13 +16,14 @@
     "lint": "biome check ./src/",
     "lint:fix": "biome check --fix ./src/",
     "lint:dead": "fallow dead-code",
+    "check:bun-pins": "bun run scripts/check-bun-pins.ts",
     "db:migrate": "bun run src/server/db/migrate.ts",
     "mcp-inspect": "bunx @modelcontextprotocol/inspector",
     "postinstall": "bunx simple-git-hooks"
   },
   "simple-git-hooks": {
     "pre-commit": "bun run lint",
-    "pre-push": "bun run build && bun check && bun run check:svelte && bun run lint:dead && bun test --isolate"
+    "pre-push": "bun run check:bun-pins && bun run build && bun check && bun run check:svelte && bun run lint:dead && bun test --isolate"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
