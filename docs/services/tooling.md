@@ -17,7 +17,7 @@ Origin: #153, #155 · Date: 2026-10-11
 
 ## Bun version is pinned in three places, checked on pre-push
 
-The Dockerfile `BUN_VERSION`, `constraints.bun` in `renovate.json` and `@types/bun` in `package.json` are bumped together. `@types/bun` may lag by a patch, because it is published after the runtime and has to pass `minimumReleaseAge`; `check:bun-pins` fails only when the first two differ or `@types/bun` differs from them in major.minor. Renovate's `bun` manager sees only `@types/bun`, so #157 bumped it alone and left the image and the Renovate constraint behind; the check runs first on pre-push to catch that. `scripts/build-docker.sh` passes the host's `bun --version` as `BUN_VERSION`, so the fallback build uses the host's Bun, not the Dockerfile default.
+The Dockerfile `BUN_VERSION`, `constraints.bun` in `renovate.json` and `@types/bun` in `package.json` are bumped together. `@types/bun` may lag by a patch, because it is published after the runtime and has to pass `minimumReleaseAge`; `check:bun-pins` fails only when the first two differ or `@types/bun` differs from them in major.minor. Renovate's `bun` manager sees only `@types/bun`, so #157 bumped it alone and left the image and the Renovate constraint behind. A `custom.regex` manager and a shared `bun` group now bump all three in one PR; the check runs first on pre-push to catch a hand edit that moves only one. `scripts/build-docker.sh` passes the host's `bun --version` as `BUN_VERSION`, so the fallback build uses the host's Bun, not the Dockerfile default.
 
 Origin: #202 · Date: 2026-11-19
 

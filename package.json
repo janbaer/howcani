@@ -17,6 +17,7 @@
     "lint:fix": "biome check --fix ./src/",
     "lint:dead": "fallow dead-code",
     "check:bun-pins": "bun run scripts/check-bun-pins.ts",
+    "check:deploy": "bun run scripts/check-deploy.ts",
     "db:migrate": "bun run src/server/db/migrate.ts",
     "mcp-inspect": "bunx @modelcontextprotocol/inspector",
     "postinstall": "bunx simple-git-hooks"

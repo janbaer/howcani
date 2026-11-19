@@ -5,14 +5,22 @@ import index from '../index.html';
 import { loadConfig } from './config/config.service';
 import { runMigrations } from './db';
 import { handleMcpRequest } from './mcp';
-import { adminRoutes, authRoutes, duplicateRoutes, itemRoutes, settingsRoutes, tagRoutes, userRoutes } from './routes';
+import {
+  adminRoutes,
+  appVersion,
+  authRoutes,
+  duplicateRoutes,
+  healthRoutes,
+  itemRoutes,
+  settingsRoutes,
+  tagRoutes,
+  userRoutes,
+} from './routes';
 import { embeddingService } from './services/embedding.service';
 import { verifyEmbeddingShape } from './services/embedding-startup';
 import { assertOidcConfigured } from './services/oidc.service';
 import { schedulerService } from './services/scheduler.service';
 
-declare const APP_VERSION: string | undefined;
-const appVersion = typeof APP_VERSION !== 'undefined' ? APP_VERSION : Bun.env.npm_package_version;
 console.log(`[howcani] v${appVersion}`);
 
 loadConfig();
@@ -40,15 +48,11 @@ const api = new Elysia()
       .use(adminRoutes)
       .use(authRoutes)
       .use(duplicateRoutes)
+      .use(healthRoutes)
       .use(itemRoutes)
       .use(settingsRoutes)
       .use(tagRoutes)
-      .use(userRoutes)
-      .get('/health', () => ({
-        status: 'ok',
-        version: appVersion,
-        timestamp: new Date().toISOString(),
-      })),
+      .use(userRoutes),
   );
 
 const isDev = process.env.NODE_ENV !== 'production';

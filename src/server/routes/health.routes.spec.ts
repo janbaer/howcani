@@ -1,39 +1,34 @@
 import { describe, expect, test } from 'bun:test';
 import { Elysia } from 'elysia';
 import { StatusCodes } from 'http-status-codes';
+import { appVersion, healthRoutes } from './health.routes';
 
-const app = new Elysia().group('/api', (app) =>
-  app.get('/health', () => ({
-    status: 'ok',
-    version: typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'dev',
-    timestamp: new Date().toISOString(),
-  })),
-);
+const app = new Elysia().group('/api', (app) => app.use(healthRoutes));
 
-declare const APP_VERSION: string | undefined;
+async function getHealth() {
+  const res = await app.handle(new Request('http://localhost/api/health'));
+  return { res, data: await res.json() };
+}
 
 describe('GET /api/health', () => {
   test('returns 200 with status ok', async () => {
-    const res = await app.handle(new Request('http://localhost/api/health'));
+    const { res, data } = await getHealth();
     expect(res.status).toBe(StatusCodes.OK);
-  });
-
-  test('response includes version field as non-empty string', async () => {
-    const res = await app.handle(new Request('http://localhost/api/health'));
-    const data = await res.json();
-    expect(typeof data.version).toBe('string');
-    expect(data.version.length).toBeGreaterThan(0);
-  });
-
-  test('response includes status ok', async () => {
-    const res = await app.handle(new Request('http://localhost/api/health'));
-    const data = await res.json();
     expect(data.status).toBe('ok');
   });
 
+  test('response includes the app version', async () => {
+    const { data } = await getHealth();
+    expect(data.version).toBe(appVersion);
+  });
+
+  test('response includes the running Bun version', async () => {
+    const { data } = await getHealth();
+    expect(data.bun).toBe(Bun.version);
+  });
+
   test('response includes timestamp', async () => {
-    const res = await app.handle(new Request('http://localhost/api/health'));
-    const data = await res.json();
+    const { data } = await getHealth();
     expect(data.timestamp).toBeTruthy();
   });
 });

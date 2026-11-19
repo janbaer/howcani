@@ -17,6 +17,12 @@ Satisfies: R16 · Origin: #124, #126 · Date: 2026-09-18
 
 Satisfies: R19 · Origin: footer-version-display, #60 · Date: 2026-02-14, 2026-03-07
 
+## A release is verified against production's `/api/health`
+
+Production runs at `https://howcani.home.janbaer.de`. `/api/health` returns the app `version` and the runtime `bun` version, so a deploy can be checked from outside: `bun run check:deploy` polls it for up to ten minutes until `version` equals `package.json` and fails when `bun` differs from the Dockerfile `BUN_VERSION`. `HOWCANI_URL` overrides the address. The runtime version is exposed because the app version does not show which Bun the image runs.
+
+Satisfies: R16, R19 · Origin: bun-pin-automation · Date: 2026-11-19
+
 ## Update detection uses a generated service worker, without `skipWaiting`
 
 The service worker exists only to detect new versions, with no caching and no offline mode. The build writes `dist/sw.js` with the version embedded, because the browser byte-compares it and that triggers `updatefound`; dev serves the static placeholder `public/sw.js` and does not register it. On `updatefound` the client compares the version from `/api/health` before it shows the banner (#62). `skipWaiting` is deliberately not called on install: the user clicks Refresh, which posts `SKIP_WAITING`, and the page reloads on `controllerchange`, so there are no involuntary reloads. Polling a version endpoint as the only mechanism was rejected.

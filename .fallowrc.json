@@ -5,6 +5,7 @@
     "build-client.ts",
     "scripts/bump-version.ts",
     "scripts/check-bun-pins.ts",
+    "scripts/check-deploy.ts",
     "public/sw.js",
     "src/styles/app.css"
   ],

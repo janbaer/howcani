@@ -1,10 +1,22 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "enabledManagers": ["bun"],
+  "enabledManagers": ["bun", "custom.regex"],
   "constraints": {
     "bun": "1.4.5"
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Dockerfile$/", "/^renovate\\.json$/"],
+      "matchStrings": ["ARG BUN_VERSION=(?<currentValue>\\S+)", "\"bun\": \"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "bun",
+      "packageNameTemplate": "oven-sh/bun",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^bun-v(?<version>.+)$",
+      "versioningTemplate": "semver"
+    }
+  ],
   "dependencyDashboard": true,
   "automerge": false,
   "minimumReleaseAge": "3 days",
@@ -29,6 +41,10 @@
     {
       "matchUpdateTypes": ["major"],
       "enabled": false
+    },
+    {
+      "matchDepNames": ["bun", "@types/bun"],
+      "groupName": "bun"
     },
     {
       "matchJsonata": ["isVulnerabilityAlert = true"],

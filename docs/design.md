@@ -11,7 +11,7 @@ Project-wide decisions the code does not show. Each entry names the requirements
 - `docs/services/backup.md`: scheduled backup, download, restore
 - `docs/services/mcp.md`: MCP identity and tools
 - `docs/services/auth.md`: login token lifetime
-- `docs/services/release.md`: CI image build, version injection, update detection
+- `docs/services/release.md`: CI image build, version injection, deploy check, update detection
 - `docs/services/tooling.md`: git hooks, type checks, Bun version pins, dev script, Tailwind
 - `docs/services/client.md`: frontend mechanics that break silently
 
