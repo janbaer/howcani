@@ -2,6 +2,12 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.140 - 2026-11-19
+---
+
+- `/api/health` now reports the Bun version it runs on, so a deploy can be checked from outside; the new `check:deploy` script waits until production reports the released version and the pinned Bun.
+- Renovate now bumps the Bun version in the `Dockerfile`, in `renovate.json` and `@types/bun` in a single PR instead of leaving two of them behind.
+
 ## 3.0.139 - 2026-11-19
 ---
 
