@@ -33,7 +33,7 @@
     "bun-plugin-svelte": "0.0.6",
     "fallow": "3.43.2",
     "simple-git-hooks": "2.14.0",
-    "svelte": "5.57.3",
+    "svelte": "5.58.0",
     "svelte-check": "4.7.8",
     "tailwindcss": "4.3.5",
     "typescript": "6.0.3"
