@@ -2,6 +2,14 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.142 - 2026-11-22
+---
+
+- Took over the open Renovate updates:
+  - `svelte` 5.58.0
+  - `express-rate-limit` 8.7.5
+  - `jose` 6.2.18
+
 ## 3.0.141 - 2026-11-20
 ---
 
