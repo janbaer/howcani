@@ -2,6 +2,15 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.143 - 2026-11-24
+---
+
+- Took over the open Renovate updates:
+  - `svelte` 5.59.1
+  - `fallow` 3.45.0
+  - `openid-client` 6.9.1
+  - `@types/bun` 1.4.5
+
 ## 3.0.142 - 2026-11-22
 ---
 
