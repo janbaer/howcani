@@ -10,6 +10,7 @@ interface ApiResponse<T> {
   error?: ApiError;
 }
 
+import { StatusCodes } from 'http-status-codes';
 import { TOKEN_KEY } from './config';
 
 let accessToken: string | null = localStorage.getItem(TOKEN_KEY);
@@ -23,26 +24,35 @@ export function setAccessToken(token: string | null) {
   }
 }
 
-function authHeaders(): Record<string, string> {
-  return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+let sessionExpiredHandler: (() => void) | null = null;
+
+export function onSessionExpired(handler: () => void) {
+  sessionExpiredHandler = handler;
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
+async function send(endpoint: string, init: RequestInit = {}, anonymous = false): Promise<Response> {
+  const sentToken = anonymous ? null : accessToken;
+  const headers: Record<string, string> = { ...(init.headers as Record<string, string>) };
+  if (sentToken) {
+    headers.Authorization = `Bearer ${sentToken}`;
   }
 
+  const response = await fetch(`${API_BASE}${endpoint}`, { ...init, headers });
+
+  if (response.status === StatusCodes.UNAUTHORIZED && sentToken && sentToken === accessToken) {
+    sessionExpiredHandler?.();
+  }
+
+  return response;
+}
+
+async function request<T>(endpoint: string, options: RequestInit = {}, anonymous = false): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: 'include',
-    });
+    const response = await send(
+      endpoint,
+      { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers as Record<string, string>) } },
+      anonymous,
+    );
 
     const data = await response.json();
 
@@ -75,10 +85,7 @@ interface AuthResponse {
 
 export const auth = {
   async login(username: string, password: string): Promise<ApiResponse<AuthResponse>> {
-    return request<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password }),
-    });
+    return request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) }, true);
   },
 
   async register(username: string, email: string, password: string): Promise<ApiResponse<AuthResponse>> {
@@ -265,12 +272,7 @@ export const settings = {
     form.append('file', file);
     form.append('clearBeforeRestore', String(clearBeforeRestore));
     try {
-      const response = await fetch(`${API_BASE}/settings/backups/restore`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: form,
-        credentials: 'include',
-      });
+      const response = await send('/settings/backups/restore', { method: 'POST', body: form });
       const data = await response.json();
       if (!response.ok) {
         return { error: data.error as ApiError };
@@ -283,10 +285,7 @@ export const settings = {
 
   async downloadBackup(filename: string): Promise<Blob | null> {
     try {
-      const res = await fetch(`${API_BASE}/settings/backups/${encodeURIComponent(filename)}`, {
-        headers: authHeaders(),
-        credentials: 'include',
-      });
+      const res = await send(`/settings/backups/${encodeURIComponent(filename)}`);
       if (!res.ok) return null;
       return res.blob();
     } catch {

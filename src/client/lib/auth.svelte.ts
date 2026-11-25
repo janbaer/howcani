@@ -1,4 +1,4 @@
-import { type AuthProvider, auth, setAccessToken, type User } from './api';
+import { type AuthProvider, auth, onSessionExpired, setAccessToken, type User } from './api';
 import { navigate } from './router.svelte';
 
 interface AuthState {
@@ -96,13 +96,23 @@ export function startSsoLogin(): void {
   location.assign('/api/auth/oidc/login');
 }
 
-export async function logout(): Promise<void> {
+function endSession(): void {
   setAccessToken(null);
   state.user = null;
   state.isAuthenticated = false;
   state.error = null;
+}
+
+export async function logout(): Promise<void> {
+  endSession();
   navigate('/');
 }
+
+onSessionExpired(() => {
+  const wasAuthenticated = state.isAuthenticated;
+  endSession();
+  if (wasAuthenticated) navigate('/');
+});
 
 export async function checkAuth(): Promise<void> {
   state.isLoading = true;
