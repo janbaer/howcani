@@ -2,6 +2,11 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.144 - 2026-11-25
+---
+
+- An expired login now ends the session like a logout and returns to the start page instead of failing with a generic error. An expired token found when the app starts is removed without leaving the page (#101).
+
 ## 3.0.143 - 2026-11-24
 ---
 
