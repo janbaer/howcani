@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.145 - 2026-11-26
+---
+
+- Took over the open Renovate updates:
+  - `dompurify` 3.5.0
+  - `hono` 4.13.20
+
 ## 3.0.144 - 2026-11-25
 ---
 
