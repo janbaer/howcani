@@ -2,6 +2,13 @@
 
 This document contains a list of changes in the order of when they were introduced.
 
+## 3.0.147 - 2026-11-28
+---
+
+- Took over the open Renovate updates:
+  - `@biomejs/biome` 2.6.9
+  - `hono` 4.13.22
+
 ## 3.0.146 - 2026-11-27
 ---
 
